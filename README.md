@@ -707,7 +707,7 @@ enabled                        | `true`               | OFF           | Down (st
 The `battery` is *experimental* for now. I'm not sure whether the value is correct or not. Never trust this value for now.
 
 
-### <a id="#Advertisement-data-WoSensorTH">Meter (WoSensorTH)</a>
+### <a id="Advertisement-data-WoSensorTH">Meter (WoSensorTH)</a>
 
 Example of the advertisement data:
 
