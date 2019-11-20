@@ -750,7 +750,7 @@ The `battery` is *experimental* for now. I'm not sure whether the value is corre
 ---------------------------------------
 ## <a id="Release-Note">Release Note</a>
 
-* v0.0.1 (2019-11-20)
+* v0.0.2 (2019-11-20)
   * First public release
 
 ---------------------------------------
