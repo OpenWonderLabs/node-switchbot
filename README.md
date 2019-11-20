@@ -167,7 +167,7 @@ This sample discovers a Bot (WoHand), then put the Bot's arm down, finally put i
 
 ```javascript
 // Load the node-switchbot and get a `Switchbot` constructor object
-const Switchbot = require('../lib/switchbot.js');
+const Switchbot = require('node-switchbot');
 // Create an `Switchbot` object
 const switchbot = new Switchbot();
 
