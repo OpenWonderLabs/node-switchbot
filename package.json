@@ -1,0 +1,37 @@
+{
+  "name": "node-switchbot",
+  "version": "0.0.1",
+  "description": "The node-switchbot is a Node.js module which allows you to move your Switchbot (Bot)'s arm and to monitor the temperature/humidity from SwitchBot Thermometer & Hygrometer (Meter).",
+  "main": "./lib/switchbot.js",
+  "files": [
+    "lib"
+  ],
+  "directories": {
+    "lib": "./lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "switchbot",
+    "bot",
+    "meter",
+    "temperature",
+    "humidity",
+    "BLE",
+    "Bluetooth Low Energy",
+    "Bluetooth smart",
+    "Bluetooth"
+  ],
+  "homepage": "https://github.com/futomi",
+  "author": "Futomi Hatano <futomi.hatano@gmail.com> (https://github.com/futomi)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/futomi/node-switchbot.git"
+  },
+  "readmeFilename": "README.md",
+  "dependencies": {
+    "@abandonware/noble": ">=1.9.2-5"
+  }
+}
