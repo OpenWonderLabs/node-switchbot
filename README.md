@@ -700,9 +700,9 @@ If the `mode` is `false`, which means the light switch Add-on is not used, the `
 "Inverse the on/off direction" | Value of the `state` | Logical state | Physical arm position
 :------------------------------|:---------------------|:--------------|:------------
 disabled                       | `true`               | OFF           | Up (retracted)
-+                              | `false`              | ON            | Down (stretched)
+&nbsp;                         | `false`              | ON            | Down (stretched)
 enabled                        | `true`               | OFF           | Down (stretched)
-+                              | `false`              | ON            | Up (retracted)
+&nbsp;                         | `false`              | ON            | Up (retracted)
 
 The `battery` is *experimental* for now. I'm not sure whether the value is correct or not. Never trust this value for now.
 
@@ -737,8 +737,8 @@ Property      | Type    | Description
 `model`       | String  | This value is always `"T"`, which means "Meter (WoSensorTH)".
 `modelName`   | String  | This value is always `"WoSensorTH"`, which means "Meter".
 `temperature` | Object  |
-+ `c`         | Float   | Temperature (degree Celsius/°C)
-+ `f`         | Float   | Temperature (degree Fahrenheit/℉)
+&nbsp;&nbsp; `c`         | Float   | Temperature (degree Celsius/°C)
+&nbsp;&nbsp; `f`         | Float   | Temperature (degree Fahrenheit/℉)
 `fahrenheit`  | Boolean | The flag whether the Meter shows Fahrenheit (`true`) or Celsius (`false`) for the temperature on the display
 `humidity`    | Integer | Humidity (`%`)
 `battery`     | Integer | (**experimental**) This value indicates the battery level (`%`).
