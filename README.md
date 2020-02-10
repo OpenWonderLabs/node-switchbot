@@ -750,6 +750,9 @@ The `battery` is *experimental* for now. I'm not sure whether the value is corre
 ---------------------------------------
 ## <a id="Release-Note">Release Note</a>
 
+* v0.0.3 (2020-02-10)
+  * Now the characteristic UUID `0x2a00` (Device Name) is not mandatory. Some models of Bot don't seem to support the characteristic.
+  * Fixed the bug that the `turnOn()` method returns an error if the "Light switch Add-on" is set to "Disabled" on the Bot.
 * v0.0.2 (2019-11-20)
   * First public release
 
@@ -764,7 +767,7 @@ The `battery` is *experimental* for now. I'm not sure whether the value is corre
 
 The MIT License (MIT)
 
-Copyright (c) 2019 Futomi Hatano
+Copyright (c) 2019-2020 Futomi Hatano
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
