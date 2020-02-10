@@ -572,13 +572,13 @@ The `turnOn()` method sends a turn-on command to the Bot. This method returns a 
 
 If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
 
-When the Bot receives this command, the Bot's arm will be put down (stretched) or put up (retracted) depending on the settings.
+When the Bot receives this command, the Bot's arm will be put down (stretched) or put up (retracted) depending on the mode setting.
 
-Light switch Add-on | Inverse the on/off direction | Physical position of the arm
+Mode                | Inverse the on/off direction | Physical position of the arm
 :-------------------|:-----------------------------|:----------------------------
-Disabled            | N/A                          | Down (stretched), then Up (retracted)
-Enabled             | Disabled                     | Down (stretched)
-Enabled             | Enabled                      | Up (retracted)
+Press mode          | N/A                          | Down (stretched), then Up (retracted)
+Switch mode         | Disabled                     | Down (stretched)
+&nbsp;              | Enabled                      | Up (retracted)
 
 ```javascript
 switchbot.discover({ model: 'H', quick: true }).then((device_list) => {
@@ -596,13 +596,13 @@ The `turnOff()` method sends a turn-off command to the Bot. This method returns 
 
 If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
 
-When the Bot receives this command, the Bot's arm will be put down (stretched) or put up (retracted) depending on the settings.
+When the Bot receives this command, the Bot's arm will be put down (stretched) or put up (retracted) depending on the mode setting.
 
-Light switch Add-on | Inverse the on/off direction | Physical position of the arm
+Mode                | Inverse the on/off direction | Physical position of the arm
 :-------------------|:-----------------------------|:----------------------------
-Disabled            | N/A                          | Down (stretched), then Up (retracted)
-Enabled             | Disabled                     | Up (retracted)
-Enabled             | Enabled                      | Down (stretched)
+Press mode          | N/A                          | Down (stretched), then Up (retracted)
+Switch mode         | Disabled                     | Up (retracted)
+&nbsp;              | Enabled                      | Down (stretched)
 
 ```javascript
 switchbot.discover({ model: 'H', quick: true }).then((device_list) => {
@@ -620,7 +620,7 @@ The `down()` method sends a down command to the Bot. This method returns a `Prom
 
 If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
 
-When the Bot receives this command, the Bot's arm will be put down (stretched) regardless of the settings.
+When the Bot receives this command, the Bot's arm will be put down (stretched) regardless of the mode setting.
 
 ```javascript
 switchbot.discover({ model: 'H', quick: true }).then((device_list) => {
@@ -638,7 +638,7 @@ The `up()` method sends an up command to the Bot. This method returns a `Promise
 
 If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
 
-When the Bot receives this command, the Bot's arm will be put up (retracted) regardless of the settings.
+When the Bot receives this command, the Bot's arm will be put up (retracted) regardless of the mode setting.
 
 ```javascript
 switchbot.discover({ model: 'H', quick: true }).then((device_list) => {
@@ -689,13 +689,13 @@ Property    | Type    | Description
 :-----------|:--------|:-----------
 `model`     | String  | This value is always `"H"`, which means "Bot (WoHand)".
 `modelName` | String  | This value is always `"WoHand"`, which means "Bot".
-`mode`      | Boolean | This indicates whether the light switch Add-on is used (`true`) or not (`false`)
+`mode`      | Boolean | This indicates the mode setting. When the mode is "Switch mode", this value is `true`. When the mode is "Press mode", this value is `false`.
 `state`     | Boolean | This value indicates whether the switch status is ON or OFF.
 `battery`   | Integer | (**experimental**) This value indicates the battery level (`%`).
 
 The `mode` can be changed only using the official smartphone app. The node-switchbot does not support changing the mode because the BLE protocol is non-public.
 
-If the `mode` is `false`, which means the light switch Add-on is not used, the `state` is always `false`. If the `mode` is `true`, which means the light switch Add-on is used, the `state` represents the logical state (ON or OFF). Note that it does *not* mean the physical arm position. The physical arm position depends on the setting "Inverse the on/off direction" on the official smartphone app.
+If the `mode` is `false`, which means the "Press mode" is selected, the `state` is always `false`. If the `mode` is `true`, which means the "Switch mode" is selected, the `state` represents the logical state (ON or OFF). Note that it does *not* mean the physical arm position. The physical arm position depends on the setting "Inverse the on/off direction" on the official smartphone app.
 
 "Inverse the on/off direction" | Value of the `state` | Logical state | Physical arm position
 :------------------------------|:---------------------|:--------------|:------------
@@ -750,9 +750,11 @@ The `battery` is *experimental* for now. I'm not sure whether the value is corre
 ---------------------------------------
 ## <a id="Release-Note">Release Note</a>
 
+* v0.0.4 (2020-02-11)
+  * Fixed the bug that temperature value lower than 0 degC could not be handled. (Thanks to [@musimasami](https://github.com/futomi/node-switchbot/issues/2))
 * v0.0.3 (2020-02-10)
-  * Now the characteristic UUID `0x2a00` (Device Name) is not mandatory. Some models of Bot don't seem to support the characteristic.
-  * Fixed the bug that the `turnOn()` method returns an error if the "Light switch Add-on" is set to "Disabled" on the Bot.
+  * Now the characteristic UUID `0x2a00` (Device Name) is not mandatory. Some models of Bot don't seem to support the characteristic. (Thanks to [@dnicolson](https://github.com/futomi/node-switchbot/issues/1))
+  * Fixed the bug that the `turnOn()` method returns an error if the "Press mode" is selected on the Bot.
 * v0.0.2 (2019-11-20)
   * First public release
 

@@ -9,8 +9,8 @@ switchbot.onadvertisement = (ad) => {
 
 // Start to scan advertising packets
 switchbot.startScan({
-  model: 'H',
-  //model: 'T',
+  //model: 'H',
+  model: 'T',
   //id: 'cb:4e:b9:03:c9:6d',
 }).then(() => {
   // Wait for 30 seconds
