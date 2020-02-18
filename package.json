@@ -1,6 +1,6 @@
 {
   "name": "node-switchbot",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "The node-switchbot is a Node.js module which allows you to move your Switchbot (Bot)'s arm and to monitor the temperature/humidity from SwitchBot Thermometer & Hygrometer (Meter).",
   "main": "./lib/switchbot.js",
   "files": [

@@ -750,6 +750,8 @@ The `battery` is *experimental* for now. I'm not sure whether the value is corre
 ---------------------------------------
 ## <a id="Release-Note">Release Note</a>
 
+* v0.0.5 (2020-02-19)
+  * Improved the stability of discovering the BLE characteristics.
 * v0.0.4 (2020-02-11)
   * Fixed the bug that temperature value lower than 0 degC could not be handled. (Thanks to [@musimasami](https://github.com/futomi/node-switchbot/issues/2))
 * v0.0.3 (2020-02-10)
