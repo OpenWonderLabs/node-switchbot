@@ -46,7 +46,7 @@ $ npm install node-switchbot
 * [`Switchbot` object](#Switchbot-object)
   * [`discover()` method](#Switchbot-discover-method)
   * [`ondiscover` event handler](#Switchbot-ondiscover-event-handler)
-  * [`scartScan()` method](#Switchbot-startScan-method)
+  * [`startScan()` method](#Switchbot-startScan-method)
   * [`stopScan()` method](#Switchbot-stopScan-method)
   * [`onadvertisement` event handler](#Switchbot-onadvertisement-event-handler)
   * [`wait()` method](#Switchbot-wait-method)
@@ -292,7 +292,7 @@ c12e453e2008 (WoHand)
 The discovery process was finished.
 ```
 
-### <a id="Switchbot-startScan-method">`scartScan()` method</a>
+### <a id="Switchbot-startScan-method">`startScan()` method</a>
 
 The `startScan()` method starts to scan advertising packets coming from devices. This method takes an argument which is a hash object containing the parameters as follows:
 
