@@ -1,7 +1,7 @@
 node-switchbot
 ===============
 
-The node-switchbot is a Node.js module which allows you to move your [Switchbot (Bot)](https://www.switch-bot.com/bot)'s arm and to monitor the temperature/humidity from [SwitchBot Thermometer & Hygrometer (Meter)](https://www.switch-bot.com/meter).
+The node-switchbot is a Node.js module which allows you to move your [Switchbot (Bot)](https://www.switch-bot.com/bot)'s arm and [Switchbot Curtain(Curtain)](https://www.switch-bot.com/products/switchbot-curtain), also monitor the temperature/humidity from [SwitchBot Thermometer & Hygrometer (Meter)](https://www.switch-bot.com/meter).
 
 This module is unofficial. It was developed by reference to [the official python code](https://github.com/OpenWonderLabs/python-host). But some functionalities of this module were developed through trial and error. So some information obtained from this module might be wrong.
 
@@ -40,36 +40,45 @@ $ npm install node-switchbot
 ---------------------------------------
 ## Table of Contents
 
-* [Quick Start](#Quick-Start)
-  * [Monitoring Advertising packets](#Quick-Start-1)
-  * [Moving the arm of the Bot](#Quick-Start-2)
-* [`Switchbot` object](#Switchbot-object)
-  * [`discover()` method](#Switchbot-discover-method)
-  * [`ondiscover` event handler](#Switchbot-ondiscover-event-handler)
-  * [`startScan()` method](#Switchbot-startScan-method)
-  * [`stopScan()` method](#Switchbot-stopScan-method)
-  * [`onadvertisement` event handler](#Switchbot-onadvertisement-event-handler)
-  * [`wait()` method](#Switchbot-wait-method)
-* [`SwitchbotDevice` object](#SwitchbotDevice-object)
-  * [Properties](#SwitchbotDevice-properties)
-  * [`getDeviceName()` method](#SwitchbotDevice-getDeviceName-method)
-  * [`setDeviceName()` method](#SwitchbotDevice-setDeviceName-method)
-  * [`connect()` method](#SwitchbotDevice-connect-method)
-  * [`disconnect()` method](#SwitchbotDevice-disconnect-method)
-  * [`onconnect` event handler](#SwitchbotDevice-onconnect-event-handler)
-  * [`ondisconnect` event handler](#SwitchbotDevice-ondisconnect-event-handler)
-* [`SwitchbotDeviceWoHand` object](#SwitchbotDeviceWoHand-object)
-  * [`press()` method](#SwitchbotDeviceWoHand-press-method)
-  * [`turnOn()` method](#SwitchbotDeviceWoHand-turnOn-method)
-  * [`turnOff()` method](#SwitchbotDeviceWoHand-turnOff-method)
-  * [`down()` method](#SwitchbotDeviceWoHand-down-method)
-  * [`up()` method](#SwitchbotDeviceWoHand-up-method)
-* [Advertisement data](#Advertisement-data)
-  * [Bot (WoHand)](#Advertisement-data-WoHand)
-  * [Meter (WoSensorTH)](#Advertisement-data-WoSensorTH)
-* [Release Note](#Release-Note)
-* [References](#References)
-* [License](#License)
+- [node-switchbot](#node-switchbot)
+  - [Supported OS](#supported-os)
+  - [Dependencies](#dependencies)
+  - [Installation](#installation)
+  - [Table of Contents](#table-of-contents)
+  - [<a id="Quick-Start">Quick Start</a>](#quick-start)
+    - [<a id="Quick-Start-1">Monitoring Advertising packets</a>](#monitoring-advertising-packets)
+    - [<a id="Quick-Start-2">Moving the arm of the Bot</a>](#moving-the-arm-of-the-bot)
+  - [<a id="Switchbot-object">`Switchbot` object</a>](#switchbot-object)
+    - [<a id="Switchbot-discover-method">`discover()` method</a>](#discover-method)
+    - [<a id="Switchbot-ondiscover-event-handler">`ondiscover` event hander</a>](#ondiscover-event-hander)
+    - [<a id="Switchbot-startScan-method">`startScan()` method</a>](#startscan-method)
+    - [<a id="Switchbot-stopScan-method">`stopScan()` method</a>](#stopscan-method)
+    - [<a id="Switchbot-onadvertisement-event-handler">`onadvertisement` event handler</a>](#onadvertisement-event-handler)
+    - [<a id="Switchbot-wait-method">`wait()` method</a>](#wait-method)
+  - [<a id="SwitchbotDevice-object">`SwitchbotDevice` object</a>](#switchbotdevice-object)
+    - [<a id="SwitchbotDevice-properties">Properties</a>](#properties)
+    - [<a id="SwitchbotDevice-getDeviceName-method">`getDeviceName()` method</a>](#getdevicename-method)
+    - [<a id="SwitchbotDevice-setDeviceName-method">`setDeviceName()` method</a>](#setdevicename-method)
+    - [<a id="SwitchbotDevice-connect-method">`connect()` method</a>](#connect-method)
+    - [<a id="SwitchbotDevice-disconnect-method">`disconnect()` method</a>](#disconnect-method)
+    - [<a id="SwitchbotDevice-onconnect-event-handler">`onconnect` event handler</a>](#onconnect-event-handler)
+    - [<a id="SwitchbotDevice-ondisconnect-event-handler">`ondisconnect` event handler</a>](#ondisconnect-event-handler)
+  - [<a id="SwitchbotDeviceWoHand-object">`SwitchbotDeviceWoHand` object</a>](#switchbotdevicewohand-object)
+    - [<a id="SwitchbotDeviceWoHand-press-method">`press()` method</a>](#press-method)
+    - [<a id="SwitchbotDeviceWoHand-turnOn-method">`turnOn()` method</a>](#turnon-method)
+    - [<a id="SwitchbotDeviceWoHand-turnOff-method">`turnOff()` method</a>](#turnoff-method)
+    - [<a id="SwitchbotDeviceWoHand-down-method">`down()` method</a>](#down-method)
+    - [<a id="SwitchbotDeviceWoHand-up-method">`up()` method</a>](#up-method)
+  - [<a id="SwitchbotDeviceWoCurtain-object">`SwitchbotDeviceWoCurtain` object</a>](#switchbotdevicewocurtain-object)
+    - [<a id="SwitchbotDeviceWoCurtain-open-method">`open()` method</a>](#open-method)
+    - [<a id="SwitchbotDeviceWoCurtain-close-method">`close()` method</a>](#close-method)
+    - [<a id="SwitchbotDeviceWoCurtain-runToPos-method">`runToPos()` method</a>](#runtopos-method)
+  - [<a id="Advertisement-data">Advertisement data</a>](#advertisement-data)
+    - [<a id="Advertisement-data-WoHand">Bot (WoHand)</a>](#bot-wohand)
+    - [<a id="Advertisement-data-WoSensorTH">Meter (WoSensorTH)</a>](#meter-wosensorth)
+  - [<a id="Release-Note">Release Note</a>](#release-note)
+  - [<a id="References">References</a>](#references)
+  - [<a id="License">License</a>](#license)
 
 ---------------------------------------
 ## <a id="Quick-Start">Quick Start</a>
@@ -155,6 +164,19 @@ The sample codes above will output the result as follows:
     "fahrenheit": false,
     "humidity": 43,
     "battery": 100
+  }
+}
+{
+  "id": "ec58c5d00111",
+  "address": "ec:58:c5:d0:01:11",
+  "rssi": -39,
+  "serviceData": {
+    "model": "c",
+    "modelName": "WoCurtain",
+    "calibration": true,
+    "battery": 91,
+    "position": 1,
+    "lightLevel": 1
   }
 }
 ```
@@ -643,6 +665,72 @@ When the Bot receives this command, the Bot's arm will be put up (retracted) reg
 ```javascript
 switchbot.discover({ model: 'H', quick: true }).then((device_list) => {
   return device_list[0].up();
+}).then(() => {
+  console.log('Done.');
+}).catch((error) => {
+  console.error(error);
+});
+```
+
+---------------------------------------
+## <a id="SwitchbotDeviceWoCurtain-object">`SwitchbotDeviceWoCurtain` object</a>
+
+The `SwitchbotDeviceWoCurtain` object represents an Curtain, which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
+
+Actually, the `SwitchbotDeviceWoCurtain` is an object inherited from the [`SwitchbotDevice`](#SwitchbotDevice-object). You can use not only the method described in this section but also the properties and methods implemented in the [`SwitchbotDevice`](#SwitchbotDevice-object) object.
+
+### <a id="SwitchbotDeviceWoCurtain-open-method">`open()` method</a>
+
+```javascript
+switchbot.discover({ model: 'c', quick: true }).then((device_list) => {
+  return device_list[0].open();
+}).then(() => {
+  console.log('Done.');
+}).catch((error) => {
+  console.error(error);
+});
+```
+
+### <a id="SwitchbotDeviceWoCurtain-close-method">`close()` method</a>
+
+The `close()` method sends a close command to the Curtain. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
+
+If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
+
+When the Curtain receives this command, the Curtain will close the curtain (100% position). If not calibrated, the Curtain does not move.
+
+```javascript
+switchbot.discover({ model: 'c', quick: true }).then((device_list) => {
+  return device_list[0].close();
+}).then(() => {
+  console.log('Done.');
+}).catch((error) => {
+  console.error(error);
+});
+```
+
+### <a id="SwitchbotDeviceWoCurtain-runToPos-method">`runToPos()` method</a>
+
+The `runToPos()` method sends a position command to the Curtain. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
+
+If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
+
+When the Curtain receives this command, the Curtain will run to the percentage position. If not calibrated, the Curtain does not move.
+
+
+The `open()` method sends a open command to the Curtain. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
+
+If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
+
+When the Curtain receives this command, the Curtain will open the curtain (0% position). If not calibrated, the Curtain does not move.
+
+Property     | Type    | Required | Description
+:------------|:--------|:---------|:------------
+`percent`    | Integer | Required | The percentage of target position (`0-100`). (e.g., `50`)
+
+```javascript
+switchbot.discover({ model: 'c', quick: true }).then((device_list) => {
+  return device_list[0].runToPos(50);
 }).then(() => {
   console.log('Done.');
 }).catch((error) => {
