@@ -5,6 +5,48 @@ The node-switchbot is a Node.js module which allows you to move your [Switchbot 
 
 This module is unofficial. It was developed by reference to [the official python code](https://github.com/OpenWonderLabs/python-host). But some functionalities of this module were developed through trial and error. So some information obtained from this module might be wrong.
 
+---------------------------------------
+## Table of Contents
+
+- [Supported OS](#supported-os)
+- [Dependencies](#dependencies)
+- [Installation](#installation)
+- [Quick Start](#Quick-Start)
+  - [Monitoring Advertising packets](#monitoring-advertising-packets)
+  - [Moving the arm of the Bot](#moving-the-arm-of-the-bot)
+- [`Switchbot` object](#switchbot-object)
+  - [`discover()` method](#discover-method)
+  - [`ondiscover` event hander](#ondiscover-event-hander)
+  - [`startScan()` method](#startscan-method)
+  - [`stopScan()` method](#stopscan-method)
+  - [`onadvertisement` event handler](#onadvertisement-event-handler)
+  - [`wait()` method](#wait-method)
+- [`SwitchbotDevice` object](#SwitchbotDevice-object)
+  - [Properties](#Properties)
+  - [`getDeviceName()` method](#getDevicename-method)
+  - [`setDeviceName()` method](#setDevicename-method)
+  - [`connect()` method](#connect-method)
+  - [`disconnect()` method](#disconnect-method)
+  - [`onconnect` event handler](#onconnect-event-handler)
+  - [`ondisconnect` event handler](#ondisconnect-event-handler)
+- [`SwitchbotDeviceWoHand` object](#SwitchbotDeviceWoHand-object)
+  - [`press()` method](#press-method)
+  - [`turnOn()` method](#turnon-method)
+  - [`turnOff()` method](#turnoff-method)
+  - [`down()` method](#down-method)
+  - [`up()` method](#up-method)
+- [`SwitchbotDeviceWoCurtain` object](#SwitchbotDeviceWoCurtain-object)
+  - [`open()` method](#open-method)
+  - [`close()` method](#close-method)
+  - [`runToPos()` method](#runToPos-method)
+- [Advertisement data](#Advertisement-data)
+  - [Bot (WoHand)](#Bot-WoHand)
+  - [Meter (WoSensorTH)](#Meter-WoSensorTH)
+  - [Curtain (WoCurtain)](#Curtain-WoCurtain)
+- [Release Note](#Release-Note)
+- [References](#References)
+- [License](#License)
+
 ## Supported OS
 
 The node-switchbot supports only Linux-based OSes, such as Raspbian, Ubuntu, and so on. This module does not support Windows and Mac OS for now. (If [@abandonware/noble](https://github.com/abandonware/noble) is installed properly, this module might work well on such OSes.)
@@ -38,53 +80,9 @@ $ npm install node-switchbot
 ```
 
 ---------------------------------------
-## Table of Contents
+## Quick Start
 
-- [node-switchbot](#node-switchbot)
-  - [Supported OS](#supported-os)
-  - [Dependencies](#dependencies)
-  - [Installation](#installation)
-  - [Table of Contents](#table-of-contents)
-  - [<a id="Quick-Start">Quick Start</a>](#quick-start)
-    - [<a id="Quick-Start-1">Monitoring Advertising packets</a>](#monitoring-advertising-packets)
-    - [<a id="Quick-Start-2">Moving the arm of the Bot</a>](#moving-the-arm-of-the-bot)
-  - [<a id="Switchbot-object">`Switchbot` object</a>](#switchbot-object)
-    - [<a id="Switchbot-discover-method">`discover()` method</a>](#discover-method)
-    - [<a id="Switchbot-ondiscover-event-handler">`ondiscover` event hander</a>](#ondiscover-event-hander)
-    - [<a id="Switchbot-startScan-method">`startScan()` method</a>](#startscan-method)
-    - [<a id="Switchbot-stopScan-method">`stopScan()` method</a>](#stopscan-method)
-    - [<a id="Switchbot-onadvertisement-event-handler">`onadvertisement` event handler</a>](#onadvertisement-event-handler)
-    - [<a id="Switchbot-wait-method">`wait()` method</a>](#wait-method)
-  - [<a id="SwitchbotDevice-object">`SwitchbotDevice` object</a>](#switchbotdevice-object)
-    - [<a id="SwitchbotDevice-properties">Properties</a>](#properties)
-    - [<a id="SwitchbotDevice-getDeviceName-method">`getDeviceName()` method</a>](#getdevicename-method)
-    - [<a id="SwitchbotDevice-setDeviceName-method">`setDeviceName()` method</a>](#setdevicename-method)
-    - [<a id="SwitchbotDevice-connect-method">`connect()` method</a>](#connect-method)
-    - [<a id="SwitchbotDevice-disconnect-method">`disconnect()` method</a>](#disconnect-method)
-    - [<a id="SwitchbotDevice-onconnect-event-handler">`onconnect` event handler</a>](#onconnect-event-handler)
-    - [<a id="SwitchbotDevice-ondisconnect-event-handler">`ondisconnect` event handler</a>](#ondisconnect-event-handler)
-  - [<a id="SwitchbotDeviceWoHand-object">`SwitchbotDeviceWoHand` object</a>](#switchbotdevicewohand-object)
-    - [<a id="SwitchbotDeviceWoHand-press-method">`press()` method</a>](#press-method)
-    - [<a id="SwitchbotDeviceWoHand-turnOn-method">`turnOn()` method</a>](#turnon-method)
-    - [<a id="SwitchbotDeviceWoHand-turnOff-method">`turnOff()` method</a>](#turnoff-method)
-    - [<a id="SwitchbotDeviceWoHand-down-method">`down()` method</a>](#down-method)
-    - [<a id="SwitchbotDeviceWoHand-up-method">`up()` method</a>](#up-method)
-  - [<a id="SwitchbotDeviceWoCurtain-object">`SwitchbotDeviceWoCurtain` object</a>](#switchbotdevicewocurtain-object)
-    - [<a id="SwitchbotDeviceWoCurtain-open-method">`open()` method</a>](#open-method)
-    - [<a id="SwitchbotDeviceWoCurtain-close-method">`close()` method</a>](#close-method)
-    - [<a id="SwitchbotDeviceWoCurtain-runToPos-method">`runToPos()` method</a>](#runtopos-method)
-  - [<a id="Advertisement-data">Advertisement data</a>](#advertisement-data)
-    - [<a id="Advertisement-data-WoHand">Bot (WoHand)</a>](#bot-wohand)
-    - [<a id="Advertisement-data-WoSensorTH">Meter (WoSensorTH)</a>](#meter-wosensorth)
-    - [<a id="Advertisement-data-WoCurtain">Curtain (WoCurtain)</a>](#curtain-wocurtain)
-  - [<a id="Release-Note">Release Note</a>](#release-note)
-  - [<a id="References">References</a>](#references)
-  - [<a id="License">License</a>](#license)
-
----------------------------------------
-## <a id="Quick-Start">Quick Start</a>
-
-### <a id="Quick-Start-1">Monitoring Advertising packets</a>
+### Monitoring Advertising packets
 
 Monitoring the advertising packets, you can find your devices and know the latest state of each device. The packet contains the settings of the device, the arm position of the Bot, the temperature and humidity of the Meter, and so on.
 
@@ -184,7 +182,7 @@ The sample codes above will output the result as follows:
 
 See the section "[Advertisement data](#Advertisement-data)" for the details of the advertising packets.
 
-### <a id="Quick-Start-2">Moving the arm of the Bot</a>
+### Moving the arm of the Bot
 
 This sample discovers a Bot (WoHand), then put the Bot's arm down, finally put it up in 5 seconds.
 
@@ -217,7 +215,7 @@ In order to manipulate the arm of your Bot, you have to discover your Bot using 
 In this code, you can get a [`SwitchbotDeviceWoHand`](#SwitchbotDeviceWoHand-object) object representing the found Bot. Using the [`down()`](#SwitchbotDeviceWoHand-down-method) and [`up()`](#SwitchbotDeviceWoHand-up-method) methods of the object, you can move the arm. In addition to these methods, you can use the [`press()`](#SwitchbotDeviceWoHand-press-method), [`turnOn()`](#SwitchbotDeviceWoHand-turnOn-method), and [`turnOff()`](#SwitchbotDeviceWoHand-turnOff-method) methods as well.
 
 ---------------------------------------
-## <a id="Switchbot-object">`Switchbot` object</a>
+## `Switchbot` object
 
 In order to use the node-switchbot, you have to load the node-switchbot module as follows:
 
@@ -252,7 +250,7 @@ const switchbot = new Switchbot({'noble': noble});
 
 In the code snippet above, the variable `switchbot` is an `Switchbot` object. The `Switchbot` object has a lot of methods as described in sections below.
 
-### <a id="Switchbot-discover-method">`discover()` method</a>
+### `discover()` method
 
 The `discover` method finds devices. This method returns a `Promise` object. This method takes an argument which is a hash object containing parameters as follows:
 
@@ -291,7 +289,7 @@ switchbot.discover({
 
 As the `quick` property is set to `true`, the `resolve()` function will be called immediately after a device is found regardless the value of the `duration` property.
 
-### <a id="Switchbot-ondiscover-event-handler">`ondiscover` event hander</a>
+### `ondiscover` event hander
 
 The `ondiscover` property on the [`Switchbot`](#Switchbot-object) object is an event handler called whenever a device is newly found in the discovery process. A [`SwitchbotDevice`](#SwitchbotDevice-object) object is passed to the callback function set to the `ondiscover` property.
 
@@ -315,7 +313,7 @@ c12e453e2008 (WoHand)
 The discovery process was finished.
 ```
 
-### <a id="Switchbot-startScan-method">`startScan()` method</a>
+### `startScan()` method
 
 The `startScan()` method starts to scan advertising packets coming from devices. This method takes an argument which is a hash object containing the parameters as follows:
 
@@ -368,24 +366,24 @@ The code snippet above will output the result as follows:
 
 The `serviceData` property depends on the model of the device. See the section "[Advertisement data](#Advertisement-data)" for the details of the data format.
 
-### <a id="Switchbot-stopScan-method">`stopScan()` method</a>
+### `stopScan()` method
 
 The `stopScan()` method stops to scan advertising packets coming from devices. This mothod returns nothing. Note that this method is *not* asynchronous but synchronous unlike the other methods. See the section "[`startScan()` method](#Switchbot-startScan-method)" for details.
 
-### <a id="Switchbot-onadvertisement-event-handler">`onadvertisement` event handler</a>
+### `onadvertisement` event handler
 
 If a callback function is set to the `onadvertisement` property, the callback function will be called whenever an advertising packet is received from a device during the scan is active (from the moment when the [`startScan()`](#Switchbot-startScan-method) method is called, to the moment when the [`stopScan()`](#Switchbot-stopScan-method) method is called).
 
 See the section "[`startScan()` method](#Switchbot-startScan-method)" for details.
 
-### <a id="Switchbot-wait-method">`wait()` method</a>
+### `wait()` method
 
 The `wait()` method waits for the specified milliseconds. This method takes an integer representing the duration (millisecond). This method returns a `Promise` object.
 
 This method has nothing to do with Switchbot devices. It's just an utility method. See the section "[Quick Start](#Quick-Start)" for details of the usage of this method.
 
 ---------------------------------------
-## <a id="SwitchbotDevice-object">`SwitchbotDevice` object</a>
+## `SwitchbotDevice` object
 
 The `SwitchbotDevice` object represents a Switchbot device (Bot or Meter), which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
 
@@ -393,7 +391,7 @@ Actually, the `SwitchbotDevice` object is an super class of the [`SwitchbotDevic
 
 You can use the properties and methods described in this section on both Bot and Meter. See the section "[`SwitchbotDeviceWoHand` object](#SwitchbotDeviceWoHand-object)" for the details of the functionalities available only on Bot. For now, `SwitchbotDeviceWoSensorTH` object has no additional functionality.
 
-### <a id="SwitchbotDevice-properties">Properties</a>
+### Properties
 
 The `SwitchbotDevice` object supports the properties as follows:
 
@@ -407,7 +405,7 @@ Property         | Type     | Description
 `onconnect`       | Function | See the section "[`onconnect` event handler](#SwitchbotDevice-onconnect-event-handler)" for details.
 `ondisconnect`    | Function | See the section "[`ondisconnect` event handler](#SwitchbotDevice-ondisconnect-event-handler)" for details.
 
-### <a id="SwitchbotDevice-getDeviceName-method">`getDeviceName()` method</a>
+### `getDeviceName()` method
 
 The `getDeviceName()` method fetches the device name saved in the device. This method returns a `Promise` object.
 
@@ -433,7 +431,7 @@ The code above will output the result as follows:
 WoHand
 ```
 
-### <a id="SwitchbotDevice-setDeviceName-method">`setDeviceName()` method</a>
+### `setDeviceName()` method
 
 The `setDeviceName()` method update the device name saved in the device with the name specified as the first argument. This method returns a `Promise` object. Nothing will be passed to the `resolve()` function.
 
@@ -453,7 +451,7 @@ switchbot.discover({ model: 'H', quick: true }).then((device_list) => {
 });
 ```
 
-### <a id="SwitchbotDevice-connect-method">`connect()` method</a>
+### `connect()` method
 
 The `connect()` method establishes a connection with the device (i.e., pairing). This method returns a `Promise` object. If the device has already been connected, this method does nothing and calls the `resolve()` function immediately.
 
@@ -508,13 +506,13 @@ Disconnecting...
 Done.
 ```
 
-### <a id="SwitchbotDevice-disconnect-method">`disconnect()` method</a>
+### `disconnect()` method
 
 The `disconnect()` method disconnects the device. This method returns a `Promise` object. If the device has already been disconnected, this method does nothing and calls the `resolve()` function immediately.
 
 See the [previous section](#SwitchbotDevice-connect-method) for more details.
 
-### <a id="SwitchbotDevice-onconnect-event-handler">`onconnect` event handler</a>
+### `onconnect` event handler
 
 The `onconnect` event hander will be called when the connection with the device is established. Nothing will be passed to the hander.
 
@@ -560,18 +558,18 @@ Done.
 
 Seeing the result, you would find the [`press()`](#SwitchbotDeviceWoHand-press-method) method automatically connects and disconnects the device.
 
-### <a id="SwitchbotDevice-ondisconnect-event-handler">`ondisconnect` event handler</a>
+### `ondisconnect` event handler
 
 The `ondisconnect` event hander will be called when the connection with the device is closed. Nothing will be passed to the hander. See the previous section "[`onconnect` event handler](#SwitchbotDevice-onconnect-event-handler)" for more details.
 
 ---------------------------------------
-## <a id="SwitchbotDeviceWoHand-object">`SwitchbotDeviceWoHand` object</a>
+## `SwitchbotDeviceWoHand` object
 
 The `SwitchbotDeviceWoHand` object represents an Bot, which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
 
 Actually, the `SwitchbotDeviceWoHand` is an object inherited from the [`SwitchbotDevice`](#SwitchbotDevice-object). You can use not only the method described in this section but also the properties and methods implemented in the [`SwitchbotDevice`](#SwitchbotDevice-object) object.
 
-### <a id="SwitchbotDeviceWoHand-press-method">`press()` method</a>
+### `press()` method
 
 The `press()` method sends a press command to the Bot. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
 
@@ -589,7 +587,7 @@ switchbot.discover({ model: 'H', quick: true }).then((device_list) => {
 
 When the Bot receives this command, the Bot's arm will be put down (stretched), then put up (retracted) in a few seconds.
 
-### <a id="SwitchbotDeviceWoHand-turnOn-method">`turnOn()` method</a>
+### `turnOn()` method
 
 The `turnOn()` method sends a turn-on command to the Bot. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
 
@@ -613,7 +611,7 @@ switchbot.discover({ model: 'H', quick: true }).then((device_list) => {
 });
 ```
 
-### <a id="SwitchbotDeviceWoHand-turnOff-method">`turnOff()` method</a>
+### `turnOff()` method
 
 The `turnOff()` method sends a turn-off command to the Bot. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
 
@@ -637,7 +635,7 @@ switchbot.discover({ model: 'H', quick: true }).then((device_list) => {
 });
 ```
 
-### <a id="SwitchbotDeviceWoHand-down-method">`down()` method</a>
+### `down()` method
 
 The `down()` method sends a down command to the Bot. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
 
@@ -655,7 +653,7 @@ switchbot.discover({ model: 'H', quick: true }).then((device_list) => {
 });
 ```
 
-### <a id="SwitchbotDeviceWoHand-up-method">`up()` method</a>
+### `up()` method
 
 The `up()` method sends an up command to the Bot. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
 
@@ -674,13 +672,13 @@ switchbot.discover({ model: 'H', quick: true }).then((device_list) => {
 ```
 
 ---------------------------------------
-## <a id="SwitchbotDeviceWoCurtain-object">`SwitchbotDeviceWoCurtain` object</a>
+## `SwitchbotDeviceWoCurtain` object
 
 The `SwitchbotDeviceWoCurtain` object represents an Curtain, which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
 
 Actually, the `SwitchbotDeviceWoCurtain` is an object inherited from the [`SwitchbotDevice`](#SwitchbotDevice-object). You can use not only the method described in this section but also the properties and methods implemented in the [`SwitchbotDevice`](#SwitchbotDevice-object) object.
 
-### <a id="SwitchbotDeviceWoCurtain-open-method">`open()` method</a>
+### `open()` method
 
 ```javascript
 switchbot.discover({ model: 'c', quick: true }).then((device_list) => {
@@ -692,7 +690,7 @@ switchbot.discover({ model: 'c', quick: true }).then((device_list) => {
 });
 ```
 
-### <a id="SwitchbotDeviceWoCurtain-close-method">`close()` method</a>
+### `close()` method
 
 The `close()` method sends a close command to the Curtain. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
 
@@ -710,7 +708,7 @@ switchbot.discover({ model: 'c', quick: true }).then((device_list) => {
 });
 ```
 
-### <a id="SwitchbotDeviceWoCurtain-runToPos-method">`runToPos()` method</a>
+### `runToPos()` method
 
 The `runToPos()` method sends a position command to the Curtain. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
 
@@ -740,7 +738,7 @@ switchbot.discover({ model: 'c', quick: true }).then((device_list) => {
 ```
 
 ---------------------------------------
-## <a id="Advertisement-data">Advertisement data</a>
+## Advertisement data
 
 After the [`startScan()`](#Switchbot-startScan-method) method is invoked, the [`onadvertisement`](#Switchbot-onadvertisement-event-handler) event handler will be called whenever an advertising packet comes from the switchbot devices. An object containing the properties as follows will be passed to the event handler:
 
@@ -753,7 +751,7 @@ Property      | Type    | Description
 
 The structures of the `serviceData` are described in the following sections.
 
-### <a id="Advertisement-data-WoHand">Bot (WoHand)</a>
+### Bot (WoHand)
 
 Example of the advertisement data:
 
@@ -796,7 +794,7 @@ enabled                        | `true`               | OFF           | Down (st
 The `battery` is *experimental* for now. I'm not sure whether the value is correct or not. Never trust this value for now.
 
 
-### <a id="Advertisement-data-WoSensorTH">Meter (WoSensorTH)</a>
+### Meter (WoSensorTH)
 
 Example of the advertisement data:
 
@@ -836,7 +834,7 @@ The `fahrenheit` indicates the setting on the device. Note that it does *not* in
 
 The `battery` is *experimental* for now. I'm not sure whether the value is correct or not. Never trust this value for now.
 
-### <a id="Advertisement-data-WoCurtain">Curtain (WoCurtain)</a>
+### Curtain (WoCurtain)
 
 Example of the advertisement data:
 
@@ -868,8 +866,11 @@ Property      | Type    | Description
 `lightLevel`  | Integer | This value indicates the light level of the light source currently set (`1-10`).
 
 ---------------------------------------
-## <a id="Release-Note">Release Note</a>
+## Release Note
 
+* v0.1.0 (2020-10-28)
+  * Added support for SwitchBot Curtain. (Thanks to [@SwitchBot-Wonderlabs](https://github.com/futomi/node-switchbot/pull/6/))
+  * Added support for running on the Raspberry Pi Zero W. (Thanks to [@zizi4n5](https://github.com/futomi/node-switchbot/pull/5))
 * v0.0.5 (2020-02-19)
   * Improved the stability of discovering the BLE characteristics. (Thanks to [@dnicolson](https://github.com/futomi/node-switchbot/issues/3))
 * v0.0.4 (2020-02-11)
@@ -881,13 +882,13 @@ Property      | Type    | Description
   * First public release
 
 ---------------------------------------
-## <a id="References">References</a>
+## References
 
 * [Switchbot official global site](https://www.switch-bot.com/)
 * [Github - OpenWonderLabs/python-host](https://github.com/OpenWonderLabs/python-host)
 
 ---------------------------------------
-## <a id="License">License</a>
+## License
 
 The MIT License (MIT)
 
