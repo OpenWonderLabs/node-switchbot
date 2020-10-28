@@ -76,6 +76,7 @@ $ npm install node-switchbot
   - [<a id="Advertisement-data">Advertisement data</a>](#advertisement-data)
     - [<a id="Advertisement-data-WoHand">Bot (WoHand)</a>](#bot-wohand)
     - [<a id="Advertisement-data-WoSensorTH">Meter (WoSensorTH)</a>](#meter-wosensorth)
+    - [<a id="Advertisement-data-WoCurtain">Curtain (WoCurtain)</a>](#curtain-wocurtain)
   - [<a id="Release-Note">Release Note</a>](#release-note)
   - [<a id="References">References</a>](#references)
   - [<a id="License">License</a>](#license)
@@ -834,6 +835,37 @@ Property      | Type    | Description
 The `fahrenheit` indicates the setting on the device. Note that it does *not* indicate the setting on the official smartphone app. The setting of the temperature unit on the device and the setting on the app are independent. 
 
 The `battery` is *experimental* for now. I'm not sure whether the value is correct or not. Never trust this value for now.
+
+### <a id="Advertisement-data-WoCurtain">Curtain (WoCurtain)</a>
+
+Example of the advertisement data:
+
+```json
+{
+  "id": "ec58c5d00111",
+  "address": "ec:58:c5:d0:01:11",
+  "rssi": -39,
+  "serviceData": {
+    "model": "c",
+    "modelName": "WoCurtain",
+    "calibration": true,
+    "battery": 91,
+    "position": 1,
+    "lightLevel": 1
+  }
+}
+```
+
+Structure of the `serviceData`:
+
+Property      | Type    | Description
+:-------------|:--------|:-----------
+`model`       | String  | This value is always `"c"`, which means "Curtain (WoCurtain)".
+`modelName`   | String  | This value is always `"WoCurtain"`, which means "Curtain".
+`calibration` | Boolean | This value indicates the calibration status (`true` or `false`).
+`battery`     | Integer | This value indicates the battery level (`1-100`, `%`).
+`position`    | Integer | This value indicates the percentage of current position (`0-100`, 0 is open, `%`).
+`lightLevel`  | Integer | This value indicates the light level of the light source currently set (`1-10`).
 
 ---------------------------------------
 ## <a id="Release-Note">Release Note</a>
