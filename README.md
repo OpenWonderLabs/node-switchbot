@@ -871,6 +871,8 @@ Property      | Type    | Description
 ---------------------------------------
 ## Release Note
 
+* v0.2.0 (2020-11-05)
+  * Modify Curtain's action command to support group and running mode.  (Thanks to [@SwitchBot-Wonderlabs](https://github.com/futomi/node-switchbot/pull/7/))
 * v0.1.0 (2020-10-28)
   * Added support for SwitchBot Curtain. (Thanks to [@SwitchBot-Wonderlabs](https://github.com/futomi/node-switchbot/pull/6/))
   * Added support for running on the Raspberry Pi Zero W. (Thanks to [@zizi4n5](https://github.com/futomi/node-switchbot/pull/5))
