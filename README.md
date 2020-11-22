@@ -109,11 +109,11 @@ const switchbot = new Switchbot();
 })();
 ```
 
-The [`startScan()`](#Switchbot-startScan-method) methods starts to monitor advertisement packets. In order to receive the packets, you have to assign a callback function to the [`onadvertisement`](#Switchbot-onadvertisement-event-handler).
+The [`startScan()`](#startscan-method) methods starts to monitor advertisement packets. In order to receive the packets, you have to assign a callback function to the [`onadvertisement`](#Switchbot-onadvertisement-event-handler).
 
 The [`wait()`](#Switchbot-wait-method) method is just an utility method, which wait for the specified milliseconds.
 
-The [`startScan()`](#Switchbot-startScan-method) and [`wait()`](#Switchbot-wait-method) methods are asynchronous, they return a `Promise` object. You can write code in promise style as well. What the code below does is as same as what the code above does:
+The [`startScan()`](#startscan-method) and [`wait()`](#Switchbot-wait-method) methods are asynchronous, they return a `Promise` object. You can write code in promise style as well. What the code below does is as same as what the code above does:
 
 ```javascript
 // Load the node-switchbot and get a `Switchbot` constructor object
@@ -370,13 +370,13 @@ The `serviceData` property depends on the model of the device. See the section "
 
 ### `stopScan()` method
 
-The `stopScan()` method stops to scan advertising packets coming from devices. This mothod returns nothing. Note that this method is *not* asynchronous but synchronous unlike the other methods. See the section "[`startScan()` method](#Switchbot-startScan-method)" for details.
+The `stopScan()` method stops to scan advertising packets coming from devices. This mothod returns nothing. Note that this method is *not* asynchronous but synchronous unlike the other methods. See the section "[`startScan()` method](#startscan-method)" for details.
 
 ### `onadvertisement` event handler
 
-If a callback function is set to the `onadvertisement` property, the callback function will be called whenever an advertising packet is received from a device during the scan is active (from the moment when the [`startScan()`](#Switchbot-startScan-method) method is called, to the moment when the [`stopScan()`](#Switchbot-stopScan-method) method is called).
+If a callback function is set to the `onadvertisement` property, the callback function will be called whenever an advertising packet is received from a device during the scan is active (from the moment when the [`startScan()`](#startscan-method) method is called, to the moment when the [`stopScan()`](#Switchbot-stopScan-method) method is called).
 
-See the section "[`startScan()` method](#Switchbot-startScan-method)" for details.
+See the section "[`startScan()` method](#startscan-method)" for details.
 
 ### `wait()` method
 
@@ -743,7 +743,7 @@ switchbot.discover({ model: 'c', quick: true }).then((device_list) => {
 ---------------------------------------
 ## Advertisement data
 
-After the [`startScan()`](#Switchbot-startScan-method) method is invoked, the [`onadvertisement`](#Switchbot-onadvertisement-event-handler) event handler will be called whenever an advertising packet comes from the switchbot devices. An object containing the properties as follows will be passed to the event handler:
+After the [`startScan()`](#startscan-method) method is invoked, the [`onadvertisement`](#Switchbot-onadvertisement-event-handler) event handler will be called whenever an advertising packet comes from the switchbot devices. An object containing the properties as follows will be passed to the event handler:
 
 Property      | Type    | Description
 :-------------|:--------|:-----------
