@@ -51,7 +51,7 @@ This module is unofficial. It was developed by reference to [the official python
 
 ## Supported OS
 
-The node-switchbot supports only Linux-based OSes, such as Raspbian, Ubuntu, and so on. This module does not support Windows and Mac OS for now. (If [@abandonware/noble](https://github.com/abandonware/noble) is installed properly, this module might work well on such OSes.)
+The node-switchbot supports only Linux-based OSes, such as Raspbian, Ubuntu, and so on. This module does not support Windows and macOS for now. (If [@abandonware/noble](https://github.com/abandonware/noble) is installed properly, this module might work well on such OSes.)
 
 ## Dependencies
 
@@ -400,7 +400,7 @@ The `SwitchbotDevice` object supports the properties as follows:
 Property         | Type     | Description
 :----------------|:---------|:-----------
 `id`             | String   | ID of the device. (e.g., `"cb4eb903c96d"`)
-`address`        | String   | Mac address of the device. Basically it is as same as the value of the `id` except that this value includes `:` in the string. (e.g., `"cb:4e:b9:03:c9:6d"`)
+`address`        | String   | MAC address of the device. Basically it is as same as the value of the `id` except that this value includes `:` in the string. (e.g., `"cb:4e:b9:03:c9:6d"`)
 `model`           | String   | This value is `"H"` which means "Bot (WoHand)", `"T"` which means "Meter (WoSensorTH)" or `"c"` which means "Curtain (WoCurtain)".
 `modelName`       | String   | This value is `"WoHand"` or `"WoSensorTH"`.
 `connectionState` | String   | This value indicates the BLE connection state. `"connecting"`, `"connected"`, `"disconnecting"`, or `"disconnected"`.
@@ -748,7 +748,7 @@ After the [`startScan()`](#Switchbot-startScan-method) method is invoked, the [`
 Property      | Type    | Description
 :-------------|:--------|:-----------
 `id`          | String  | ID of the device. (e.g., `"cb4eb903c96d"`)
-`address`     | String  | Mac address of the device. Basically it is as same as the value of the `id` except that this value includes `:` in the string. (e.g., `"cb:4e:b9:03:c9:6d"`)
+`address`     | String  | MAC address of the device. Basically it is as same as the value of the `id` except that this value includes `:` in the string. (e.g., `"cb:4e:b9:03:c9:6d"`)
 `rssi`        | Integer | RSSI. (e.g., `-62`)
 `serviceData` | Object  | An object including the device-specific data.
 
