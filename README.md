@@ -259,7 +259,7 @@ The `discover` method finds devices. This method returns a `Promise` object. Thi
 Property     | Type    | Required | Description
 :------------|:--------|:---------|:------------
 `duration`   | Integer | Optional | Duration for discovery process (msec). The default value is 5000 (msec).
-`model`      | String  | Optional | `"H"` or `"T"`. If `"H"` is specified, this method will discover only Bots. If `"T"` is specified, this method will discover only Meters.
+`model`      | String  | Optional | `"H"`, `"T"` or `"c"`. If `"H"` is specified, this method will discover only Bots. If `"T"` is specified, this method will discover only Meters.  If `"c"` is specified, this method will discover only Curtains.
 `id`         | String  | Optional | If this value is set, this method will discover only a device whose ID is as same as this value. The ID is identical to the MAC address. This parameter is case-insensitive, and colons are ignored.
 `quick`      | Boolean | Optional | If this value is `true`, this method finishes the discovery process when the first device is found, then calls the `resolve()` function without waiting the specified `duration`. The default value is `false`.
 
@@ -321,7 +321,7 @@ The `startScan()` method starts to scan advertising packets coming from devices.
 
 Property     | Type   | Required | Description
 :------------|:-------|:---------|:------------
-`model`      | String  | Optional | `"H"` or `"T"`. If `"H"` is specified, this method will discover only Bots. If `"T"` is specified, this method will discover only Meters.
+`model`      | String  | Optional | `"H"`, `"T"` or `"c"`. If `"H"` is specified, this method will discover only Bots. If `"T"` is specified, this method will discover only Meters.  If `"c"` is specified, this method will discover only Curtains.
 `id`         | String  | Optional | If this value is set, this method will discover only a device whose ID is as same as this value. The ID is identical to the MAC address. This value is case-insensitive, and colons are ignored.
 
 Whenever a packet is received, the callback function set to the [`onadvertisement`](#Switchbot-onadvertisement-event-handler) property of the [`Switchbot`](#Switchbot-object) object will be called. When a packet is received, a hash object representing the packet will be passed to the callback function.
@@ -401,7 +401,7 @@ Property         | Type     | Description
 :----------------|:---------|:-----------
 `id`             | String   | ID of the device. (e.g., `"cb4eb903c96d"`)
 `address`        | String   | Mac address of the device. Basically it is as same as the value of the `id` except that this value includes `:` in the string. (e.g., `"cb:4e:b9:03:c9:6d"`)
-`model`           | String   | This value is `"H"` which means "Bot (WoHand)" or `"T"` which means "Meter (WoSensorTH)".
+`model`           | String   | This value is `"H"` which means "Bot (WoHand)", `"T"` which means "Meter (WoSensorTH)" or `"c"` which means "Curtain (WoCurtain)".
 `modelName`       | String   | This value is `"WoHand"` or `"WoSensorTH"`.
 `connectionState` | String   | This value indicates the BLE connection state. `"connecting"`, `"connected"`, `"disconnecting"`, or `"disconnected"`.
 `onconnect`       | Function | See the section "[`onconnect` event handler](#SwitchbotDevice-onconnect-event-handler)" for details.
