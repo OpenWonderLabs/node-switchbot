@@ -40,6 +40,7 @@ This module is unofficial. It was developed by reference to [the official python
   - [`SwitchbotDeviceWoCurtain` object](#switchbotdevicewocurtain-object)
     - [`open()` method](#open-method)
     - [`close()` method](#close-method)
+    - [`pause()` method](#pause-method)
     - [`runToPos()` method](#runtopos-method)
   - [Advertisement data](#advertisement-data)
     - [Bot (WoHand)](#bot-wohand)
@@ -703,6 +704,24 @@ When the Curtain receives this command, the Curtain will close the curtain (100%
 ```javascript
 switchbot.discover({ model: 'c', quick: true }).then((device_list) => {
   return device_list[0].close();
+}).then(() => {
+  console.log('Done.');
+}).catch((error) => {
+  console.error(error);
+});
+```
+
+### `pause()` method
+
+The `pause()` method sends a pause command to the Curtain. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
+
+If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
+
+When the Curtain receives this command, the Curtain will pause.
+
+```javascript
+switchbot.discover({ model: 'c', quick: true }).then((device_list) => {
+  return device_list[0].pause();
 }).then(() => {
   console.log('Done.');
 }).catch((error) => {
