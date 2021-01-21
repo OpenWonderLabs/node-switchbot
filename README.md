@@ -1,5 +1,16 @@
-node-switchbot
-===============
+<span align="center">
+
+# Node-SwitchBot
+
+<a href="https://www.npmjs.com/package/node-switchbot"><img title="npm version" src="https://badgen.net/npm/v/node-switchbot" ></a>
+<a href="https://www.npmjs.com/package/node-switchbot"><img title="npm downloads" src="https://badgen.net/npm/dt/node-switchbot" ></a>
+ 
+</p>
+
+</span>
+
+
+
 
 The node-switchbot is a Node.js module which allows you to move your [Switchbot (Bot)](https://www.switch-bot.com/bot)'s arm and [Switchbot Curtain(Curtain)](https://www.switch-bot.com/products/switchbot-curtain), also monitor the temperature/humidity from [SwitchBot Thermometer & Hygrometer (Meter)](https://www.switch-bot.com/meter).
 

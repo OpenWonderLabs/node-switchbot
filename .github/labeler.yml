@@ -1,0 +1,9 @@
+# Add 'enhancement' label to any change to index.js file
+enhancement:
+  - lib/*
+  - package.json
+  - pakcage-lock.json
+
+# Add 'workflow' to any changes within 'workflow' folder or any subfolders
+workflow:
+  - .github/workflows/*
