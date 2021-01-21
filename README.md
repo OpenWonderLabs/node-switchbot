@@ -901,6 +901,8 @@ Property      | Type    | Description
 ---------------------------------------
 ## Release Note
 
+* v1.0.0 (2021-01-21)
+  * fix "No device was found" in MacOS
 * v0.2.0 (2020-11-05)
   * Modify Curtain's action command to support group and running mode.  (Thanks to [@SwitchBot-Wonderlabs](https://github.com/futomi/node-switchbot/pull/7/))
 * v0.1.0 (2020-10-28)
