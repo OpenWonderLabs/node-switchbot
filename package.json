@@ -32,8 +32,7 @@
     "type": "git",
     "url": "https://github.com/futomi/node-switchbot.git"
   },
-  "readmeFilename": "README.md",    
-      "type": "module",
+  "type": "module",
   "dependencies": {
     "@abandonware/noble": ">=1.9.2-14"
   }
