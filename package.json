@@ -34,7 +34,7 @@
   },
   "readmeFilename": "README.md",
   "dependencies": {
-    "cmsn-noble": "^3.0.0"
+    "@abandonware/noble": ">=1.9.2-14"
   },
   "devDependencies": {
     "npm-check-updates": "^11.8.3"
