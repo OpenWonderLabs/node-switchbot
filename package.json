@@ -37,6 +37,6 @@
     "@abandonware/noble": ">=1.9.2-14"
   },
   "devDependencies": {
-    "npm-check-updates": "^11.8.3"
+    "npm-check-updates": "^11.8.5"
   }
 }
