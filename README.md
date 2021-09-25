@@ -63,33 +63,33 @@ This module is unofficial. It was developed by reference to [the official python
 
 ## Supported OS
 
-The node-switchbot supports only Linux-based OSes, such as Raspbian, Ubuntu, and so on. This module does not support Windows and macOS for now. (If [@abandonware/noble](https://github.com/abandonware/noble) is installed properly, this module might work well on such OSes.)
+The node-switchbot supports only Linux-based OSes, such as Raspbian, Ubuntu, and so on. This module does not support Windows and macOS for now. (If [@homebridge/noble](https://github.com/homebridge/noble) is installed properly, this module might work well on such OSes.)
 
 ## Dependencies
 
 * [Node.js](https://nodejs.org/en/) 10 +
-* [@abandonware/noble](https://github.com/abandonware/noble)
+* [@homebridge/noble](https://github.com/homebridge/noble)
 
 
-See the document of the [@abandonware/noble](https://github.com/abandonware/noble) for details on installing the [@abandonware/noble](https://github.com/abandonware/noble).
+See the document of the [@homebridge/noble](https://github.com/homebridge/noble) for details on installing the [@homebridge/noble](https://github.com/homebridge/noble).
 
-Note that the noble must be run as root on most of Linux environments. See the document of the [@abandonware/noble](https://github.com/abandonware/noble) for details.
+Note that the noble must be run as root on most of Linux environments. See the document of the [@homebridge/noble](https://github.com/homebridge/noble) for details.
 
 ## Installation
 
-Before installing the [@abandonware/noble](https://github.com/abandonware/noble), some linux libraries related Bluetooth as follows if the OS is Ubuntu/Debian/Raspbian.
+Before installing the [@homebridge/noble](https://github.com/homebridge/noble), some linux libraries related Bluetooth as follows if the OS is Ubuntu/Debian/Raspbian.
 
 ```
 $ sudo apt-get install bluetooth bluez libbluetooth-dev libudev-dev
 ```
 
-If you use other OS, follow the instructions described in the document of the [@abandonware/noble](https://github.com/abandonware/noble).
+If you use other OS, follow the instructions described in the document of the [@homebridge/noble](https://github.com/homebridge/noble).
 
-After installing the libraries above, install the [@abandonware/noble](https://github.com/abandonware/noble) and the node-switchbot (this module) as follows:
+After installing the libraries above, install the [@homebridge/noble](https://github.com/homebridge/noble) and the node-switchbot (this module) as follows:
 
 ```
 $ cd ~
-$ npm install @abandonware/noble
+$ npm install @homebridge/noble
 $ npm install node-switchbot
 ```
 
@@ -247,15 +247,15 @@ The `Switchbot` constructor takes an argument optionally. It must be a hash obje
 
 Property | Type   | Required | Description
 :--------|:-------|:---------|:-----------
-`noble`  | Noble  | option   | a Noble object of the [`@abandonware/noble`](https://github.com/abandonware/noble) module
+`noble`  | Noble  | option   | a Noble object of the [`@homebridge/noble`](https://github.com/homebridge/noble) module
 
-The node-switchbot module uses the [`@abandonware/noble`](https://github.com/abandonware/noble) module in order to interact with BLE devices. If you want to interact other BLE devices using the `@abandonware/noble` module, you can create an `Noble` object by yourself, then pass it to this module. If you don't specify a `Noble` object to the `noble` property, this module automatically create a `Noble` object internally.
+The node-switchbot module uses the [`@homebridge/noble`](https://github.com/homebridge/noble) module in order to interact with BLE devices. If you want to interact other BLE devices using the `@homebridge/noble` module, you can create an `Noble` object by yourself, then pass it to this module. If you don't specify a `Noble` object to the `noble` property, this module automatically create a `Noble` object internally.
 
 The sample code below shows how to pass a `Nobel` object to the `Switchbot` constructor.
 
 ```JavaScript
 // Create a Noble object
-const noble = require('@abandonware/noble');
+const noble = require('@homebridge/noble');
 
 // Create a Switchbot object
 const Switchbot = require('node-switchbot');
