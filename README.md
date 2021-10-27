@@ -9,9 +9,6 @@
 
 </span>
 
-
-
-
 The node-switchbot is a Node.js module which allows you to move your [Switchbot (Bot)](https://www.switch-bot.com/bot)'s arm and [Switchbot Curtain(Curtain)](https://www.switch-bot.com/products/switchbot-curtain), also monitor the temperature/humidity from [SwitchBot Thermometer & Hygrometer (Meter)](https://www.switch-bot.com/meter).
 
 This module is unofficial. It was developed by reference to [the official python code](https://github.com/OpenWonderLabs/python-host). But some functionalities of this module were developed through trial and error. So some information obtained from this module might be wrong.
@@ -899,52 +896,7 @@ Property      | Type    | Description
 `lightLevel`  | Integer | This value indicates the light level of the light source currently set (`1-10`).
 
 ---------------------------------------
-## Release Note
-
-* v1.0.0 (2021-01-21)
-  * fix "No device was found" in MacOS
-* v0.2.0 (2020-11-05)
-  * Modify Curtain's action command to support group and running mode.  (Thanks to [@SwitchBot-Wonderlabs](https://github.com/futomi/node-switchbot/pull/7/))
-* v0.1.0 (2020-10-28)
-  * Added support for SwitchBot Curtain. (Thanks to [@SwitchBot-Wonderlabs](https://github.com/futomi/node-switchbot/pull/6/))
-  * Added support for running on the Raspberry Pi Zero W. (Thanks to [@zizi4n5](https://github.com/futomi/node-switchbot/pull/5))
-* v0.0.5 (2020-02-19)
-  * Improved the stability of discovering the BLE characteristics. (Thanks to [@dnicolson](https://github.com/futomi/node-switchbot/issues/3))
-* v0.0.4 (2020-02-11)
-  * Fixed the bug that temperature value lower than 0 degC could not be handled. (Thanks to [@musimasami](https://github.com/futomi/node-switchbot/issues/2))
-* v0.0.3 (2020-02-10)
-  * Now the characteristic UUID `0x2a00` (Device Name) is not mandatory. Some models of Bot don't seem to support the characteristic. (Thanks to [@dnicolson](https://github.com/futomi/node-switchbot/issues/1))
-  * Fixed the bug that the `turnOn()` method returns an error if the "Press mode" is selected on the Bot.
-* v0.0.2 (2019-11-20)
-  * First public release
-
----------------------------------------
 ## References
 
 * [Switchbot official global site](https://www.switch-bot.com/)
 * [Github - OpenWonderLabs/python-host](https://github.com/OpenWonderLabs/python-host)
-
----------------------------------------
-## License
-
-The MIT License (MIT)
-
-Copyright (c) 2019-2020 Futomi Hatano
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.

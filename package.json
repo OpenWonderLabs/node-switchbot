@@ -1,6 +1,6 @@
 {
   "name": "node-switchbot",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "description": "The node-switchbot is a Node.js module which allows you to move your Switchbot (Bot)'s arm and Switchbot Curtain(Curtain), also monitor the temperature/humidity from SwitchBot Thermometer & Hygrometer (Meter).",
   "main": "./lib/switchbot.js",
   "files": [
@@ -30,7 +30,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/futomi/node-switchbot.git"
+    "url": "https://github.com/OpenWonderLabs/node-switchbot.git"
   },
   "readmeFilename": "README.md",
   "dependencies": {
