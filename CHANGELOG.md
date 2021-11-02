@@ -26,7 +26,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ### Changes
 
-- Change from @abandonware/noble to @node/noble
+- Change from @abandonware/noble to @homebridge/noble
 
 ## [Version 1.0.6](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.6) (2021-08-29)
 
