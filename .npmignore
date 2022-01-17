@@ -1,1 +1,9 @@
-test/
+# Ignore everything by default.
+*
+
+# Include the following.
+!LICENSE.md
+!README.md
+!config.schema.json
+!dist/**
+!package.json
