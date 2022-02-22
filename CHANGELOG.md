@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [Beta - Version 1.2.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.1.2) (2021-11-13)
+
+### Changes
+
+- Added support for SwitchBot "Contact" and "Motion"
+- Housekeeping and update dependencies
+
 ## [Version 1.1.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.1.2) (2021-11-13)
 
 ### Changes
