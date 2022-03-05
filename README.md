@@ -7,9 +7,14 @@
 
 </span>
 
-The node-switchbot is a Node.js module which allows you to move your [Switchbot (Bot)](https://www.switch-bot.com/bot)'s arm and [Switchbot Curtain(Curtain)](https://www.switch-bot.com/products/switchbot-curtain), also monitor the temperature/humidity from [SwitchBot Thermometer & Hygrometer (Meter)](https://www.switch-bot.com/meter).
+The node-switchbot is a Node.js module which allows you to move your [Switchbot (Bot)'s](https://www.switch-bot.com/bot) arm
+and [Switchbot Curtain](https://www.switch-bot.com/products/switchbot-curtain),
+also monitor the temperature/humidity from [SwitchBot Thermometer & Hygrometer (Meter)](https://www.switch-bot.com/meter)
+as well as the status from [SwitchBot Motion Sensor](https://www.switch-bot.com/products/motion-sensor)
+and [SwitchBot Contact Sensor](https://www.switch-bot.com/products/contact-sensor)
 
-This module is unofficial. It was developed by reference to [the official python code](https://github.com/OpenWonderLabs/python-host). But some functionalities of this module were developed through trial and error. So some information obtained from this module might be wrong.
+This module is unofficial. It was developed by reference to [the official python code](https://github.com/OpenWonderLabs/python-host).
+But some functionalities of this module were developed through trial and error. So some information obtained from this module might be wrong.
 
 ---------------------------------------
 ## Table of Contents
@@ -52,6 +57,8 @@ This module is unofficial. It was developed by reference to [the official python
     - [Bot (WoHand)](#bot-wohand)
     - [Meter (WoSensorTH)](#meter-wosensorth)
     - [Curtain (WoCurtain)](#curtain-wocurtain)
+    - [Contact (WoContact)](#contact-wocontact)
+    - [Motion (WoMotion)](#motion-womotion)
   - [Release Note](#release-note)
   - [References](#references)
   - [License](#license)
@@ -394,11 +401,11 @@ This method has nothing to do with Switchbot devices. It's just a utility method
 ---------------------------------------
 ## `SwitchbotDevice` object
 
-The `SwitchbotDevice` object represents a Switchbot device (Bot or Meter), which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
+The `SwitchbotDevice` object represents a Switchbot device (Bot, Meter, Curtain, Contact or Motion), which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
 
-Actually, the `SwitchbotDevice` object is an super class of the [`SwitchbotDeviceWoHand`](#SwitchbotDeviceWoHand-object) and `SwitchbotDeviceWoSensorTH` objects. The [`SwitchbotDeviceWoHand`](#SwitchbotDeviceWoHand-object) object represents a Bot, the `SwitchbotDeviceWoSensorTH` object represents a Meter.
+Actually, the `SwitchbotDevice` object is a super class of the [`SwitchbotDeviceWoHand`](#SwitchbotDeviceWoHand-object) and `SwitchbotDeviceWoSensorTH` objects. The [`SwitchbotDeviceWoHand`](#SwitchbotDeviceWoHand-object) object represents a Bot, the `SwitchbotDeviceWoSensorTH` object represents a Meter.
 
-You can use the properties and methods described in this section on both Bot and Meter. See the section "[`SwitchbotDeviceWoHand` object](#SwitchbotDeviceWoHand-object)" for the details of the functionalities available only on Bot. For now, `SwitchbotDeviceWoSensorTH` object has no additional functionality.
+You can use the properties and methods described in this section on Bot, Meter, Curtain, Contact and Motion. See the section "[`SwitchbotDeviceWoHand` object](#SwitchbotDeviceWoHand-object)" for the details of the functionalities available only on Bot. For now, `SwitchbotDeviceWoSensorTH` object has no additional functionality.
 
 ### Properties
 
@@ -408,8 +415,8 @@ Property         | Type     | Description
 :----------------|:---------|:-----------
 `id`             | String   | ID of the device. (e.g., `"cb4eb903c96d"`)
 `address`        | String   | MAC address of the device. Basically it is as same as the value of the `id` except that this value includes `:` in the string. (e.g., `"cb:4e:b9:03:c9:6d"`)
-`model`           | String   | This value is `"H"` which means "Bot (WoHand)", `"T"` which means "Meter (WoSensorTH)" or `"c"` which means "Curtain (WoCurtain)".
-`modelName`       | String   | This value is `"WoHand"` or `"WoSensorTH"`.
+`model`           | String   | This value is `"H"` "Bot (WoHand)", `"T"` "Meter (WoSensorTH)", `"c"` "Curtain (WoCurtain)", `"d"` "Contact (WoContact)" or `"s"` "Motion (WoMotion)".
+`modelName`       | String   | This value is `"WoHand"`, `"WoSensorTH"`, `WoCurtain`, `WoContect` or `WoMotion`.
 `connectionState` | String   | This value indicates the BLE connection state. `"connecting"`, `"connected"`, `"disconnecting"`, or `"disconnected"`.
 `onconnect`       | Function | See the section "[`onconnect` event handler](#SwitchbotDevice-onconnect-event-handler)" for details.
 `ondisconnect`    | Function | See the section "[`ondisconnect` event handler](#SwitchbotDevice-ondisconnect-event-handler)" for details.
@@ -892,6 +899,66 @@ Property      | Type    | Description
 `battery`     | Integer | This value indicates the battery level (`1-100`, `%`).
 `position`    | Integer | This value indicates the percentage of current position (`0-100`, 0 is open, `%`).
 `lightLevel`  | Integer | This value indicates the light level of the light source currently set (`1-10`).
+
+### Contact (WoContact)
+
+Example of the advertisement data:
+
+```json
+{
+  "id": "f0cda125e3ec",
+  "address": "f0:cd:a1:25:e3:ec",
+  "rssi": -56,
+  "serviceData": {
+    "model": "d",
+    "modelName": "WoContact",
+    "movement": false,
+    "battery": 95,
+    "doorState": "close",
+    "lightLevel": "bright"
+  }
+}
+```
+
+Structure of the `serviceData`:
+
+Property      | Type    | Description
+:-------------|:--------|:-----------
+`model`       | String  | This value is always `"c"`, which means "Contact (WoContact)".
+`modelName`   | String  | This value is always `"WoContact"`, which means "Contact".
+`movement`    | Boolean | This value indicates the motion status (`true` or `false`).
+`battery`     | Integer | This value indicates the battery level (`1-100`, `%`).
+`doorState`   | String  | This value indicates the door Status (`close`, `open`, `timeout no closed`).
+`lightLevel`  | String  | This value indicates the light level (`dark`, `bright`).
+
+### Motion (WoMotion)
+
+Example of the advertisement data:
+
+```json
+{
+  "id": "e7216fa344a9",
+  "address": "e7:21:6f:a3:44:a9",
+  "rssi": -53,
+  "serviceData": {
+    "model": "s",
+    "modelName": "WoMotion",
+    "movement": false,
+    "battery": 96,
+    "lightLevel": "bright"
+  }
+}
+```
+
+Structure of the `serviceData`:
+
+Property      | Type    | Description
+:-------------|:--------|:-----------
+`model`       | String  | This value is always `"s"`, which means "Motion (WoMotion)".
+`modelName`   | String  | This value is always `"WoMotion"`, which means "Motion".
+`movement`    | Boolean | This value indicates the motion status (`true` or `false`).
+`battery`     | Integer | This value indicates the battery level (`1-100`, `%`).
+`lightLevel`  | String  | This value indicates the light level (`dark`, `bright`).
 
 ---------------------------------------
 ## References
