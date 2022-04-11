@@ -28,10 +28,11 @@ jobs:
         env:
           CI: true
 
-      steps:
-      - uses: fastify/github-action-merge-dependabot@v3.0.0
+  depdendabot:
+    steps:
+      - uses: fastify/github-action-merge-dependabot@v3
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}  
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   publish-npm:
     # publish only if we are on our own repo, event was 'release' (a tag was created) and the tag starts with "v" (aka version tag)
