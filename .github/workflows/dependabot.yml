@@ -4,9 +4,7 @@
 name: Beta
 
 on:
-  push:
-    branches:
-      - beta
+  pull requests:
 
 jobs:
   build:
@@ -22,19 +20,9 @@ jobs:
         env:
           CI: true
 
-  publish-npm:
-    if: github.repository == 'OpenWonderLabs/node-switchbot'
-    needs: build
+  depdendabot:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: fastify/github-action-merge-dependabot@v3
         with:
-          node-version: 14
-          registry-url: https://registry.npmjs.org/
-      - run: npm ci
-      - run: node .github/workflows/prerelease.js
-      - run: npm --no-git-tag-version version prerelease --preid=beta
-      - run: npm publish --tag=beta
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
