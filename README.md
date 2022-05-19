@@ -4,14 +4,17 @@
 
 <a href="https://www.npmjs.com/package/node-switchbot"><img title="npm version" src="https://badgen.net/npm/v/node-switchbot" ></a>
 <a href="https://www.npmjs.com/package/node-switchbot"><img title="npm downloads" src="https://badgen.net/npm/dt/node-switchbot" ></a>
- 
-</p>
 
 </span>
 
-The node-switchbot is a Node.js module which allows you to move your [Switchbot (Bot)](https://www.switch-bot.com/bot)'s arm and [Switchbot Curtain(Curtain)](https://www.switch-bot.com/products/switchbot-curtain), also monitor the temperature/humidity from [SwitchBot Thermometer & Hygrometer (Meter)](https://www.switch-bot.com/meter).
+The node-switchbot is a Node.js module which allows you to move your [Switchbot (Bot)'s](https://www.switch-bot.com/bot) arm
+and [Switchbot Curtain](https://www.switch-bot.com/products/switchbot-curtain),
+also monitor the temperature/humidity from [SwitchBot Thermometer & Hygrometer (Meter)](https://www.switch-bot.com/meter)
+as well as the status from [SwitchBot Motion Sensor](https://www.switch-bot.com/products/motion-sensor)
+and [SwitchBot Contact Sensor](https://www.switch-bot.com/products/contact-sensor)
 
-This module is unofficial. It was developed by reference to [the official python code](https://github.com/OpenWonderLabs/python-host). But some functionalities of this module were developed through trial and error. So some information obtained from this module might be wrong.
+This module is unofficial. It was developed by reference to [the official python code](https://github.com/OpenWonderLabs/python-host).
+But some functionalities of this module were developed through trial and error. So some information obtained from this module might be wrong.
 
 ---------------------------------------
 ## Table of Contents
@@ -26,7 +29,7 @@ This module is unofficial. It was developed by reference to [the official python
     - [Moving the arm of the Bot](#moving-the-arm-of-the-bot)
   - [`Switchbot` object](#switchbot-object)
     - [`discover()` method](#discover-method)
-    - [`ondiscover` event hander](#ondiscover-event-hander)
+    - [`ondiscover` event handler](#ondiscover-event-hander)
     - [`startScan()` method](#startscan-method)
     - [`stopScan()` method](#stopscan-method)
     - [`onadvertisement` event handler](#onadvertisement-event-handler)
@@ -54,6 +57,8 @@ This module is unofficial. It was developed by reference to [the official python
     - [Bot (WoHand)](#bot-wohand)
     - [Meter (WoSensorTH)](#meter-wosensorth)
     - [Curtain (WoCurtain)](#curtain-wocurtain)
+    - [Contact (WoContact)](#contact-wocontact)
+    - [Motion (WoMotion)](#motion-womotion)
   - [Release Note](#release-note)
   - [References](#references)
   - [License](#license)
@@ -120,7 +125,7 @@ const switchbot = new Switchbot();
 
 The [`startScan()`](#startscan-method) methods starts to monitor advertisement packets. In order to receive the packets, you have to assign a callback function to the [`onadvertisement`](#Switchbot-onadvertisement-event-handler).
 
-The [`wait()`](#Switchbot-wait-method) method is just an utility method, which wait for the specified milliseconds.
+The [`wait()`](#Switchbot-wait-method) method is just a utility method, which wait for the specified milliseconds.
 
 The [`startScan()`](#startscan-method) and [`wait()`](#Switchbot-wait-method) methods are asynchronous, they return a `Promise` object. You can write code in promise style as well. What the code below does is as same as what the code above does:
 
@@ -300,7 +305,7 @@ switchbot.discover({
 
 As the `quick` property is set to `true`, the `resolve()` function will be called immediately after a device is found regardless the value of the `duration` property.
 
-### `ondiscover` event hander
+### `ondiscover` event handler
 
 The `ondiscover` property on the [`Switchbot`](#Switchbot-object) object is an event handler called whenever a device is newly found in the discovery process. A [`SwitchbotDevice`](#SwitchbotDevice-object) object is passed to the callback function set to the `ondiscover` property.
 
@@ -391,16 +396,16 @@ See the section "[`startScan()` method](#startscan-method)" for details.
 
 The `wait()` method waits for the specified milliseconds. This method takes an integer representing the duration (millisecond). This method returns a `Promise` object.
 
-This method has nothing to do with Switchbot devices. It's just an utility method. See the section "[Quick Start](#Quick-Start)" for details of the usage of this method.
+This method has nothing to do with Switchbot devices. It's just a utility method. See the section "[Quick Start](#Quick-Start)" for details of the usage of this method.
 
 ---------------------------------------
 ## `SwitchbotDevice` object
 
-The `SwitchbotDevice` object represents a Switchbot device (Bot or Meter), which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
+The `SwitchbotDevice` object represents a Switchbot device (Bot, Meter, Curtain, Contact or Motion), which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
 
-Actually, the `SwitchbotDevice` object is an super class of the [`SwitchbotDeviceWoHand`](#SwitchbotDeviceWoHand-object) and `SwitchbotDeviceWoSensorTH` objects. The [`SwitchbotDeviceWoHand`](#SwitchbotDeviceWoHand-object) object represents a Bot, the `SwitchbotDeviceWoSensorTH` object represents a Meter.
+Actually, the `SwitchbotDevice` object is a super class of the [`SwitchbotDeviceWoHand`](#SwitchbotDeviceWoHand-object) and `SwitchbotDeviceWoSensorTH` objects. The [`SwitchbotDeviceWoHand`](#SwitchbotDeviceWoHand-object) object represents a Bot, the `SwitchbotDeviceWoSensorTH` object represents a Meter.
 
-You can use the properties and methods described in this section on both Bot and Meter. See the section "[`SwitchbotDeviceWoHand` object](#SwitchbotDeviceWoHand-object)" for the details of the functionalities available only on Bot. For now, `SwitchbotDeviceWoSensorTH` object has no additional functionality.
+You can use the properties and methods described in this section on Bot, Meter, Curtain, Contact and Motion. See the section "[`SwitchbotDeviceWoHand` object](#SwitchbotDeviceWoHand-object)" for the details of the functionalities available only on Bot. For now, `SwitchbotDeviceWoSensorTH` object has no additional functionality.
 
 ### Properties
 
@@ -410,8 +415,8 @@ Property         | Type     | Description
 :----------------|:---------|:-----------
 `id`             | String   | ID of the device. (e.g., `"cb4eb903c96d"`)
 `address`        | String   | MAC address of the device. Basically it is as same as the value of the `id` except that this value includes `:` in the string. (e.g., `"cb:4e:b9:03:c9:6d"`)
-`model`           | String   | This value is `"H"` which means "Bot (WoHand)", `"T"` which means "Meter (WoSensorTH)" or `"c"` which means "Curtain (WoCurtain)".
-`modelName`       | String   | This value is `"WoHand"` or `"WoSensorTH"`.
+`model`           | String   | This value is `"H"` "Bot (WoHand)", `"T"` "Meter (WoSensorTH)", `"c"` "Curtain (WoCurtain)", `"d"` "Contact (WoContact)" or `"s"` "Motion (WoMotion)".
+`modelName`       | String   | This value is `"WoHand"`, `"WoSensorTH"`, `WoCurtain`, `WoContect` or `WoMotion`.
 `connectionState` | String   | This value indicates the BLE connection state. `"connecting"`, `"connected"`, `"disconnecting"`, or `"disconnected"`.
 `onconnect`       | Function | See the section "[`onconnect` event handler](#SwitchbotDevice-onconnect-event-handler)" for details.
 `ondisconnect`    | Function | See the section "[`ondisconnect` event handler](#SwitchbotDevice-ondisconnect-event-handler)" for details.
@@ -448,7 +453,7 @@ The `setDeviceName()` method update the device name saved in the device with the
 
 If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
 
-The character set of the device name saved in the device is UTF-8. The byte length of the name must be less than or equal to 20 bytes. If the name consists of only ASCII characters, up to 20 characters would be allowed. But if the name consists of multi-byte characters, the upper limit of characters would be fewer than half. For example, Japanese characters could be saved at most 6 characters because most of Japanese characters consume 3 byte per each character.
+The character set of the device name saved in the device is UTF-8. The byte length of the name must be less than or equal to 20 bytes. If the name consists of only ASCII characters, up to 20 characters would be allowed. But if the name consists of multibyte characters, the upper limit of characters would be fewer than half. For example, Japanese characters could be saved at most 6 characters because most of Japanese characters consume 3 byte per each character.
 
 ```javascript
 switchbot.discover({ model: 'H', quick: true }).then((device_list) => {
@@ -525,7 +530,7 @@ See the [previous section](#SwitchbotDevice-connect-method) for more details.
 
 ### `onconnect` event handler
 
-The `onconnect` event hander will be called when the connection with the device is established. Nothing will be passed to the hander.
+The `onconnect` event handler will be called when the connection with the device is established. Nothing will be passed to the handler.
 
 The code below calls the [`press()`](#SwitchbotDeviceWoHand-press-method) method, while callback functions are attached to the `onconnect` and `ondisconnect`.
 
@@ -571,12 +576,12 @@ Seeing the result, you would find the [`press()`](#SwitchbotDeviceWoHand-press-m
 
 ### `ondisconnect` event handler
 
-The `ondisconnect` event hander will be called when the connection with the device is closed. Nothing will be passed to the hander. See the previous section "[`onconnect` event handler](#SwitchbotDevice-onconnect-event-handler)" for more details.
+The `ondisconnect` event handler will be called when the connection with the device is closed. Nothing will be passed to the handler. See the previous section "[`onconnect` event handler](#SwitchbotDevice-onconnect-event-handler)" for more details.
 
 ---------------------------------------
 ## `SwitchbotDeviceWoHand` object
 
-The `SwitchbotDeviceWoHand` object represents an Bot, which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
+The `SwitchbotDeviceWoHand` object represents a Bot, which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
 
 Actually, the `SwitchbotDeviceWoHand` is an object inherited from the [`SwitchbotDevice`](#SwitchbotDevice-object). You can use not only the method described in this section but also the properties and methods implemented in the [`SwitchbotDevice`](#SwitchbotDevice-object) object.
 
@@ -685,7 +690,7 @@ switchbot.discover({ model: 'H', quick: true }).then((device_list) => {
 ---------------------------------------
 ## `SwitchbotDeviceWoCurtain` object
 
-The `SwitchbotDeviceWoCurtain` object represents an Curtain, which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
+The `SwitchbotDeviceWoCurtain` object represents a Curtain, which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
 
 Actually, the `SwitchbotDeviceWoCurtain` is an object inherited from the [`SwitchbotDevice`](#SwitchbotDevice-object). You can use not only the method described in this section but also the properties and methods implemented in the [`SwitchbotDevice`](#SwitchbotDevice-object) object.
 
@@ -746,7 +751,7 @@ If no connection is established with the device, this method automatically estab
 When the Curtain receives this command, the Curtain will run to the percentage position. If not calibrated, the Curtain does not move.
 
 
-The `open()` method sends a open command to the Curtain. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
+The `open()` method sends an open command to the Curtain. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
 
 If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
 
@@ -755,7 +760,7 @@ When the Curtain receives this command, the Curtain will open the curtain (0% po
 Property     | Type    | Required | Description
 :------------|:--------|:---------|:------------
 `percent`    | Integer | Required | The percentage of target position (`0-100`). (e.g., `50`)
-`mode`       | Integer | Optional | The running mode of Curtain. <br/>`0x00` - Performance mode.<br/> `0x01` - Slient mode. <br/>`0xff` - Default. Unspecified, from Curtain's settings.
+`mode`       | Integer | Optional | The running mode of Curtain. <br/>`0x00` - Performance mode.<br/> `0x01` - Silent mode. <br/>`0xff` - Default. Unspecified, from Curtain's settings.
 
 ```javascript
 switchbot.discover({ model: 'c', quick: true }).then((device_list) => {
@@ -860,7 +865,7 @@ Property      | Type    | Description
 `humidity`    | Integer | Humidity (`%`)
 `battery`     | Integer | (**experimental**) This value indicates the battery level (`%`).
 
-The `fahrenheit` indicates the setting on the device. Note that it does *not* indicate the setting on the official smartphone app. The setting of the temperature unit on the device and the setting on the app are independent. 
+The `fahrenheit` indicates the setting on the device. Note that it does *not* indicate the setting on the official smartphone app. The setting of the temperature unit on the device and the setting on the app are independent.
 
 The `battery` is *experimental* for now. I'm not sure whether the value is correct or not. Never trust this value for now.
 
@@ -895,8 +900,68 @@ Property      | Type    | Description
 `position`    | Integer | This value indicates the percentage of current position (`0-100`, 0 is open, `%`).
 `lightLevel`  | Integer | This value indicates the light level of the light source currently set (`1-10`).
 
+### Contact (WoContact)
+
+Example of the advertisement data:
+
+```json
+{
+  "id": "f0cda125e3ec",
+  "address": "f0:cd:a1:25:e3:ec",
+  "rssi": -56,
+  "serviceData": {
+    "model": "d",
+    "modelName": "WoContact",
+    "movement": false,
+    "battery": 95,
+    "doorState": "close",
+    "lightLevel": "bright"
+  }
+}
+```
+
+Structure of the `serviceData`:
+
+Property      | Type    | Description
+:-------------|:--------|:-----------
+`model`       | String  | This value is always `"c"`, which means "Contact (WoContact)".
+`modelName`   | String  | This value is always `"WoContact"`, which means "Contact".
+`movement`    | Boolean | This value indicates the motion status (`true` or `false`).
+`battery`     | Integer | This value indicates the battery level (`1-100`, `%`).
+`doorState`   | String  | This value indicates the door Status (`close`, `open`, `timeout no closed`).
+`lightLevel`  | String  | This value indicates the light level (`dark`, `bright`).
+
+### Motion (WoMotion)
+
+Example of the advertisement data:
+
+```json
+{
+  "id": "e7216fa344a9",
+  "address": "e7:21:6f:a3:44:a9",
+  "rssi": -53,
+  "serviceData": {
+    "model": "s",
+    "modelName": "WoMotion",
+    "movement": false,
+    "battery": 96,
+    "lightLevel": "bright"
+  }
+}
+```
+
+Structure of the `serviceData`:
+
+Property      | Type    | Description
+:-------------|:--------|:-----------
+`model`       | String  | This value is always `"s"`, which means "Motion (WoMotion)".
+`modelName`   | String  | This value is always `"WoMotion"`, which means "Motion".
+`movement`    | Boolean | This value indicates the motion status (`true` or `false`).
+`battery`     | Integer | This value indicates the battery level (`1-100`, `%`).
+`lightLevel`  | String  | This value indicates the light level (`dark`, `bright`).
+
 ---------------------------------------
 ## References
 
 * [Switchbot official global site](https://www.switch-bot.com/)
-* [Github - OpenWonderLabs/python-host](https://github.com/OpenWonderLabs/python-host)
+* [GitHub - OpenWonderLabs/SwitchBotAPI-BLE](https://github.com/OpenWonderLabs/SwitchBotAPI-BLE)
