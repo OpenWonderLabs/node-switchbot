@@ -964,4 +964,4 @@ Property      | Type    | Description
 ## References
 
 * [Switchbot official global site](https://www.switch-bot.com/)
-* [GitHub - OpenWonderLabs/python-host](https://github.com/OpenWonderLabs/python-host)
+* [GitHub - OpenWonderLabs/SwitchBotAPI-BLE](https://github.com/OpenWonderLabs/SwitchBotAPI-BLE)
