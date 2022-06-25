@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 1.3.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.2.0) (2022-06-25)
 
-### Changes
+## What's Changed
 
 - Added more Device Types, not all supported though.
 - Housekeeping and update dependencies
@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 1.2.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.2.0) (2022-03-04)
 
-### Changes
+## What's Changed
 
 - Added support for SwitchBot "Contact" and "Motion"
 - Fix for Curtains on Firmware v3.3 and above
@@ -23,7 +23,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 1.1.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.1.2) (2021-11-13)
 
-### Changes
+## What's Changed
 
 - Housekeeping and update dependencies
 
@@ -31,7 +31,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 1.1.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.1.1) (2021-11-02)
 
-### Changes
+## What's Changed
 
 - Change back from @node/noble to @abandonware/noble
 
@@ -39,7 +39,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 1.1.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.1.0) (2021-10-26)
 
-### Changes
+## What's Changed
 
 - Add Contact/Motion Sensor advertisement
 - Add Humidifier advertisement
@@ -49,7 +49,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 1.0.8](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.8) (2021-09-30)
 
-### Changes
+## What's Changed
 
 - fix extra trace of old noble from @abandonware/noble
 
@@ -57,7 +57,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 1.0.7](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.7) (2021-09-24)
 
-### Changes
+## What's Changed
 
 - Change from @abandonware/noble to @homebridge/noble
 
@@ -65,7 +65,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 1.0.6](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.6) (2021-08-29)
 
-### Changes
+## What's Changed
 
 - Fixes FATAL ERROR: ad_id is not defined
 
@@ -73,7 +73,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 1.0.5](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.5) (2021-08-04)
 
-### Changes
+## What's Changed
 
 - Adding code for Contact and Motion Sensors
   - Not Ready to be used yet though
@@ -82,7 +82,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 1.0.4](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.4) (2021-08-03)
 
-### Changes
+## What's Changed
 
 - Support for the discover method with id on macOS
 
@@ -90,7 +90,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 1.0.3](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.3) (2021-07-30)
 
-### Changes
+## What's Changed
 
 - Fixed misspelling.
 
@@ -98,7 +98,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 1.0.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.2) (2021-07-29)
 
-### Changes
+## What's Changed
 
 - Housekeeping and update dependencies
 
@@ -106,7 +106,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 1.0.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.1) (2021-07-29)
 
-### Changes
+## What's Changed
 
 - Fixed issue where after switching Bluetooth off and on, would not work properly.
 
@@ -114,7 +114,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 1.0.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.0) (2021-01-21)
 
-### Changes
+## What's Changed
 
 -   * fix "No device was found" in MacOS
 
@@ -122,7 +122,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 0.2.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.2.0) (2020-11-05)
 
-### Changes
+## What's Changed
 
 - Modify Curtain's action command to support group and running mode. (Thanks to [@SwitchBot-Wonderlabs](https://github.com/OpenWonderLabs/node-switchbot/pull/7/))
 
@@ -130,7 +130,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 0.1.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.1.0) (2020-10-28)
 
-### Changes
+## What's Changed
 
 - Added support for SwitchBot Curtain. (Thanks to [@SwitchBot-Wonderlabs](https://github.com/OpenWonderLabs/node-switchbot/pull/6/))
 - Added support for running on the Raspberry Pi Zero W. (Thanks to [@zizi4n5](https://github.com/OpenWonderLabs/node-switchbot/pull/5))
@@ -139,7 +139,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 0.0.5](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.0.5) (2020-02-19)
 
-### Changes
+## What's Changed
 
 - Improved the stability of discovering the BLE characteristics. (Thanks to [@dnicolson](https://github.com/OpenWonderLabs/node-switchbot/issues/3))
 
@@ -147,7 +147,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 0.0.4](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.0.4) (2020-02-11)
 
-### Changes
+## What's Changed
 
 - Fixed the bug that temperature value lower than 0 degC could not be handled. (Thanks to [@musimasami](https://github.com/OpenWonderLabs/node-switchbot/issues/2))
 
@@ -155,7 +155,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 0.0.3](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.0.3) (2020-02-10)
 
-### Changes
+## What's Changed
 
 - Now the characteristic UUID `0x2a00` (Device Name) is not mandatory. Some models of Bot don't seem to support the characteristic. (Thanks to [@dnicolson](https://github.com/OpenWonderLabs/node-switchbot/issues/1))
 - Fixed the bug that the `turnOn()` method returns an error if the "Press mode" is selected on the Bot.
@@ -164,6 +164,6 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [Version 0.0.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.0.2) (2019-11-20)
 
-### Changes
+## What's Changed
 
 - First public release
