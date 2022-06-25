@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [Version 1.3.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.2.0) (2022-06-25)
+
+### Changes
+
+- Added more Device Types, not all supported though.
+- Housekeeping and update dependencies
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.2.0...v1.3.0
+
 ## [Version 1.2.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.2.0) (2022-03-04)
 
 ### Changes
