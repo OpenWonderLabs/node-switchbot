@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
-## [Version 1.3.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.2.0) (2022-06-25)
+## [Version 1.4.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.4.0) (2022-08-19)
+
+## What's Changed
+
+- Added support for Plug Mini (j) & (g)
+- Housekeeping and update dependencies
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.3.0...v1.4.0
+
+## [Version 1.3.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.3.0) (2022-06-25)
 
 ## What's Changed
 
@@ -116,7 +125,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## What's Changed
 
--   * fix "No device was found" in MacOS
+- - fix "No device was found" in MacOS
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v0.2.0...v1.0.0
 
