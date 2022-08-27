@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [Version 1.4.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.4.1) (2022-08-27)
+
+## What's Changed
+
+- Fix Plug Mini (US) implimentation
+- Housekeeping and update dependencies
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.4.0...v1.4.1
+
 ## [Version 1.4.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.4.0) (2022-08-19)
 
 ## What's Changed
