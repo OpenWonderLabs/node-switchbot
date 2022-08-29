@@ -54,12 +54,17 @@ But some functionalities of this module were developed through trial and error. 
     - [`close()` method](#close-method)
     - [`pause()` method](#pause-method)
     - [`runToPos()` method](#runtopos-method)
+  - [`SwitchbotDeviceWoPlugMini` object](#switchbotdevicewoplugmini-object)
+    - [`turnOn()` method](#turnon-method)
+    - [`turnOff()` method](#turnoff-method)
+    - [`toggle()` method](#toggle-method)
   - [Advertisement data](#advertisement-data)
     - [Bot (WoHand)](#bot-wohand)
     - [Meter (WoSensorTH)](#meter-wosensorth)
     - [Curtain (WoCurtain)](#curtain-wocurtain)
     - [Contact (WoContact)](#contact-wocontact)
     - [Motion (WoMotion)](#motion-womotion)
+    - [PlugMini (WoPlugMini)](#plugmini-woplugmini)
   - [Release Note](#release-note)
   - [References](#references)
   - [License](#license)
@@ -340,7 +345,7 @@ The `startScan()` method starts to scan advertising packets coming from devices.
 
 | Property | Type   | Required | Description                                                                                                                                                                                                      |
 | :------- | :----- | :------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`  | String | Optional | `"H"`, `"T"` or `"c"`. If `"H"` is specified, this method will discover only Bots. If `"T"` is specified, this method will discover only Meters. If `"c"` is specified, this method will discover only Curtains. |
+| `model`  | String | Optional | `"H"`, `"T"`, `"c"`, `"g"` or `"j"`. If `"H"` is specified, this method will discover only Bots. If `"T"` is specified, this method will discover only Meters. If `"c"` is specified, this method will discover only Curtains. If `"g"` or `"j"` is specified, this method will discover only (US/JP) Plug Minis. |
 | `id`     | String | Optional | If this value is set, this method will discover only a device whose ID is as same as this value. The ID is identical to the MAC address. This value is case-insensitive, and colons are ignored.                 |
 
 Whenever a packet is received, the callback function set to the [`onadvertisement`](#Switchbot-onadvertisement-event-handler) property of the [`Switchbot`](#Switchbot-object) object will be called. When a packet is received, a hash object representing the packet will be passed to the callback function.
@@ -836,6 +841,31 @@ switchbot
 ```
 
 ---
+## `SwitchbotDeviceWoPlugMini` object
+
+The `SwitchbotDeviceWoPlugMini ` object represents a PlugMini, which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
+
+Actually, the `SwitchbotDeviceWoPlugMini ` is an object inherited from the [`SwitchbotDevice`](#SwitchbotDevice-object). You can use not only the method described in this section but also the properties and methods implemented in the [`SwitchbotDevice`](#SwitchbotDevice-object) object.
+
+### `turnOn()` method
+
+The `turnOn()` method sends a turn-on command to the PlugMini. This method returns a `Promise` object. A `boolean` value indicating whether the PlugMini is on (`true`), is passed to the `resolve()` method of the Promise.
+
+If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
+
+### `turnOff()` method
+
+The `turnOff()` method sends a turn-off command to the PlugMini. This method returns a `Promise` object. A `boolean` value indicating whether the PlugMini is off (`false`), is passed to the `resolve()` method of the Promise.
+
+If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
+
+### `toggle()` method
+
+The `toggle()` method sends a toggle command to the PlugMini, toggling between the on and off state. This method returns a `Promise` object. A `boolean` value indicating whether the PlugMini is on (`true`) or off (`false`), is passed to the `resolve()` method of the Promise.
+
+If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
+
+---
 
 ## Advertisement data
 
@@ -1022,6 +1052,42 @@ Structure of the `serviceData`:
 | `movement`   | Boolean | This value indicates the motion status (`true` or `false`).  |
 | `battery`    | Integer | This value indicates the battery level (`1-100`, `%`).       |
 | `lightLevel` | String  | This value indicates the light level (`dark`, `bright`).     |
+
+### PlugMini (WoPlugMini)
+
+Example of the advertisement data:
+
+```json
+{
+  "id": "cd2409ea3e9441f87d4580e0380a62bf",
+  "address": "60:55:f9:35:f6:a6",
+  "rssi": -50,
+  "serviceData": {
+    "model": "j",
+    "modelName": "WoPlugMini",
+    "state": "off",
+    "delay": false,
+    "timer": false,
+    "syncUtcTime": true,
+    "wifiRssi": 48,
+    "overload": false,
+    "currentPower": 0
+  }
+}
+```
+
+Structure of the `serviceData`:
+
+| Property      | Type    | Description                                                                         |
+| :------------ | :------ | :---------------------------------------------------------------------------------- |
+| `model`       | String  | This value is always `"j"` or `"g"`, which means "PlugMini" (JP or US).             |
+| `modelName`   | String  | This value is always `"WoPlugMini"`, which means "PlugMini".                        |
+| `state   `    | Boolean | This value indicates whether the plug mini is turned on (`true`) or not (`false`).  |
+| `delay`       | Boolean | Indicates whether a delay is present.                                               |
+| `timer`       | Boolean | Indicates whether a timer is present.                                               |
+| `syncUtcTime` | boolean | Indicates whether the UTC time has been synchronized.                               |
+| `overload`    | boolean | Indicates whether the Plug Mini is overloaded, more than 15A current overload.      |                            
+| `currentPower`| Float   | Current power consumption in Watts.                                                 |
 
 ---
 
