@@ -25,6 +25,7 @@
     "Bluetooth smart",
     "Bluetooth"
   ],
+  "betaVersion": true,
   "homepage": "https://github.com/OpenWonderLabs/node-switchbot",
   "author": "OpenWonderLabs (https://github.com/OpenWonderLabs)",
   "license": "MIT",
