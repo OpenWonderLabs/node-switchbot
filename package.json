@@ -1,7 +1,7 @@
 {
   "name": "node-switchbot",
-  "version": "1.4.1",
-  "description": "The node-switchbot is a Node.js module which allows you to move your Switchbot (Bot)'s arm and Switchbot Curtain(Curtain), also monitor the temperature/humidity from SwitchBot Thermometer & Hygrometer (Meter).",
+  "version": "1.5.0",
+  "description": "The node-switchbot is a Node.js module which allows you to control your Switchbot Devices through Bluetooth (BLE).",
   "main": "./lib/switchbot.js",
   "files": [
     "lib"
@@ -25,7 +25,7 @@
     "Bluetooth smart",
     "Bluetooth"
   ],
-  "homepage": "https://github.com/OpenWonderLabs",
+  "homepage": "https://github.com/OpenWonderLabs/node-switchbot",
   "author": "OpenWonderLabs (https://github.com/OpenWonderLabs)",
   "license": "MIT",
   "repository": {
@@ -37,6 +37,6 @@
     "@abandonware/noble": "^1.9.2-15"
   },
   "devDependencies": {
-    "npm-check-updates": "^16.0.6"
+    "npm-check-updates": "^16.3.8"
   }
 }

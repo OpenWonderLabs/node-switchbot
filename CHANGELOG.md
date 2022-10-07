@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [Version 1.5.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.5.0) (2022-08-27)
+
+## What's Changed
+
+- Added Color Bulb & Strip Light Support
+- Fixed issue that caused excessive logging.
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.4.1...v1.5.0
+
 ## [Version 1.4.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.4.1) (2022-08-27)
 
 ## What's Changed
