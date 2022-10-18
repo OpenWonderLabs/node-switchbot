@@ -2,12 +2,22 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
-## [Version 1.5.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.5.0) (2022-08-27)
+## [Version 1.6.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.5.0) (2022-10-18)
 
 ## What's Changed
 
-- Added Color Bulb & Strip Light Support
+- Added Support for Pushing Changes to Color Bulb & Strip Light
+- Housekeeping and update dependencies
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.5.0...v1.6.0
+
+## [Version 1.5.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.5.0) (2022-10-07)
+
+## What's Changed
+
+- Added Support for receiving status updates from Color Bulb & Strip Light
 - Fixed issue that caused excessive logging.
+- Housekeeping and update dependencies
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.4.1...v1.5.0
 
