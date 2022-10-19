@@ -2,7 +2,15 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
-## [Version 1.6.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.5.0) (2022-10-18)
+## [Version 1.6.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.6.1) (2022-10-18)
+
+## What's Changed
+
+- Fixed Issue where node-switchbot wouldn't be found.
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.6.0...v1.6.1
+
+## [Version 1.6.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.6.0) (2022-10-18)
 
 ## What's Changed
 

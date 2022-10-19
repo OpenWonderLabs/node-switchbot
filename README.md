@@ -110,9 +110,9 @@ Monitoring the advertising packets, you can find your devices and know the lates
 
 ```JavaScript
 // Load the node-switchbot and get a `Switchbot` constructor object
-const Switchbot = require('node-switchbot');
+let Switchbot = require('node-switchbot');
 // Create an `Switchbot` object
-const switchbot = new Switchbot();
+let switchbot = new Switchbot();
 
 (async () => {
   // Start to monitor advertisement packets
@@ -137,7 +137,7 @@ The [`startScan()`](#startscan-method) and [`wait()`](#Switchbot-wait-method) me
 
 ```javascript
 // Load the node-switchbot and get a `Switchbot` constructor object
-const Switchbot = require("node-switchbot");
+let Switchbot = require("node-switchbot");
 // Create an `Switchbot` object
 let switchbot = new Switchbot();
 
@@ -213,13 +213,13 @@ This sample discovers a Bot (WoHand), then put the Bot's arm down, finally put i
 
 ```javascript
 // Load the node-switchbot and get a `Switchbot` constructor object
-const Switchbot = require("node-switchbot");
+let Switchbot = require("node-switchbot");
 // Create an `Switchbot` object
-const switchbot = new Switchbot();
+let switchbot = new Switchbot();
 
 (async () => {
   // Find a Bot (WoHand)
-  const bot_list = await switchbot.discover({ model: "H", quick: true });
+  let bot_list = await switchbot.discover({ model: "H", quick: true });
   if (bot_list.length === 0) {
     throw new Error("No device was found.");
   }
@@ -246,13 +246,13 @@ In this code, you can get a [`SwitchbotDeviceWoHand`](#SwitchbotDeviceWoHand-obj
 In order to use the node-switchbot, you have to load the node-switchbot module as follows:
 
 ```JavaScript
-const Switchbot = require('node-switchbot');
+let Switchbot = require('node-switchbot');
 ```
 
 You can get an `Switchbot` constructor from the code above. Then you have to create an `Switchbot` object from the `Switchbot` constructor as follows:
 
 ```javascript
-const switchbot = new Switchbot();
+let switchbot = new Switchbot();
 ```
 
 The `Switchbot` constructor takes an argument optionally. It must be a hash object containing the properties as follows:
@@ -267,11 +267,11 @@ The sample code below shows how to pass a `Nobel` object to the `Switchbot` cons
 
 ```JavaScript
 // Create a Noble object
-const noble = require('@abandonware/noble');
+let noble = require('@abandonware/noble');
 
 // Create a Switchbot object
-const Switchbot = require('node-switchbot');
-const switchbot = new Switchbot({'noble': noble});
+let Switchbot = require('node-switchbot');
+let switchbot = new Switchbot({'noble': noble});
 ```
 
 In the code snippet above, the variable `switchbot` is an `Switchbot` object. The `Switchbot` object has a lot of methods as described in sections below.
