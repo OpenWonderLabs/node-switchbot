@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## What's Changed
 
-- Add Read-only Support for Smart Lock
+- Add Read-only Support for Smart Lock.
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.6.1...v1.7.0
 
