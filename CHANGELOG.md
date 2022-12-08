@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
-## [Version 1.7.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.7.0) (2022-12-XX)
+## [Version 1.7.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.7.0) (2022-12-08)
 
 ## What's Changed
 
