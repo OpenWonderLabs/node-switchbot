@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [Version 1.7.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.7.0) (2022-12-08)
+
+## What's Changed
+
+- Add Read-only Support for Smart Lock.
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.6.1...v1.7.0
+
 ## [Version 1.6.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.6.1) (2022-10-18)
 
 ## What's Changed
