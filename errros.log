@@ -1,0 +1,13 @@
+
+/usr/local/lib/node_modules/@switchbot/homebridge-switchbot/node_modules/node-switchbot/node_modules/@abandonware/noble/lib/noble.js:137
+      this._bindings.startScanning(serviceUuids, allowDuplicates);
+                     ^
+TypeError: A string was expected
+    at Noble.scan (/usr/local/lib/node_modules/@switchbot/homebridge-switchbot/node_modules/node-switchbot/node_modules/@abandonware/noble/lib/noble.js:137:22)
+    at Noble.startScanning (/usr/local/lib/node_modules/@switchbot/homebridge-switchbot/node_modules/node-switchbot/node_modules/@abandonware/noble/lib/noble.js:149:10)
+    at /usr/local/lib/node_modules/@switchbot/homebridge-switchbot/node_modules/node-switchbot/node_modules/@abandonware/noble/lib/noble.js:155:44
+    at node:internal/util:364:7
+    at new Promise (<anonymous>)
+    at node:internal/util:350:12
+    at Noble.startScanningAsync (/usr/local/lib/node_modules/@switchbot/homebridge-switchbot/node_modules/node-switchbot/node_modules/@abandonware/noble/lib/noble.js:155:99)
+    at /usr/local/lib/node_modules/@switchbot/homebridge-switchbot/node_modules/node-switchbot/lib/switchbot.js:374:22
