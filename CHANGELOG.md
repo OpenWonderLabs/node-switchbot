@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [Version 1.7.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.7.2) (2022-12-26)
+
+## What's Changed
+
+- Fix for @abandonware/nobles breaking changes that cause: `TypeError: this.noble.once is not a function`.
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.7.1...v1.7.2
+
 ## [Version 1.7.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.7.1) (2022-12-20)
 
 ## What's Changed
