@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [Beta Version 1.8.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.8.0) (2023-XX-XX)
+
+## What's Changed
+
+- Add Support for BlindTilt
+- Housekeeping and update dependencies
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.7.3...v1.8.0
+
 ## [Version 1.7.3](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.7.3) (2023-01-05)
 
 ## What's Changed
