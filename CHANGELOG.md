@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
-## [Beta Version 1.8.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.8.0) (2023-XX-XX)
+## [Version 1.8.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.8.0) (2023-01-28)
 
 ## What's Changed
 
-- Add Support for BlindTilt
+- Add Support for BlindTilt (Read Only)
+- Use Error object for promise rejection, Thanks [@dnicolson](https://github.com/dnicolson/).  [#181](https://github.com/OpenWonderLabs/node-switchbot/pull/181)
 - Housekeeping and update dependencies
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.7.3...v1.8.0
