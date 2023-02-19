@@ -110,9 +110,9 @@ Monitoring the advertising packets, you can find your devices and know the lates
 
 ```JavaScript
 // Load the node-switchbot and get a `Switchbot` constructor object
-let Switchbot = require('node-switchbot');
+const Switchbot = require('node-switchbot');
 // Create an `Switchbot` object
-let switchbot = new Switchbot();
+const switchbot = new Switchbot();
 
 (async () => {
   // Start to monitor advertisement packets
@@ -137,9 +137,9 @@ The [`startScan()`](#startscan-method) and [`wait()`](#Switchbot-wait-method) me
 
 ```javascript
 // Load the node-switchbot and get a `Switchbot` constructor object
-let Switchbot = require("node-switchbot");
+const Switchbot = require("node-switchbot");
 // Create an `Switchbot` object
-let switchbot = new Switchbot();
+const switchbot = new Switchbot();
 
 // Start to monitor advertisement packets
 switchbot
@@ -213,18 +213,18 @@ This sample discovers a Bot (WoHand), then put the Bot's arm down, finally put i
 
 ```javascript
 // Load the node-switchbot and get a `Switchbot` constructor object
-let Switchbot = require("node-switchbot");
+const Switchbot = require("node-switchbot");
 // Create an `Switchbot` object
-let switchbot = new Switchbot();
+const switchbot = new Switchbot();
 
 (async () => {
   // Find a Bot (WoHand)
-  let bot_list = await switchbot.discover({ model: "H", quick: true });
+  const bot_list = await switchbot.discover({ model: "H", quick: true });
   if (bot_list.length === 0) {
     throw new Error("No device was found.");
   }
   // The `SwitchbotDeviceWoHand` object representing the found Bot.
-  let device = bot_list[0];
+  const device = bot_list[0];
   // Put the Bot's arm down (stretch the arm)
   await device.down();
   // Wait for 5 seconds
@@ -246,13 +246,13 @@ In this code, you can get a [`SwitchbotDeviceWoHand`](#SwitchbotDeviceWoHand-obj
 In order to use the node-switchbot, you have to load the node-switchbot module as follows:
 
 ```JavaScript
-let Switchbot = require('node-switchbot');
+const Switchbot = require('node-switchbot');
 ```
 
 You can get an `Switchbot` constructor from the code above. Then you have to create an `Switchbot` object from the `Switchbot` constructor as follows:
 
 ```javascript
-let switchbot = new Switchbot();
+const switchbot = new Switchbot();
 ```
 
 The `Switchbot` constructor takes an argument optionally. It must be a hash object containing the properties as follows:
@@ -267,11 +267,11 @@ The sample code below shows how to pass a `Noble` object to the `Switchbot` cons
 
 ```JavaScript
 // Create a Noble object
-let noble = require('@abandonware/noble');
+const noble = require('@abandonware/noble');
 
 // Create a Switchbot object
-let Switchbot = require('node-switchbot');
-let switchbot = new Switchbot({'noble': noble});
+const Switchbot = require('node-switchbot');
+const switchbot = new Switchbot({'noble': noble});
 ```
 
 In the code snippet above, the variable `switchbot` is an `Switchbot` object. The `Switchbot` object has a lot of methods as described in sections below.
@@ -565,7 +565,7 @@ The code below calls the [`press()`](#SwitchbotDeviceWoHand-press-method) method
 switchbot
   .discover({ model: "H", quick: true })
   .then((device_list) => {
-    let device = device_list[0];
+    const device = device_list[0];
     if (!device) {
       console.log("No device was found.");
       process.exit();
