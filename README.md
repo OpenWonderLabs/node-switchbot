@@ -263,7 +263,7 @@ The `Switchbot` constructor takes an argument optionally. It must be a hash obje
 
 The node-switchbot module uses the [`@abandonware/noble`](https://github.com/abandonware/noble) module in order to interact with BLE devices. If you want to interact other BLE devices using the `@abandonware/noble` module, you can create an `Noble` object by yourself, then pass it to this module. If you don't specify a `Noble` object to the `noble` property, this module automatically create a `Noble` object internally.
 
-The sample code below shows how to pass a `Nobel` object to the `Switchbot` constructor.
+The sample code below shows how to pass a `Noble` object to the `Switchbot` constructor.
 
 ```JavaScript
 // Create a Noble object
