@@ -35,7 +35,7 @@
   },
   "readmeFilename": "README.md",
   "dependencies": {
-    "@switchbot/noble": "^1.9.2-19"
+    "@abandonware/noble": "1.9.2-15"
   },
   "devDependencies": {
     "npm-check-updates": "^16.7.5"
