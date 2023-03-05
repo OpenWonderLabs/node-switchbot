@@ -35,7 +35,7 @@
   },
   "readmeFilename": "README.md",
   "dependencies": {
-    "@abandonware/noble": "1.9.2-15"
+    "@abandonware/noble": "1.9.2-20"
   },
   "devDependencies": {
     "npm-check-updates": "^16.7.5"
