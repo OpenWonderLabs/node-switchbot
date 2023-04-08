@@ -2,12 +2,21 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [Version 1.8.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.8.1) (2023-04-08)
+
+## What's Changed
+- Use const keyword for immutable variables, Thanks [@dnicolson](https://github.com/dnicolson/). [#184](https://github.com/OpenWonderLabs/node-switchbot/pull/184) 
+- Use Error object for promise rejection, Thanks [@dnicolson](https://github.com/dnicolson/). [#181](https://github.com/OpenWonderLabs/node-switchbot/pull/181)
+- Housekeeping and update dependencies
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.8.0...v1.8.1
+
 ## [Version 1.8.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.8.0) (2023-01-28)
 
 ## What's Changed
 
 - Add Support for BlindTilt (Read Only)
-- Use Error object for promise rejection, Thanks [@dnicolson](https://github.com/dnicolson/).  [#181](https://github.com/OpenWonderLabs/node-switchbot/pull/181)
+- Use Error object for promise rejection, Thanks [@dnicolson](https://github.com/dnicolson/). [#181](https://github.com/OpenWonderLabs/node-switchbot/pull/181)
 - Housekeeping and update dependencies
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.7.3...v1.8.0
@@ -16,7 +25,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## What's Changed
 
-- Improve error handling, Thanks [@dnicolson](https://github.com/dnicolson/).  [#175](https://github.com/OpenWonderLabs/node-switchbot/pull/175)
+- Improve error handling, Thanks [@dnicolson](https://github.com/dnicolson/). [#175](https://github.com/OpenWonderLabs/node-switchbot/pull/175)
 - Housekeeping and update dependencies
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.7.2...v1.7.3
