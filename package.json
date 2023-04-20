@@ -1,6 +1,6 @@
 {
   "name": "node-switchbot",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "description": "The node-switchbot is a Node.js module which allows you to control your Switchbot Devices through Bluetooth (BLE).",
   "main": "./lib/switchbot.js",
   "files": [
