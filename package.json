@@ -11,7 +11,8 @@
   },
   "scripts": {
     "check": "npm install && npm outdated",
-    "update": "ncu -u && npm update && npm install"
+    "update": "ncu -u && npm update && npm install",
+    "lint": "eslint . --ext .js"
   },
   "keywords": [
     "switchbot",
@@ -38,6 +39,7 @@
     "@abandonware/noble": "1.9.2-20"
   },
   "devDependencies": {
+    "eslint": "^8.44.0",
     "npm-check-updates": "^16.10.7"
   }
 }
