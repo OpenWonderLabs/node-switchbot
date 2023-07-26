@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [Version 1.8.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.8.2) (2023-07-25)
+
+## What's Changed
+- Added Lint Script, Thanks [@dnicolson](https://github.com/dnicolson) [#195](https://github.com/OpenWonderLabs/node-switchbot/pull/195)
+- Fixed a Linting Issues, Thanks [@dnicolson](https://github.com/dnicolson) [#196](https://github.com/OpenWonderLabs/node-switchbot/pull/196)
+- Fixed 'TypeError: Assignment to constant variable', Thanks [@banboobee](https://github.com/banboobee) [#194](https://github.com/OpenWonderLabs/node-switchbot/pull/194)
+- Fix issue of re-assigning to constant for Temperature, Thanks [@gravity-addiction](https://github.com/gravity-addiction) [#191](https://github.com/OpenWonderLabs/node-switchbot/pull/191)
+- Housekeeping and update dependencies
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.8.1...v1.8.2
+
 ## [Version 1.8.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.8.1) (2023-04-08)
 
 ## What's Changed
