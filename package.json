@@ -42,7 +42,7 @@
     "@abandonware/bluetooth-hci-socket": "0.5.3-10"
   },
   "devDependencies": {
-    "eslint": "^8.44.0",
+    "eslint": "^8.45.0",
     "npm-check-updates": "^16.10.17"
   }
 }
