@@ -37,7 +37,10 @@
   "dependencies": {
     "@abandonware/noble": "1.9.2-21"
   },
+  "optionalDependencies": {
+    "@abandonware/bluetooth-hci-socket": "0.5.3-10"
+  },
   "devDependencies": {
-    "npm-check-updates": "^16.10.8"
+    "npm-check-updates": "^16.10.17"
   }
 }
