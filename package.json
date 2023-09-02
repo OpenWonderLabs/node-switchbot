@@ -36,13 +36,13 @@
   },
   "readmeFilename": "README.md",
   "dependencies": {
-    "@abandonware/noble": "1.9.2-21"
+    "@abandonware/noble": "1.9.2-23"
   },
   "optionalDependencies": {
     "@abandonware/bluetooth-hci-socket": "0.5.3-10"
   },
   "devDependencies": {
-    "eslint": "^8.45.0",
-    "npm-check-updates": "^16.10.17"
+    "eslint": "^8.48.0",
+    "npm-check-updates": "^16.13.2"
   }
 }
