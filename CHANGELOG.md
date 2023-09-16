@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
-## [Version 1.9.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.9.0) (2023-09-XX)
+## [Version 1.9.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.9.0) (2023-09-16)
 
 ## What's Changed
 - Add support for the Indoor/Outdoor Thermo-Hygrometer (WoIOSensorTH), Thanks [@moritzmhmk](https://github.com/moritzmhmk) [#200](https://github.com/OpenWonderLabs/node-switchbot/pull/200)
