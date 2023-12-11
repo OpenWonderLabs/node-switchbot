@@ -749,6 +749,14 @@ Actually, the `SwitchbotDeviceWoCurtain` is an object inherited from the [`Switc
 
 ### `open()` method
 
+The `open()` method sends a open command to the Curtain. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
+
+If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
+
+When the Curtain receives this command, the Curtain will open the curtain (0% position). If not calibrated, the Curtain does not move.
+
+The `open()` method receives an optional `mode` parameter. (See [`runToPos()`](#runtopos-method))
+
 ```javascript
 switchbot
   .discover({ model: "c", quick: true })
@@ -770,6 +778,8 @@ The `close()` method sends a close command to the Curtain. This method returns a
 If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
 
 When the Curtain receives this command, the Curtain will close the curtain (100% position). If not calibrated, the Curtain does not move.
+
+The `close()` method receives an optional `mode` parameter. (See [`runToPos()`](#runtopos-method))
 
 ```javascript
 switchbot
@@ -1086,7 +1096,7 @@ Structure of the `serviceData`:
 | `delay`       | Boolean | Indicates whether a delay is present.                                               |
 | `timer`       | Boolean | Indicates whether a timer is present.                                               |
 | `syncUtcTime` | boolean | Indicates whether the UTC time has been synchronized.                               |
-| `overload`    | boolean | Indicates whether the Plug Mini is overloaded, more than 15A current overload.      |                            
+| `overload`    | boolean | Indicates whether the Plug Mini is overloaded, more than 15A current overload.      |
 | `currentPower`| Float   | Current power consumption in Watts.                                                 |
 
 ---
