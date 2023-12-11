@@ -996,7 +996,8 @@ Structure of the `serviceData`:
 
 | Property      | Type    | Description                                                                        |
 | :------------ | :------ | :--------------------------------------------------------------------------------- |
-| `model`       | String  | This value is always `"c"`, which means "Curtain (WoCurtain)".                     |
+| `model`       | String  | This value is `"c"`, which means "Curtain (WoCurtain)".                            |
+|               |         | or `"{"`, which means "Curtain 3 (WoCurtain)".                                     |
 | `modelName`   | String  | This value is always `"WoCurtain"`, which means "Curtain".                         |
 | `calibration` | Boolean | This value indicates the calibration status (`true` or `false`).                   |
 | `battery`     | Integer | This value indicates the battery level (`1-100`, `%`).                             |
