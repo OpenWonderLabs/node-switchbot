@@ -2,14 +2,23 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
-## [Version 1.9.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.9.1) (2023-11-2)
+## [1.10.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.10.0) (2024-1-5)
+
+## What's Changed
+- Fix reversed bot state reporting, Thanks [@grelca](https://github.com/grelca) [#207](https://github.com/OpenWonderLabs/node-switchbot/pull/207)
+- Add support for Curtain 3, Thanks [@tsia](https://github.com/tsia) [#209](https://github.com/OpenWonderLabs/node-switchbot/pull/209)
+- Housekeeping and update dependencies
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.9.1...v1.10.0
+
+## [1.9.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.9.1) (2023-11-2)
 
 ## What's Changed
 - Housekeeping and update dependencies
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.9.0...v1.9.1
 
-## [Version 1.9.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.9.0) (2023-09-16)
+## [1.9.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.9.0) (2023-09-16)
 
 ## What's Changed
 - Add support for the Indoor/Outdoor Thermo-Hygrometer (WoIOSensorTH), Thanks [@moritzmhmk](https://github.com/moritzmhmk) [#200](https://github.com/OpenWonderLabs/node-switchbot/pull/200)
@@ -18,7 +27,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.8.2...v1.9.0
 
-## [Version 1.8.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.8.2) (2023-07-25)
+## [1.8.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.8.2) (2023-07-25)
 
 ## What's Changed
 - Added Lint Script, Thanks [@dnicolson](https://github.com/dnicolson) [#195](https://github.com/OpenWonderLabs/node-switchbot/pull/195)
@@ -29,7 +38,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.8.1...v1.8.2
 
-## [Version 1.8.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.8.1) (2023-04-08)
+## [1.8.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.8.1) (2023-04-08)
 
 ## What's Changed
 - Use const keyword for immutable variables, Thanks [@dnicolson](https://github.com/dnicolson/). [#184](https://github.com/OpenWonderLabs/node-switchbot/pull/184) 
@@ -38,7 +47,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.8.0...v1.8.1
 
-## [Version 1.8.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.8.0) (2023-01-28)
+## [1.8.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.8.0) (2023-01-28)
 
 ## What's Changed
 
@@ -48,7 +57,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.7.3...v1.8.0
 
-## [Version 1.7.3](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.7.3) (2023-01-05)
+## [1.7.3](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.7.3) (2023-01-05)
 
 ## What's Changed
 
@@ -57,7 +66,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.7.2...v1.7.3
 
-## [Version 1.7.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.7.2) (2022-12-26)
+## [1.7.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.7.2) (2022-12-26)
 
 ## What's Changed
 
@@ -65,7 +74,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.7.1...v1.7.2
 
-## [Version 1.7.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.7.1) (2022-12-20)
+## [1.7.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.7.1) (2022-12-20)
 
 ## What's Changed
 
@@ -73,7 +82,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.7.0...v1.7.1
 
-## [Version 1.7.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.7.0) (2022-12-08)
+## [1.7.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.7.0) (2022-12-08)
 
 ## What's Changed
 
@@ -81,7 +90,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.6.1...v1.7.0
 
-## [Version 1.6.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.6.1) (2022-10-18)
+## [1.6.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.6.1) (2022-10-18)
 
 ## What's Changed
 
@@ -89,7 +98,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.6.0...v1.6.1
 
-## [Version 1.6.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.6.0) (2022-10-18)
+## [1.6.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.6.0) (2022-10-18)
 
 ## What's Changed
 
@@ -98,7 +107,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.5.0...v1.6.0
 
-## [Version 1.5.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.5.0) (2022-10-07)
+## [1.5.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.5.0) (2022-10-07)
 
 ## What's Changed
 
@@ -108,7 +117,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.4.1...v1.5.0
 
-## [Version 1.4.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.4.1) (2022-08-27)
+## [1.4.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.4.1) (2022-08-27)
 
 ## What's Changed
 
@@ -117,7 +126,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.4.0...v1.4.1
 
-## [Version 1.4.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.4.0) (2022-08-19)
+## [1.4.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.4.0) (2022-08-19)
 
 ## What's Changed
 
@@ -126,7 +135,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.3.0...v1.4.0
 
-## [Version 1.3.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.3.0) (2022-06-25)
+## [1.3.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.3.0) (2022-06-25)
 
 ## What's Changed
 
@@ -135,7 +144,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.2.0...v1.3.0
 
-## [Version 1.2.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.2.0) (2022-03-04)
+## [1.2.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.2.0) (2022-03-04)
 
 ## What's Changed
 
@@ -145,7 +154,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.1.2...v1.2.0
 
-## [Version 1.1.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.1.2) (2021-11-13)
+## [1.1.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.1.2) (2021-11-13)
 
 ## What's Changed
 
@@ -153,7 +162,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.1.1...v1.1.2
 
-## [Version 1.1.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.1.1) (2021-11-02)
+## [1.1.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.1.1) (2021-11-02)
 
 ## What's Changed
 
@@ -161,7 +170,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.1.0...v1.1.1
 
-## [Version 1.1.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.1.0) (2021-10-26)
+## [1.1.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.1.0) (2021-10-26)
 
 ## What's Changed
 
@@ -171,7 +180,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.8...v1.1.0
 
-## [Version 1.0.8](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.8) (2021-09-30)
+## [1.0.8](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.8) (2021-09-30)
 
 ## What's Changed
 
@@ -179,7 +188,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.7...v1.0.8
 
-## [Version 1.0.7](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.7) (2021-09-24)
+## [1.0.7](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.7) (2021-09-24)
 
 ## What's Changed
 
@@ -187,7 +196,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.6...v1.0.7
 
-## [Version 1.0.6](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.6) (2021-08-29)
+## [1.0.6](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.6) (2021-08-29)
 
 ## What's Changed
 
@@ -195,7 +204,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.5...v1.0.6
 
-## [Version 1.0.5](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.5) (2021-08-04)
+## [1.0.5](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.5) (2021-08-04)
 
 ## What's Changed
 
@@ -204,7 +213,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.4...v1.0.5
 
-## [Version 1.0.4](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.4) (2021-08-03)
+## [1.0.4](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.4) (2021-08-03)
 
 ## What's Changed
 
@@ -212,7 +221,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.3...v1.0.4
 
-## [Version 1.0.3](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.3) (2021-07-30)
+## [1.0.3](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.3) (2021-07-30)
 
 ## What's Changed
 
@@ -220,7 +229,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.2...v1.0.3
 
-## [Version 1.0.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.2) (2021-07-29)
+## [1.0.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.2) (2021-07-29)
 
 ## What's Changed
 
@@ -228,7 +237,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.1...v1.0.2
 
-## [Version 1.0.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.1) (2021-07-29)
+## [1.0.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.1) (2021-07-29)
 
 ## What's Changed
 
@@ -236,7 +245,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.0...v1.0.1
 
-## [Version 1.0.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.0) (2021-01-21)
+## [1.0.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.0.0) (2021-01-21)
 
 ## What's Changed
 
@@ -244,7 +253,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v0.2.0...v1.0.0
 
-## [Version 0.2.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.2.0) (2020-11-05)
+## [0.2.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.2.0) (2020-11-05)
 
 ## What's Changed
 
@@ -252,7 +261,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v0.1.0...v0.2.0
 
-## [Version 0.1.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.1.0) (2020-10-28)
+## [0.1.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.1.0) (2020-10-28)
 
 ## What's Changed
 
@@ -261,7 +270,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v0.0.5...v0.1.0
 
-## [Version 0.0.5](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.0.5) (2020-02-19)
+## [0.0.5](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.0.5) (2020-02-19)
 
 ## What's Changed
 
@@ -269,7 +278,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v0.0.4...v0.0.5
 
-## [Version 0.0.4](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.0.4) (2020-02-11)
+## [0.0.4](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.0.4) (2020-02-11)
 
 ## What's Changed
 
@@ -277,7 +286,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v0.0.3...v0.0.4
 
-## [Version 0.0.3](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.0.3) (2020-02-10)
+## [0.0.3](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.0.3) (2020-02-10)
 
 ## What's Changed
 
@@ -286,7 +295,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v0.0.2...v0.0.3
 
-## [Version 0.0.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.0.2) (2019-11-20)
+## [0.0.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v0.0.2) (2019-11-20)
 
 ## What's Changed
 
