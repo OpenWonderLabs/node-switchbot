@@ -2,18 +2,17 @@
   "name": "node-switchbot",
   "version": "1.10.0",
   "description": "The node-switchbot is a Node.js module which allows you to control your Switchbot Devices through Bluetooth (BLE).",
-  "main": "./lib/switchbot.js",
-  "files": [
-    "lib"
-  ],
-  "directories": {
-    "lib": "./lib"
-  },
+  "main": "dist/index.js",
+  "type": "module",
   "scripts": {
     "check": "npm install && npm outdated",
     "update": "ncu -u && npm update && npm install",
-    "prepublishOnly": "npm run lint",
-    "lint": "eslint . --ext .js"
+    "lint": "eslint src/**.ts",
+    "build": "rimraf ./dist && tsc",
+    "prepublishOnly": "npm run lint && npm run build",
+    "postpublish": "npm run clean",
+    "clean": "rimraf ./dist",
+    "test": "eslint src/**.ts"
   },
   "keywords": [
     "switchbot",
@@ -43,7 +42,15 @@
     "@abandonware/bluetooth-hci-socket": "^0.5.3-10"
   },
   "devDependencies": {
-    "eslint": "^8.54.0",
-    "npm-check-updates": "^16.14.11"
+    "@types/node": "^20.11.5",
+    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "@typescript-eslint/parser": "^6.19.1",
+    "eslint": "^8.56.0",
+    "homebridge": "^1.7.0",
+    "nodemon": "^3.0.3",
+    "npm-check-updates": "^16.14.12",
+    "rimraf": "^5.0.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
   }
 }
