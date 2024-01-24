@@ -1,6 +1,19 @@
-const { Buffer } = require('buffer');
+import { Buffer } from 'buffer';
 
-class ParameterChecker {
+type Rule = {
+  required?: boolean;
+  min?: number;
+  max?: number;
+  minBytes?: number;
+  maxBytes?: number;
+  pattern?: RegExp;
+  enum?: any[];
+};
+
+export class ParameterChecker {
+
+  _error;
+  static error: any;
   constructor() {
     this._error = null;
   }
@@ -54,13 +67,13 @@ class ParameterChecker {
    *   throw new Error(message);
    * }
    * ---------------------------------------------------------------- */
-  check(obj, rules, required = false) {
-    this._error = null;
+  check(obj, rules, required) {
+    this._error;
     if (required) {
       if (!this.isSpecified(obj)) {
         this._error = {
-          code: "MISSING_REQUIRED",
-          message: "The first argument is missing.",
+          code: 'MISSING_REQUIRED',
+          message: 'The first argument is missing.',
         };
         return false;
       }
@@ -70,10 +83,10 @@ class ParameterChecker {
       }
     }
 
-    if (!this.isObject(obj)) {
+    if (!this.isObject(obj, {})) {
       this._error = {
-        code: "MISSING_REQUIRED",
-        message: "The first argument is missing.",
+        code: 'MISSING_REQUIRED',
+        message: 'The first argument is missing.',
       };
       return false;
     }
@@ -93,8 +106,8 @@ class ParameterChecker {
         if (rule.required) {
           result = false;
           this._error = {
-            code: "MISSING_REQUIRED",
-            message: "The `" + name + "` is required.",
+            code: 'MISSING_REQUIRED',
+            message: 'The `' + name + '` is required.',
           };
           break;
         } else {
@@ -102,26 +115,26 @@ class ParameterChecker {
         }
       }
 
-      if (rule.type === "float") {
+      if (rule.type === 'float') {
         result = this.isFloat(v, rule, name);
-      } else if (rule.type === "integer") {
+      } else if (rule.type === 'integer') {
         result = this.isInteger(v, rule, name);
-      } else if (rule.type === "boolean") {
+      } else if (rule.type === 'boolean') {
         result = this.isBoolean(v, rule, name);
-      } else if (rule.type === "array") {
+      } else if (rule.type === 'array') {
         result = this.isArray(v, rule, name);
-      } else if (rule.type === "object") {
+      } else if (rule.type === 'object') {
         result = this.isObject(v, rule, name);
-      } else if (rule.type === "string") {
+      } else if (rule.type === 'string') {
         result = this.isString(v, rule, name);
       } else {
         result = false;
         this._error = {
-          code: "TYPE_UNKNOWN",
+          code: 'TYPE_UNKNOWN',
           message:
-            "The rule specified for the `" +
+            'The rule specified for the `' +
             name +
-            "` includes an unknown type: " +
+            '` includes an unknown type: ' +
             rule.type,
         };
       }
@@ -156,45 +169,45 @@ class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  isFloat(value, rule = {}, name = "value") {
-    this._error = null;
+  isFloat(value, rule: Rule, name = 'value') {
+    this._error;
 
     if (!rule.required && !this.isSpecified(value)) {
       return true;
     }
 
-    if (typeof value !== "number") {
+    if (typeof value !== 'number') {
       this._error = {
-        code: "TYPE_INVALID",
-        message: "The `" + name + "` must be a number (integer or float).",
+        code: 'TYPE_INVALID',
+        message: 'The `' + name + '` must be a number (integer or float).',
       };
       return false;
     }
 
-    if (typeof rule.min === "number") {
+    if (typeof rule.min === 'number') {
       if (value < rule.min) {
         this._error = {
-          code: "VALUE_UNDERFLOW",
+          code: 'VALUE_UNDERFLOW',
           message:
-            "The `" +
+            'The `' +
             name +
-            "` must be grater than or equal to " +
+            '` must be grater than or equal to ' +
             rule.min +
-            ".",
+            '.',
         };
         return false;
       }
     }
-    if (typeof rule.max === "number") {
+    if (typeof rule.max === 'number') {
       if (value > rule.max) {
         this._error = {
-          code: "VALUE_OVERFLOW",
+          code: 'VALUE_OVERFLOW',
           message:
-            "The `" +
+            'The `' +
             name +
-            "` must be less than or equal to " +
+            '` must be less than or equal to ' +
             rule.max +
-            ".",
+            '.',
         };
         return false;
       }
@@ -202,13 +215,13 @@ class ParameterChecker {
     if (Array.isArray(rule.enum) && rule.enum.length > 0) {
       if (rule.enum.indexOf(value) === -1) {
         this._error = {
-          code: "ENUM_UNMATCH",
+          code: 'ENUM_UNMATCH',
           message:
-            "The `" +
+            'The `' +
             name +
-            "` must be any one of " +
+            '` must be any one of ' +
             JSON.stringify(rule.enum) +
-            ".",
+            '.',
         };
         return false;
       }
@@ -238,7 +251,7 @@ class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  isInteger(value, rule = {}, name = "value") {
+  isInteger(value, rule: Rule, name = 'value') {
     this._error = null;
 
     if (!rule.required && !this.isSpecified(value)) {
@@ -250,8 +263,8 @@ class ParameterChecker {
         return true;
       } else {
         this._error = {
-          code: "TYPE_INVALID",
-          message: "The `" + name + "` must be an integer.",
+          code: 'TYPE_INVALID',
+          message: 'The `' + name + '` must be an integer.',
         };
         return false;
       }
@@ -275,17 +288,17 @@ class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  isBoolean(value, rule = {}, name = "value") {
+  isBoolean(value, rule: Rule, name = 'value') {
     this._error = null;
 
     if (!rule.required && !this.isSpecified(value)) {
       return true;
     }
 
-    if (typeof value !== "boolean") {
+    if (typeof value !== 'boolean') {
       this._error = {
-        code: "TYPE_INVALID",
-        message: "The `" + name + "` must be boolean.",
+        code: 'TYPE_INVALID',
+        message: 'The `' + name + '` must be boolean.',
       };
       return false;
     }
@@ -307,16 +320,16 @@ class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  isObject(value, rule = {}, name = "value") {
+  isObject(value, rule: Rule, name = 'value') {
     this._error = null;
     if (!rule.required && !this.isSpecified(value)) {
       return true;
     }
 
-    if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
       this._error = {
-        code: "TYPE_INVALID",
-        message: "The `" + name + "` must be an object.",
+        code: 'TYPE_INVALID',
+        message: 'The `' + name + '` must be an object.',
       };
       return false;
     }
@@ -343,7 +356,7 @@ class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  isArray(value, rule = {}, name = "value") {
+  isArray(value, rule: Rule, name = 'value') {
     this._error = null;
 
     if (!rule.required && !this.isSpecified(value)) {
@@ -352,36 +365,36 @@ class ParameterChecker {
 
     if (!Array.isArray(value)) {
       this._error = {
-        code: "TYPE_INVALID",
-        message: "The value must be an array.",
+        code: 'TYPE_INVALID',
+        message: 'The value must be an array.',
       };
       return false;
     }
 
-    if (typeof rule.min === "number") {
+    if (typeof rule.min === 'number') {
       if (value.length < rule.min) {
         this._error = {
-          code: "LENGTH_UNDERFLOW",
+          code: 'LENGTH_UNDERFLOW',
           message:
-            "The number of characters in the `" +
+            'The number of characters in the `' +
             name +
-            "` must be grater than or equal to " +
+            '` must be grater than or equal to ' +
             rule.min +
-            ".",
+            '.',
         };
         return false;
       }
     }
-    if (typeof rule.max === "number") {
+    if (typeof rule.max === 'number') {
       if (value.length > rule.max) {
         this._error = {
-          code: "LENGTH_OVERFLOW",
+          code: 'LENGTH_OVERFLOW',
           message:
-            "The number of characters in the `" +
+            'The number of characters in the `' +
             name +
-            "` must be less than or equal to " +
+            '` must be less than or equal to ' +
             rule.max +
-            ".",
+            '.',
         };
         return false;
       }
@@ -414,79 +427,79 @@ class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  isString(value, rule = {}, name = "value") {
+  isString(value, rule: Rule, name = 'value') {
     this._error = null;
 
     if (!rule.required && !this.isSpecified(value)) {
       return true;
     }
 
-    if (typeof value !== "string") {
+    if (typeof value !== 'string') {
       this._error = {
-        code: "TYPE_INVALID",
-        message: "The value must be a string.",
+        code: 'TYPE_INVALID',
+        message: 'The value must be a string.',
       };
       return false;
     }
 
-    if (typeof rule.min === "number") {
+    if (typeof rule.min === 'number') {
       if (value.length < rule.min) {
         this._error = {
-          code: "LENGTH_UNDERFLOW",
+          code: 'LENGTH_UNDERFLOW',
           message:
-            "The number of characters in the `" +
+            'The number of characters in the `' +
             name +
-            "` must be grater than or equal to " +
+            '` must be grater than or equal to ' +
             rule.min +
-            ".",
+            '.',
         };
         return false;
       }
     }
-    if (typeof rule.max === "number") {
+    if (typeof rule.max === 'number') {
       if (value.length > rule.max) {
         this._error = {
-          code: "LENGTH_OVERFLOW",
+          code: 'LENGTH_OVERFLOW',
           message:
-            "The number of characters in the `" +
+            'The number of characters in the `' +
             name +
-            "` must be less than or equal to " +
+            '` must be less than or equal to ' +
             rule.max +
-            ".",
+            '.',
         };
         return false;
       }
     }
-    if (typeof rule.minBytes === "number") {
-      const blen = Buffer.from(value, "utf8").length;
+    if (typeof rule.minBytes === 'number') {
+      const blen = Buffer.from(value, 'utf8').length;
       if (blen < rule.minBytes) {
         this._error = {
-          code: "LENGTH_UNDERFLOW",
+          code: 'LENGTH_UNDERFLOW',
           message:
-            "The byte length of the `" +
+            'The byte length of the `' +
             name +
-            "` (" +
+            '` (' +
             blen +
-            " bytes) must be grater than or equal to " +
+            ' bytes) must be grater than or equal to ' +
             rule.minBytes +
-            " bytes.",
+            ' bytes.',
         };
         return false;
       }
     }
-    if (typeof rule.maxBytes === "number") {
-      const blen = Buffer.from(value, "utf8").length;
+    if (typeof rule.maxBytes === 'number') {
+      const blen = Buffer.from(value, 'utf8').length;
       if (blen > rule.maxBytes) {
         this._error = {
-          code: "LENGTH_OVERFLOW",
+          code: 'LENGTH_OVERFLOW',
           message:
-            "The byte length of the `" +
+            'The byte length of the `' +
             name +
-            "` (" +
+            '` (' +
             blen +
-            " bytes) must be less than or equal to " +
+            ' bytes) must be less than or equal to ' +
             rule.maxBytes +
-            " bytes.",
+            ' bytes.',
         };
         return false;
       }
@@ -494,8 +507,8 @@ class ParameterChecker {
     if (rule.pattern instanceof RegExp) {
       if (!rule.pattern.test(value)) {
         this._error = {
-          code: "PATTERN_UNMATCH",
-          message: "The `" + name + "` does not conform with the pattern.",
+          code: 'PATTERN_UNMATCH',
+          message: 'The `' + name + '` does not conform with the pattern.',
         };
         return false;
       }
@@ -503,13 +516,13 @@ class ParameterChecker {
     if (Array.isArray(rule.enum) && rule.enum.length > 0) {
       if (rule.enum.indexOf(value) === -1) {
         this._error = {
-          code: "ENUM_UNMATCH",
+          code: 'ENUM_UNMATCH',
           message:
-            "The `" +
+            'The `' +
             name +
-            "` must be any one of " +
+            '` must be any one of ' +
             JSON.stringify(rule.enum) +
-            ".",
+            '.',
         };
         return false;
       }
@@ -518,5 +531,3 @@ class ParameterChecker {
     return true;
   }
 }
-
-module.exports = new ParameterChecker();

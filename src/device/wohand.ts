@@ -1,8 +1,8 @@
-const { Buffer } = require('buffer');
+import { Buffer } from 'buffer';
 
-const SwitchbotDevice = require("./switchbot-device.js");
+import { SwitchbotDevice } from '../switchbot.js';
 
-class SwitchbotDeviceWoHand extends SwitchbotDevice {
+export class WoHand extends SwitchbotDevice {
   /* ------------------------------------------------------------------
    * press()
    * - Press
@@ -89,8 +89,8 @@ class SwitchbotDeviceWoHand extends SwitchbotDevice {
           } else {
             reject(
               new Error(
-                "The device returned an error: 0x" + res_buf.toString("hex")
-              )
+                'The device returned an error: 0x' + res_buf.toString('hex'),
+              ),
             );
           }
         })
@@ -100,5 +100,3 @@ class SwitchbotDeviceWoHand extends SwitchbotDevice {
     });
   }
 }
-
-module.exports = SwitchbotDeviceWoHand;

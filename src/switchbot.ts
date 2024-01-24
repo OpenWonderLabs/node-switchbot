@@ -1,18 +1,18 @@
-import parameterChecker from 'parameter-checker.js';
-import switchbotAdvertising from './advertising.js';
-import SwitchbotDevice from './device.js';
+import { ParameterChecker } from './parameter-checker.js';
+import { Advertising } from './advertising.js';
+import { SwitchbotDevice } from './device.js';
 
-import SwitchbotDeviceWoHand from './device/wohand.js';
-import SwitchbotDeviceWoCurtain from './device/wocurtain.js';
-import SwitchbotDeviceWoBlindTilt from './device/woblindtilt.js';
-import SwitchbotDeviceWoPresence from './device/wopresence.js';
-import SwitchbotDeviceWoContact from './device/wocontact.js';
-import SwitchbotDeviceWoSensorTH from './device/wosensorth.js';
-import SwitchbotDeviceWoIOSensorTH from './device/woiosensorth.js';
-import SwitchbotDeviceWoHumi from './device/wohumi.js';
-import SwitchbotDeviceWoPlugMini from './device/woplugmini.js';
-import SwitchbotDeviceWoBulb from './device/wobulb.js';
-import SwitchbotDeviceWoStrip from './device/wostrip.js';
+import { WoHand } from './device/wohand.js';
+import { WoCurtain } from './device/wocurtain.js';
+import { WoBlindTilt } from './device/woblindtilt.js';
+import { WoPresence } from './device/wopresence.js';
+import { WoContact } from './device/wocontact.js';
+import { WoSensorTH } from './device/wosensorth.js';
+import { WoIOSensorTH } from './device/woiosensorth.js';
+import { WoHumi } from './device/wohumi.js';
+import { WoPlugMini } from './device/woplugmini.js';
+import { WoBulb } from './device/wobulb.js';
+import { WoStrip } from './device/wostrip.js';
 
 type params = {
     duration?: number,
@@ -258,50 +258,50 @@ export class SwitchBot {
   }
 
   _getDeviceObject(peripheral, id, model) {
-    const ad = switchbotAdvertising.parse(peripheral, this.onlog);
+    const ad = Advertising.parse(peripheral, this.onlog);
     if (this._filterAdvertising(ad, id, model)) {
       let device = null;
       switch (ad.serviceData.model) {
         case 'H':
-          device = new SwitchbotDeviceWoHand(peripheral, this.noble);
+          device = new WoHand(peripheral, this.noble);
           break;
         case 'T':
-          device = new SwitchbotDeviceWoSensorTH(peripheral, this.noble);
+          device = new WoSensorTH(peripheral, this.noble);
           break;
         case 'e':
-          device = new SwitchbotDeviceWoHumi(peripheral, this.noble);
+          device = new WoHumi(peripheral, this.noble);
           break;
         case 's':
-          device = new SwitchbotDeviceWoPresence(peripheral, this.noble);
+          device = new WoPresence(peripheral, this.noble);
           break;
         case 'd':
-          device = new SwitchbotDeviceWoContact(peripheral, this.noble);
+          device = new WoContact(peripheral, this.noble);
           break;
         case 'c':
         case '{':
-          device = new SwitchbotDeviceWoCurtain(peripheral, this.noble);
+          device = new WoCurtain(peripheral, this.noble);
           break;
         case 'x':
-          device = new SwitchbotDeviceWoBlindTilt(peripheral, this.noble);
+          device = new WoBlindTilt(peripheral, this.noble);
           break;
         case 'u':
-          device = new SwitchbotDeviceWoBulb(peripheral, this.noble);
+          device = new WoBulb(peripheral, this.noble);
           break;
         case 'g':
         case 'j':
-          device = new SwitchbotDeviceWoPlugMini(peripheral, this.noble);
+          device = new WoPlugMini(peripheral, this.noble);
           break;
         case 'o':
           //device = new SwitchbotDeviceWoSmartLock(peripheral, this.noble);
           break;
         case 'i':
-          device = new SwitchbotDeviceWoSensorTH(peripheral, this.noble);
+          device = new WoSensorTH(peripheral, this.noble);
           break;
         case 'w':
-          device = new SwitchbotDeviceWoIOSensorTH(peripheral, this.noble);
+          device = new WoIOSensorTH(peripheral, this.noble);
           break;
         case 'r':
-          device = new SwitchbotDeviceWoStrip(peripheral, this.noble);
+          device = new WoStrip(peripheral, this.noble);
           break;
         default: // 'resetting', 'unknown'
           device = new SwitchbotDevice(peripheral, this.noble);
@@ -440,7 +440,7 @@ export class SwitchBot {
 
           // Set a handler for the 'discover' event
           this.noble.on('discover', (peripheral) => {
-            const ad = switchbotAdvertising.parse(peripheral, this.onlog);
+            const ad = Advertising.parse(peripheral, this.onlog);
             if (this._filterAdvertising(ad, p.id, p.model)) {
               if (
                 this.onadvertisement &&
@@ -516,4 +516,6 @@ export class SwitchBot {
     });
   }
 }
+
+export { SwitchbotDevice };
 

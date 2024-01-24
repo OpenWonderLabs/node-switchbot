@@ -1,6 +1,7 @@
-"use strict";
-const SwitchbotDevice = require("./switchbot-device.js");
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * wocontact.ts: Switchbot BLE API registration.
+ */
+import { SwitchbotDevice } from '../switchbot.js';
 
-class SwitchbotDeviceWoContact extends SwitchbotDevice {}
-
-module.exports = SwitchbotDeviceWoContact;
+export class WoContact extends SwitchbotDevice {}

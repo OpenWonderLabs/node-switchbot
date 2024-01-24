@@ -1,8 +1,8 @@
-const { Buffer } = require('buffer');
+import { Buffer } from 'buffer';
 
-const SwitchbotDevice = require("./switchbot-device.js");
+import { SwitchbotDevice } from '../switchbot.js';
 
-class SwitchbotDeviceWoHumi extends SwitchbotDevice {
+export class WoHumi extends SwitchbotDevice {
   /* ------------------------------------------------------------------
    * press()
    * - Press
@@ -100,5 +100,3 @@ class SwitchbotDeviceWoHumi extends SwitchbotDevice {
     });
   }
 }
-
-module.exports = SwitchbotDeviceWoHumi;

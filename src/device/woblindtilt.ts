@@ -1,8 +1,12 @@
-const { Buffer } = require('buffer');
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * woblindtilt.ts: Switchbot BLE API registration.
+ */
+import { Buffer } from 'buffer';
 
-let SwitchbotDevice = require("./switchbot-device.js");
+import { SwitchbotDevice } from '../switchbot.js';
 
-class SwitchbotDeviceWoBlindTilt extends SwitchbotDevice {
+export class WoBlindTilt extends SwitchbotDevice {
   /* ------------------------------------------------------------------
    * open()
    * - Open the blindtilt
@@ -60,23 +64,23 @@ class SwitchbotDeviceWoBlindTilt extends SwitchbotDevice {
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
   runToPos(percent, mode) {
-    if (typeof percent != "number") {
+    if (typeof percent !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            "The type of target position percentage is incorrent: " +
-              typeof percent
-          )
+            'The type of target position percentage is incorrent: ' +
+            typeof percent,
+          ),
         );
       });
     }
-    if (mode == null) {
+    if (mode === null) {
       mode = 0xff;
     } else {
-      if (typeof mode != "number") {
+      if (typeof mode !== 'number') {
         return new Promise((resolve, reject) => {
           reject(
-            new Error("The type of running mode is incorrent: " + typeof mode)
+            new Error('The type of running mode is incorrent: ' + typeof mode),
           );
         });
       }
@@ -93,18 +97,18 @@ class SwitchbotDeviceWoBlindTilt extends SwitchbotDevice {
   }
 
   _operateBlindTilt(bytes) {
-    return new Promise((resolve, reject) => {
-      let req_buf = Buffer.from(bytes);
+    return new Promise<void>((resolve, reject) => {
+      const req_buf = Buffer.from(bytes);
       this._command(req_buf)
-        .then((res_buf) => {
-          let code = res_buf.readUInt8(0);
-          if (res_buf.length === 3 && code === 0x01) {
+        .then((res_buf: unknown) => {
+          const code = (res_buf as Buffer).readUInt8(0);
+          if ((res_buf as Buffer).length === 3 && code === 0x01) {
             resolve();
           } else {
             reject(
               new Error(
-                "The device returned an error: 0x" + res_buf.toString("hex")
-              )
+                'The device returned an error: 0x' + (res_buf as Buffer).toString('hex'),
+              ),
             );
           }
         })
@@ -114,5 +118,3 @@ class SwitchbotDeviceWoBlindTilt extends SwitchbotDevice {
     });
   }
 }
-
-module.exports = SwitchbotDeviceWoBlindTilt;

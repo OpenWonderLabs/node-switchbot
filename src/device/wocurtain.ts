@@ -1,8 +1,12 @@
-const { Buffer } = require('buffer');
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * wocurtain.ts: Switchbot BLE API registration.
+ */
+import { Buffer } from 'buffer';
 
-const SwitchbotDevice = require("./switchbot-device.js");
+import { SwitchbotDevice } from '../switchbot.js';
 
-class SwitchbotDeviceWoCurtain extends SwitchbotDevice {
+export class WoCurtain extends SwitchbotDevice {
   /* ------------------------------------------------------------------
    * open()
    * - Open the curtain
@@ -61,20 +65,20 @@ class SwitchbotDeviceWoCurtain extends SwitchbotDevice {
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
   runToPos(percent, mode = 0xff) {
-    if (typeof percent != "number") {
+    if (typeof percent !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            "The type of target position percentage is incorrect: " +
-              typeof percent
-          )
+            'The type of target position percentage is incorrect: ' +
+              typeof percent,
+          ),
         );
       });
     }
-    if (typeof mode != "number") {
+    if (typeof mode !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
-          new Error("The type of running mode is incorrect: " + typeof mode)
+          new Error('The type of running mode is incorrect: ' + typeof mode),
         );
       });
     }
@@ -100,8 +104,8 @@ class SwitchbotDeviceWoCurtain extends SwitchbotDevice {
           } else {
             reject(
               new Error(
-                "The device returned an error: 0x" + res_buf.toString("hex")
-              )
+                'The device returned an error: 0x' + res_buf.toString('hex'),
+              ),
             );
           }
         })
@@ -111,5 +115,3 @@ class SwitchbotDeviceWoCurtain extends SwitchbotDevice {
     });
   }
 }
-
-module.exports = SwitchbotDeviceWoCurtain;

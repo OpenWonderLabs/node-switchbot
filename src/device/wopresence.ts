@@ -1,6 +1,3 @@
-"use strict";
-const SwitchbotDevice = require("./switchbot-device.js");
+import { SwitchbotDevice } from '../switchbot.js';
 
-class SwitchbotDeviceWoPresence extends SwitchbotDevice {}
-
-module.exports = SwitchbotDeviceWoPresence;
+export class WoPresence extends SwitchbotDevice {}

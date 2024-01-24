@@ -52,9 +52,6 @@
     "max-len": [
       "warn",
       150
-    ],
-    "no-console": [
-      "warn"
     ], // use the provided log method instead
     "no-non-null-assertion": [
       "off"

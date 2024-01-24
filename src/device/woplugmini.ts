@@ -1,11 +1,11 @@
-const { Buffer } = require('buffer');
+import { Buffer } from 'buffer';
 
-const SwitchbotDevice = require("./switchbot-device.js");
+import { SwitchbotDevice } from '../switchbot.js';
 
 /**
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/plugmini.md
  */
-class SwitchbotDeviceWoPlugMini extends SwitchbotDevice {
+export class WoPlugMini extends SwitchbotDevice {
   /**
    * @returns {Promise<boolean>} resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
    */
@@ -78,5 +78,3 @@ class SwitchbotDeviceWoPlugMini extends SwitchbotDevice {
     });
   }
 }
-
-module.exports = SwitchbotDeviceWoPlugMini;

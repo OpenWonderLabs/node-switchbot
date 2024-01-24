@@ -1,11 +1,15 @@
-const { Buffer } = require('buffer');
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * wobulb.ts: Switchbot BLE API registration.
+ */
+import { Buffer } from 'buffer';
 
-const SwitchbotDevice = require("./switchbot-device.js");
+import { SwitchbotDevice } from '../switchbot.js';
 
 /**
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/colorbulb.md
  */
-class SwitchbotDeviceWoBulb extends SwitchbotDevice {
+export class WoBulb extends SwitchbotDevice {
   /**
    * @returns {Promise<boolean>} resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
    */
@@ -36,16 +40,16 @@ class SwitchbotDeviceWoBulb extends SwitchbotDevice {
   }
 
   /**
-   * @returns {Promise<number>} resolves with brightness percent 
+   * @returns {Promise<number>} resolves with brightness percent
    */
   setBrightness(brightness) {
-    if (typeof brightness != "number") {
+    if (typeof brightness !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            "The type of target brightness percentage is incorrent: " +
-              typeof brightness
-          )
+            'The type of target brightness percentage is incorrent: ' +
+              typeof brightness,
+          ),
         );
       });
     }
@@ -58,16 +62,16 @@ class SwitchbotDeviceWoBulb extends SwitchbotDevice {
   }
 
   /**
-   * @returns {Promise<number>} resolves with brightness percent 
+   * @returns {Promise<number>} resolves with brightness percent
    */
   setColorTemperature(color_temperature) {
-    if (typeof color_temperature != "number") {
+    if (typeof color_temperature !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            "The type of target brightness percentage is incorrent: " +
-              typeof brightness
-          )
+            'The type of target brightness percentage is incorrent: ' +
+              typeof brightness,
+          ),
         );
       });
     }
@@ -80,46 +84,46 @@ class SwitchbotDeviceWoBulb extends SwitchbotDevice {
   }
 
   /**
-   * @returns {Promise<number>} resolves with brightness percent 
+   * @returns {Promise<number>} resolves with brightness percent
    */
-   setRGB(brightness, red, green, blue) {
-    if (typeof brightness != "number") {
+  setRGB(brightness, red, green, blue) {
+    if (typeof brightness !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            "The type of target brightness percentage is incorrent: " +
-              typeof brightness
-          )
+            'The type of target brightness percentage is incorrent: ' +
+              typeof brightness,
+          ),
         );
       });
     }
-    if (typeof red != "number") {
+    if (typeof red !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            "The type of target red is incorrent: " +
-              typeof red
-          )
+            'The type of target red is incorrent: ' +
+              typeof red,
+          ),
         );
       });
     }
-    if (typeof green != "number") {
+    if (typeof green !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            "The type of target green is incorrent: " +
-              typeof green
-          )
+            'The type of target green is incorrent: ' +
+              typeof green,
+          ),
         );
       });
     }
-    if (typeof blue != "number") {
+    if (typeof blue !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            "The type of target blue is incorrent: " +
-              typeof blue
-          )
+            'The type of target blue is incorrent: ' +
+              typeof blue,
+          ),
         );
       });
     }
@@ -163,16 +167,16 @@ class SwitchbotDeviceWoBulb extends SwitchbotDevice {
             } else {
               reject(
                 new Error(
-                  "The device returned an error: 0x" + res_buf.toString("hex")
-                )
+                  'The device returned an error: 0x' + res_buf.toString('hex'),
+                ),
               );
             }
           } else {
             reject(
               new Error(
-                "Expecting a 2-byte response, got instead: 0x" +
-                  res_buf.toString("hex")
-              )
+                'Expecting a 2-byte response, got instead: 0x' +
+                  res_buf.toString('hex'),
+              ),
             );
           }
         })
@@ -182,5 +186,3 @@ class SwitchbotDeviceWoBulb extends SwitchbotDevice {
     });
   }
 }
-
-module.exports = SwitchbotDeviceWoBulb;
