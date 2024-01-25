@@ -119,7 +119,7 @@ export class SwitchbotDevice {
   }
 
   _connect() {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       // Check the bluetooth state
       if (this._noble.state !== 'poweredOn') {
         reject(
@@ -181,7 +181,7 @@ export class SwitchbotDevice {
   _getCharacteristics() {
     return new Promise((resolve, reject) => {
       // Set timeout timer
-      let timer = setTimeout(() => {
+      let timer: NodeJS.Timeout | null = setTimeout(() => {
         this._ondisconnect_internal = () => {};
         timer = null;
         reject(
@@ -216,9 +216,9 @@ export class SwitchbotDevice {
           device: null,
         };
 
-        for (const service of service_list) {
+        for (const service of service_list as any[]) {
           const char_list = await this._discoverCharacteristics(service);
-          for (const char of char_list) {
+          for (const char of char_list as any[]) {
             if (char.uuid === this._CHAR_UUID_WRITE) {
               chars.write = char;
             } else if (char.uuid === this._CHAR_UUID_NOTIFY) {
@@ -285,7 +285,7 @@ export class SwitchbotDevice {
   }
 
   _subscribe() {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const char = this._chars.notify;
       if (!char) {
         reject(new Error('No notify characteristic was found.'));
@@ -296,8 +296,8 @@ export class SwitchbotDevice {
           reject(error);
           return;
         }
-        char.on('data', (buf) => {
-          this._onnotify_internal(buf);
+        char.on('data', () => { // Remove the argument passed to the _onnotify_internal function
+          this._onnotify_internal();
         });
         resolve();
       });
@@ -305,7 +305,7 @@ export class SwitchbotDevice {
   }
 
   _unsubscribe() {
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       const char = this._chars.notify;
       if (!char) {
         resolve();
@@ -330,7 +330,7 @@ export class SwitchbotDevice {
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
   disconnect() {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       this._was_connected_explicitly = false;
       // Check the connection state
       const state = this._peripheral.state;
@@ -356,7 +356,7 @@ export class SwitchbotDevice {
 
   _disconnect() {
     if (this._was_connected_explicitly) {
-      return new Promise((resolve) => {
+      return new Promise<void>((resolve) => {
         resolve();
       });
     } else {
@@ -390,7 +390,7 @@ export class SwitchbotDevice {
           }
           return this._read(this._chars.device);
         })
-        .then((buf) => {
+        .then((buf: any) => {
           name = buf.toString('utf8');
           return this._disconnect();
         })
@@ -416,13 +416,14 @@ export class SwitchbotDevice {
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
   setDeviceName(name) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       // Check the parameters
       const valid = ParameterChecker.check(
         { name: name },
         {
           name: { required: true, type: 'string', minBytes: 1, maxBytes: 100 },
         },
+        true, // Add the required argument
       );
 
       if (!valid) {
@@ -465,7 +466,7 @@ export class SwitchbotDevice {
         return;
       }
 
-      let res_buf = null;
+      let res_buf;
 
       this._connect()
         .then(() => {
@@ -492,16 +493,18 @@ export class SwitchbotDevice {
 
   _waitCommandResponse() {
     return new Promise((resolve, reject) => {
-      let timer = setTimeout(() => {
-        timer = null;
+      const buf: Buffer | null = null;
+
+      let timer: NodeJS.Timeout | undefined = setTimeout(() => {
+        timer = undefined;
         this._onnotify_internal = () => {};
         reject(new Error('COMMAND_TIMEOUT'));
       }, this._COMMAND_TIMEOUT_MSEC);
 
-      this._onnotify_internal = (buf) => {
+      this._onnotify_internal = () => {
         if (timer) {
           clearTimeout(timer);
-          timer = null;
+          timer = undefined;
         }
         this._onnotify_internal = () => {};
         resolve(buf);
@@ -513,7 +516,7 @@ export class SwitchbotDevice {
   _read(char) {
     return new Promise((resolve, reject) => {
       // Set a timeout timer
-      let timer = setTimeout(() => {
+      let timer: NodeJS.Timeout | undefined = setTimeout(() => {
         reject('READ_TIMEOUT');
       }, this._READ_TIMEOUT_MSEC);
 
@@ -521,7 +524,7 @@ export class SwitchbotDevice {
       char.read((error, buf) => {
         if (timer) {
           clearTimeout(timer);
-          timer = null;
+          timer = undefined;
         }
         if (error) {
           reject(error);
@@ -534,9 +537,9 @@ export class SwitchbotDevice {
 
   // Write the specified Buffer data to the specified characteristic
   _write(char, buf) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       // Set a timeout timer
-      let timer = setTimeout(() => {
+      let timer: NodeJS.Timeout | undefined = setTimeout(() => {
         reject('WRITE_TIMEOUT');
       }, this._WRITE_TIMEOUT_MSEC);
 
@@ -544,7 +547,7 @@ export class SwitchbotDevice {
       char.write(buf, false, (error) => {
         if (timer) {
           clearTimeout(timer);
-          timer = null;
+          timer = undefined;
         }
         if (error) {
           reject(error);

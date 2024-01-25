@@ -30,7 +30,7 @@ export class ParameterChecker {
     return this._error;
   }
 
-  isSpecified(value) {
+  static isSpecified(value) {
     return value === void 0 ? false : true;
   }
 
@@ -67,11 +67,11 @@ export class ParameterChecker {
    *   throw new Error(message);
    * }
    * ---------------------------------------------------------------- */
-  check(obj, rules, required) {
-    this._error;
+  static check(obj, rules, required) {
+    this.error;
     if (required) {
       if (!this.isSpecified(obj)) {
-        this._error = {
+        this.error = {
           code: 'MISSING_REQUIRED',
           message: 'The first argument is missing.',
         };
@@ -84,7 +84,7 @@ export class ParameterChecker {
     }
 
     if (!this.isObject(obj, {})) {
-      this._error = {
+      this.error = {
         code: 'MISSING_REQUIRED',
         message: 'The first argument is missing.',
       };
@@ -105,7 +105,7 @@ export class ParameterChecker {
       if (!this.isSpecified(v)) {
         if (rule.required) {
           result = false;
-          this._error = {
+          this.error = {
             code: 'MISSING_REQUIRED',
             message: 'The `' + name + '` is required.',
           };
@@ -129,7 +129,7 @@ export class ParameterChecker {
         result = this.isString(v, rule, name);
       } else {
         result = false;
-        this._error = {
+        this.error = {
           code: 'TYPE_UNKNOWN',
           message:
             'The rule specified for the `' +
@@ -140,7 +140,7 @@ export class ParameterChecker {
       }
 
       if (result === false) {
-        this._error.name = name;
+        this.error.name = name;
         break;
       }
     }
@@ -169,15 +169,15 @@ export class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  isFloat(value, rule: Rule, name = 'value') {
-    this._error;
+  static isFloat(value, rule: Rule, name = 'value') {
+    this.error;
 
     if (!rule.required && !this.isSpecified(value)) {
       return true;
     }
 
     if (typeof value !== 'number') {
-      this._error = {
+      this.error = {
         code: 'TYPE_INVALID',
         message: 'The `' + name + '` must be a number (integer or float).',
       };
@@ -186,7 +186,7 @@ export class ParameterChecker {
 
     if (typeof rule.min === 'number') {
       if (value < rule.min) {
-        this._error = {
+        this.error = {
           code: 'VALUE_UNDERFLOW',
           message:
             'The `' +
@@ -200,7 +200,7 @@ export class ParameterChecker {
     }
     if (typeof rule.max === 'number') {
       if (value > rule.max) {
-        this._error = {
+        this.error = {
           code: 'VALUE_OVERFLOW',
           message:
             'The `' +
@@ -214,7 +214,7 @@ export class ParameterChecker {
     }
     if (Array.isArray(rule.enum) && rule.enum.length > 0) {
       if (rule.enum.indexOf(value) === -1) {
-        this._error = {
+        this.error = {
           code: 'ENUM_UNMATCH',
           message:
             'The `' +
@@ -251,8 +251,8 @@ export class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  isInteger(value, rule: Rule, name = 'value') {
-    this._error = null;
+  static isInteger(value, rule: Rule, name = 'value') {
+    this.error = null;
 
     if (!rule.required && !this.isSpecified(value)) {
       return true;
@@ -262,7 +262,7 @@ export class ParameterChecker {
       if (value % 1 === 0) {
         return true;
       } else {
-        this._error = {
+        this.error = {
           code: 'TYPE_INVALID',
           message: 'The `' + name + '` must be an integer.',
         };
@@ -288,15 +288,15 @@ export class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  isBoolean(value, rule: Rule, name = 'value') {
-    this._error = null;
+  static isBoolean(value, rule: Rule, name = 'value') {
+    this.error = null;
 
     if (!rule.required && !this.isSpecified(value)) {
       return true;
     }
 
     if (typeof value !== 'boolean') {
-      this._error = {
+      this.error = {
         code: 'TYPE_INVALID',
         message: 'The `' + name + '` must be boolean.',
       };
@@ -320,14 +320,14 @@ export class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  isObject(value, rule: Rule, name = 'value') {
-    this._error = null;
+  static isObject(value, rule: Rule, name = 'value') {
+    this.error = null;
     if (!rule.required && !this.isSpecified(value)) {
       return true;
     }
 
     if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-      this._error = {
+      this.error = {
         code: 'TYPE_INVALID',
         message: 'The `' + name + '` must be an object.',
       };
@@ -356,15 +356,15 @@ export class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  isArray(value, rule: Rule, name = 'value') {
-    this._error = null;
+  static isArray(value, rule: Rule, name = 'value') {
+    this.error = null;
 
     if (!rule.required && !this.isSpecified(value)) {
       return true;
     }
 
     if (!Array.isArray(value)) {
-      this._error = {
+      this.error = {
         code: 'TYPE_INVALID',
         message: 'The value must be an array.',
       };
@@ -373,7 +373,7 @@ export class ParameterChecker {
 
     if (typeof rule.min === 'number') {
       if (value.length < rule.min) {
-        this._error = {
+        this.error = {
           code: 'LENGTH_UNDERFLOW',
           message:
             'The number of characters in the `' +
@@ -387,7 +387,7 @@ export class ParameterChecker {
     }
     if (typeof rule.max === 'number') {
       if (value.length > rule.max) {
-        this._error = {
+        this.error = {
           code: 'LENGTH_OVERFLOW',
           message:
             'The number of characters in the `' +
@@ -427,15 +427,15 @@ export class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  isString(value, rule: Rule, name = 'value') {
-    this._error = null;
+  static isString(value, rule: Rule, name = 'value') {
+    this.error = null;
 
     if (!rule.required && !this.isSpecified(value)) {
       return true;
     }
 
     if (typeof value !== 'string') {
-      this._error = {
+      this.error = {
         code: 'TYPE_INVALID',
         message: 'The value must be a string.',
       };
@@ -444,7 +444,7 @@ export class ParameterChecker {
 
     if (typeof rule.min === 'number') {
       if (value.length < rule.min) {
-        this._error = {
+        this.error = {
           code: 'LENGTH_UNDERFLOW',
           message:
             'The number of characters in the `' +
@@ -458,7 +458,7 @@ export class ParameterChecker {
     }
     if (typeof rule.max === 'number') {
       if (value.length > rule.max) {
-        this._error = {
+        this.error = {
           code: 'LENGTH_OVERFLOW',
           message:
             'The number of characters in the `' +
@@ -473,7 +473,7 @@ export class ParameterChecker {
     if (typeof rule.minBytes === 'number') {
       const blen = Buffer.from(value, 'utf8').length;
       if (blen < rule.minBytes) {
-        this._error = {
+        this.error = {
           code: 'LENGTH_UNDERFLOW',
           message:
             'The byte length of the `' +
@@ -490,7 +490,7 @@ export class ParameterChecker {
     if (typeof rule.maxBytes === 'number') {
       const blen = Buffer.from(value, 'utf8').length;
       if (blen > rule.maxBytes) {
-        this._error = {
+        this.error = {
           code: 'LENGTH_OVERFLOW',
           message:
             'The byte length of the `' +
@@ -506,7 +506,7 @@ export class ParameterChecker {
     }
     if (rule.pattern instanceof RegExp) {
       if (!rule.pattern.test(value)) {
-        this._error = {
+        this.error = {
           code: 'PATTERN_UNMATCH',
           message: 'The `' + name + '` does not conform with the pattern.',
         };
@@ -515,7 +515,7 @@ export class ParameterChecker {
     }
     if (Array.isArray(rule.enum) && rule.enum.length > 0) {
       if (rule.enum.indexOf(value) === -1) {
-        this._error = {
+        this.error = {
           code: 'ENUM_UNMATCH',
           message:
             'The `' +

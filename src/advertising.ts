@@ -91,33 +91,33 @@ export class Advertising {
     let sd;
 
     if (model === 'H') {
-      sd = this._parseServiceDataForWoHand(buf, onlog);//WoHand
+      sd = this.parseServiceDataForWoHand(buf, onlog);//WoHand
     } else if (model === 'T') {
-      sd = this._parseServiceDataForWoSensorTH(buf, onlog);//WoSensorTH
+      sd = this.parseServiceDataForWoSensorTH(buf, onlog);//WoSensorTH
     } else if (model === 'e') {
       sd = this.parseServiceDataForWoHumi(buf, onlog);//WoHumi
     } else if (model === 's') {
-      sd = this._parseServiceDataForWoPresence(buf, onlog);//WoPresence
+      sd = this.parseServiceDataForWoPresence(buf, onlog);//WoPresence
     } else if (model === 'd') {
-      sd = this._parseServiceDataForWoContact(buf, onlog);//WoContact
+      sd = this.parseServiceDataForWoContact(buf, onlog);//WoContact
     } else if (model === 'c' || model === '{') {
-      sd = this._parseServiceDataForWoCurtain(buf, onlog);// WoCurtain
+      sd = this.parseServiceDataForWoCurtain(buf, onlog);// WoCurtain
     } else if (model === 'x') {
-      sd = this._parseServiceDataForWoBlindTilt(buf, onlog);// WoBlindTilt
+      sd = this.parseServiceDataForWoBlindTilt(buf, onlog);// WoBlindTilt
     } else if (model === 'u') {
-      sd = this._parseServiceDataForWoBulb(manufacturerData, onlog);// WoBulb
+      sd = this.parseServiceDataForWoBulb(manufacturerData, onlog);// WoBulb
     } else if (model === 'g') {
-      sd = this._parseServiceDataForWoPlugMiniUS(manufacturerData, onlog);      // WoPlugMini (US)
+      sd = this.parseServiceDataForWoPlugMiniUS(manufacturerData, onlog);      // WoPlugMini (US)
     } else if (model === 'j') {
-      sd = this._parseServiceDataForWoPlugMiniJP(manufacturerData, onlog);// WoPlugMini (JP)
+      sd = this.parseServiceDataForWoPlugMiniJP(manufacturerData, onlog);// WoPlugMini (JP)
     } else if (model === 'o') {
-      sd = this._parseServiceDataForWoSmartLock(manufacturerData, onlog);// WoSmartLock
+      sd = this.parseServiceDataForWoSmartLock(manufacturerData, onlog);// WoSmartLock
     } else if (model === 'i') {
-      sd = this._parseServiceDataForWoSensorTHPlus(buf, onlog);// WoMeterPlus
+      sd = this.parseServiceDataForWoSensorTHPlus(buf, onlog);// WoMeterPlus
     } else if (model === 'r') {
-      sd = this._parseServiceDataForWoStrip(buf, onlog);// WoStrip
+      sd = this.parseServiceDataForWoStrip(buf, onlog);// WoStrip
     } else if (model === 'w') {
-      sd = this._parseServiceDataForWoIOSensorTH(buf, manufacturerData, onlog); // Indoor/Outdoor Thermo-Hygrometer
+      sd = this.parseServiceDataForWoIOSensorTH(buf, manufacturerData, onlog); // Indoor/Outdoor Thermo-Hygrometer
     } else {
       if (onlog && typeof onlog === 'function') {
         onlog(
@@ -168,11 +168,11 @@ export class Advertising {
     return data;
   }
 
-  _parseServiceDataForWoHand(buf, onlog) {
+  static parseServiceDataForWoHand(buf, onlog) {
     if (buf.length !== 3) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoHand] Buffer length ${buf.length} !== 3!`,
+          `[parseServiceDataForWoHand] Buffer length ${buf.length} !== 3!`,
         );
       }
       return null;
@@ -195,11 +195,11 @@ export class Advertising {
     return data;
   }
 
-  _parseServiceDataForWoSensorTH(buf, onlog) {
+  static parseServiceDataForWoSensorTH(buf, onlog) {
     if (buf.length !== 6) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoSensorTH] Buffer length ${buf.length} !== 6!`,
+          `[parseServiceDataForWoSensorTH] Buffer length ${buf.length} !== 6!`,
         );
       }
       return null;
@@ -228,11 +228,11 @@ export class Advertising {
     return data;
   }
 
-  parseServiceDataForWoHumi(buf, onlog) {
+  static parseServiceDataForWoHumi(buf, onlog) {
     if (buf.length !== 8) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoHumi] Buffer length ${buf.length} !== 8!`,
+          `[parseServiceDataForWoHumi] Buffer length ${buf.length} !== 8!`,
         );
       }
       return null;
@@ -256,11 +256,11 @@ export class Advertising {
     return data;
   }
 
-  _parseServiceDataForWoPresence(buf, onlog) {
+  static parseServiceDataForWoPresence(buf, onlog) {
     if (buf.length !== 6) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoPresence] Buffer length ${buf.length} !== 6!`,
+          `[parseServiceDataForWoPresence] Buffer length ${buf.length} !== 6!`,
         );
       }
       return null;
@@ -296,11 +296,11 @@ export class Advertising {
     return data;
   }
 
-  _parseServiceDataForWoContact(buf, onlog) {
+  static parseServiceDataForWoContact(buf, onlog) {
     if (buf.length !== 9) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoContact] Buffer length ${buf.length} !== 9!`,
+          `[parseServiceDataForWoContact] Buffer length ${buf.length} !== 9!`,
         );
       }
       return null;
@@ -341,11 +341,11 @@ export class Advertising {
     return data;
   }
 
-  _parseServiceDataForWoCurtain(buf, onlog) {
+  static parseServiceDataForWoCurtain(buf, onlog) {
     if (buf.length !== 5 && buf.length !== 6) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoCurtain] Buffer length ${buf.length} !== 5 or 6!`,
+          `[parseServiceDataForWoCurtain] Buffer length ${buf.length} !== 5 or 6!`,
         );
       }
       return null;
@@ -377,11 +377,11 @@ export class Advertising {
     return data;
   }
 
-  _parseServiceDataForWoBlindTilt(buf, onlog) {
+  static parseServiceDataForWoBlindTilt(buf, onlog) {
     if (buf.length !== 5 && buf.length !== 6) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoBlindTilt] Buffer length ${buf.length} !== 5 or 6!`,
+          `[parseServiceDataForWoBlindTilt] Buffer length ${buf.length} !== 5 or 6!`,
         );
       }
       return null;
@@ -408,11 +408,11 @@ export class Advertising {
     return data;
   }
 
-  _parseServiceDataForWoBulb(manufacturerData, onlog) {
+  static parseServiceDataForWoBulb(manufacturerData, onlog) {
     if (manufacturerData.length !== 13) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoBulb] Buffer length ${manufacturerData.length} !== 13!`,
+          `[parseServiceDataForWoBulb] Buffer length ${manufacturerData.length} !== 13!`,
         );
       }
       return null;
@@ -461,11 +461,11 @@ export class Advertising {
     return data;
   }
 
-  _parseServiceDataForWoPlugMiniUS(manufacturerData, onlog) {
+  static parseServiceDataForWoPlugMiniUS(manufacturerData, onlog) {
     if (manufacturerData.length !== 14) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoPlugMiniUS] Buffer length ${manufacturerData.length} should be 14`,
+          `[parseServiceDataForWoPlugMiniUS] Buffer length ${manufacturerData.length} should be 14`,
         );
       }
       return null;
@@ -500,11 +500,11 @@ export class Advertising {
     return data;
   }
 
-  _parseServiceDataForWoPlugMiniJP(manufacturerData, onlog) {
+  static parseServiceDataForWoPlugMiniJP(manufacturerData, onlog) {
     if (manufacturerData.length !== 14) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoPlugMiniJP] Buffer length ${manufacturerData.length} should be 14`,
+          `[parseServiceDataForWoPlugMiniJP] Buffer length ${manufacturerData.length} should be 14`,
         );
       }
       return null;
@@ -539,11 +539,11 @@ export class Advertising {
     return data;
   }
 
-  _parseServiceDataForWoSmartLock(manufacturerData, onlog) {
+  static parseServiceDataForWoSmartLock(manufacturerData, onlog) {
     if (manufacturerData.length !== 6) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoSmartLock] Buffer length ${manufacturerData.length} !== 6!`,
+          `[parseServiceDataForWoSmartLock] Buffer length ${manufacturerData.length} !== 6!`,
         );
       }
       return null;
@@ -590,11 +590,11 @@ export class Advertising {
     return data;
   }
 
-  _parseServiceDataForWoSensorTHPlus(buf, onlog) {
+  static parseServiceDataForWoSensorTHPlus(buf, onlog) {
     if (buf.length !== 6) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoSensorTHPlus] Buffer length ${buf.length} !== 6!`,
+          `[parseServiceDataForWoSensorTHPlus] Buffer length ${buf.length} !== 6!`,
         );
       }
       return null;
@@ -623,11 +623,11 @@ export class Advertising {
     return data;
   }
 
-  _parseServiceDataForWoStrip(buf, onlog) {
+  static parseServiceDataForWoStrip(buf, onlog) {
     if (buf.length !== 18) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoStrip] Buffer length ${buf.length} !== 18!`,
+          `[parseServiceDataForWoStrip] Buffer length ${buf.length} !== 18!`,
         );
       }
       return null;
@@ -672,11 +672,11 @@ export class Advertising {
     return data;
   }
 
-  _parseServiceDataForWoIOSensorTH(serviceDataBuf, manufacturerDataBuf, onlog) {
+  static parseServiceDataForWoIOSensorTH(serviceDataBuf, manufacturerDataBuf, onlog) {
     if (serviceDataBuf.length !== 3) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoIOSensorTH] Service Data Buffer length ${serviceDataBuf.length} !== 3!`,
+          `[parseServiceDataForWoIOSensorTH] Service Data Buffer length ${serviceDataBuf.length} !== 3!`,
         );
       }
       return null;
@@ -684,7 +684,7 @@ export class Advertising {
     if (manufacturerDataBuf.length !== 14) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoIOSensorTH] Manufacturer Data Buffer length ${manufacturerDataBuf.length} !== 14!`,
+          `[parseServiceDataForWoIOSensorTH] Manufacturer Data Buffer length ${manufacturerDataBuf.length} !== 14!`,
         );
       }
       return null;

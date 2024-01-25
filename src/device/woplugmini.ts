@@ -18,7 +18,7 @@ export class WoPlugMini extends SwitchbotDevice {
    */
   _setState(reqByteArray) {
     const base = [0x57, 0x0f, 0x50, 0x01];
-    return this._operateBot([].concat(base, reqByteArray));
+    return this._operateBot([...base, ...reqByteArray]);
   }
 
   /**
@@ -50,7 +50,7 @@ export class WoPlugMini extends SwitchbotDevice {
     return new Promise((resolve, reject) => {
       this._command(req_buf)
         .then((res_bytes) => {
-          const res_buf = Buffer.from(res_bytes);
+          const res_buf = Buffer.from(res_bytes as Uint8Array);
           if (res_buf.length === 2) {
             const code = res_buf.readUInt8(1);
             if (code === 0x00 || code === 0x80) {
@@ -59,16 +59,16 @@ export class WoPlugMini extends SwitchbotDevice {
             } else {
               reject(
                 new Error(
-                  "The device returned an error: 0x" + res_buf.toString("hex")
-                )
+                  'The device returned an error: 0x' + res_buf.toString('hex'),
+                ),
               );
             }
           } else {
             reject(
               new Error(
-                "Expecting a 2-byte response, got instead: 0x" +
-                  res_buf.toString("hex")
-              )
+                'Expecting a 2-byte response, got instead: 0x' +
+                  res_buf.toString('hex'),
+              ),
             );
           }
         })

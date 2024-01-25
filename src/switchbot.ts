@@ -35,6 +35,8 @@ export class SwitchBot {
   scanning;
   DEFAULT_DISCOVERY_DURATION;
   PRIMARY_SERVICE_UUID_LIST;
+  static onlog: any;
+  static noble: any;
   /* ------------------------------------------------------------------
                * Constructor
                *
@@ -109,7 +111,7 @@ export class SwitchBot {
   discover(params: params = {}) {
     const promise = new Promise((resolve, reject) => {
       // Check the parameters
-      const valid = parameterChecker.check(
+      const valid = ParameterChecker.check(
         params,
         {
           duration: { required: false, type: 'integer', min: 1, max: 60000 },
@@ -141,7 +143,7 @@ export class SwitchBot {
       );
 
       if (!valid) {
-        reject(new Error(parameterChecker.error.message));
+        reject(new Error(ParameterChecker.error.message));
         return;
       }
 
@@ -179,7 +181,7 @@ export class SwitchBot {
 
           // Set a handler for the 'discover' event
           this.noble.on('discover', (peripheral) => {
-            const device = this._getDeviceObject(peripheral, p.id, p.model) as SwitchbotDevice;
+            const device = SwitchBot.getDeviceObject(peripheral, p.id, p.model) as SwitchbotDevice;
             if (!device) {
               return;
             }
@@ -257,54 +259,56 @@ export class SwitchBot {
     return promise;
   }
 
-  _getDeviceObject(peripheral, id, model) {
+  static getDeviceObject(peripheral, id, model) {
     const ad = Advertising.parse(peripheral, this.onlog);
-    if (this._filterAdvertising(ad, id, model)) {
-      let device = null;
-      switch (ad.serviceData.model) {
-        case 'H':
-          device = new WoHand(peripheral, this.noble);
-          break;
-        case 'T':
-          device = new WoSensorTH(peripheral, this.noble);
-          break;
-        case 'e':
-          device = new WoHumi(peripheral, this.noble);
-          break;
-        case 's':
-          device = new WoPresence(peripheral, this.noble);
-          break;
-        case 'd':
-          device = new WoContact(peripheral, this.noble);
-          break;
-        case 'c':
-        case '{':
-          device = new WoCurtain(peripheral, this.noble);
-          break;
-        case 'x':
-          device = new WoBlindTilt(peripheral, this.noble);
-          break;
-        case 'u':
-          device = new WoBulb(peripheral, this.noble);
-          break;
-        case 'g':
-        case 'j':
-          device = new WoPlugMini(peripheral, this.noble);
-          break;
-        case 'o':
+    if (this.filterAdvertising(ad, id, model)) {
+      let device;
+      if (ad && ad.serviceData && ad.serviceData.model) {
+        switch (ad.serviceData.model) {
+          case 'H':
+            device = new WoHand(peripheral, this.noble);
+            break;
+          case 'T':
+            device = new WoSensorTH(peripheral, this.noble);
+            break;
+          case 'e':
+            device = new WoHumi(peripheral, this.noble);
+            break;
+          case 's':
+            device = new WoPresence(peripheral, this.noble);
+            break;
+          case 'd':
+            device = new WoContact(peripheral, this.noble);
+            break;
+          case 'c':
+          case '{':
+            device = new WoCurtain(peripheral, this.noble);
+            break;
+          case 'x':
+            device = new WoBlindTilt(peripheral, this.noble);
+            break;
+          case 'u':
+            device = new WoBulb(peripheral, this.noble);
+            break;
+          case 'g':
+          case 'j':
+            device = new WoPlugMini(peripheral, this.noble);
+            break;
+          case 'o':
           //device = new SwitchbotDeviceWoSmartLock(peripheral, this.noble);
-          break;
-        case 'i':
-          device = new WoSensorTH(peripheral, this.noble);
-          break;
-        case 'w':
-          device = new WoIOSensorTH(peripheral, this.noble);
-          break;
-        case 'r':
-          device = new WoStrip(peripheral, this.noble);
-          break;
-        default: // 'resetting', 'unknown'
-          device = new SwitchbotDevice(peripheral, this.noble);
+            break;
+          case 'i':
+            device = new WoSensorTH(peripheral, this.noble);
+            break;
+          case 'w':
+            device = new WoIOSensorTH(peripheral, this.noble);
+            break;
+          case 'r':
+            device = new WoStrip(peripheral, this.noble);
+            break;
+          default: // 'resetting', 'unknown'
+            device = new SwitchbotDevice(peripheral, this.noble);
+        }
       }
       return device;
     } else {
@@ -312,7 +316,7 @@ export class SwitchBot {
     }
   }
 
-  _filterAdvertising(ad, id, model) {
+  static filterAdvertising(ad, id, model) {
     if (!ad) {
       return false;
     }
@@ -392,7 +396,7 @@ export class SwitchBot {
   startScan(params) {
     const promise = new Promise<void>((resolve, reject) => {
       // Check the parameters
-      const valid = parameterChecker.check(
+      const valid = ParameterChecker.check(
         params,
         {
           model: {
@@ -421,7 +425,7 @@ export class SwitchBot {
         false,
       );
       if (!valid) {
-        reject(new Error(parameterChecker.error.message));
+        reject(new Error(ParameterChecker.error.message));
         return;
       }
 
@@ -441,7 +445,7 @@ export class SwitchBot {
           // Set a handler for the 'discover' event
           this.noble.on('discover', (peripheral) => {
             const ad = Advertising.parse(peripheral, this.onlog);
-            if (this._filterAdvertising(ad, p.id, p.model)) {
+            if (SwitchBot.filterAdvertising(ad, p.id, p.model)) {
               if (
                 this.onadvertisement &&
                                 typeof this.onadvertisement === 'function'
@@ -497,18 +501,19 @@ export class SwitchBot {
      * - Promise object
      *   Nothing will be passed to the `resolve()`.
      * ---------------------------------------------------------------- */
-  wait(msec) {
+  static wait(msec) {
     return new Promise((resolve, reject) => {
       // Check the parameters
-      const valid = parameterChecker.check(
+      const valid = ParameterChecker.check(
         { msec: msec },
         {
           msec: { required: true, type: 'integer', min: 0 },
         },
+        {}, // Add an empty object as the third argument
       );
 
       if (!valid) {
-        reject(new Error(parameterChecker.error.message));
+        reject(new Error(ParameterChecker.error.message));
         return;
       }
       // Set a timer

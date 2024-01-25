@@ -22,7 +22,7 @@ export class WoBulb extends SwitchbotDevice {
    */
   _setState(reqByteArray) {
     const base = [0x57, 0x0f, 0x47, 0x01];
-    return this._operateBot([].concat(base, reqByteArray));
+    return this._operateBot(base.concat(reqByteArray));
   }
 
   /**
@@ -62,15 +62,15 @@ export class WoBulb extends SwitchbotDevice {
   }
 
   /**
-   * @returns {Promise<number>} resolves with brightness percent
+   * @returns {Promise<number>} resolves with color_temperature percent
    */
   setColorTemperature(color_temperature) {
     if (typeof color_temperature !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            'The type of target brightness percentage is incorrent: ' +
-              typeof brightness,
+            'The type of target color_temperature percentage is incorrent: ' +
+              typeof color_temperature,
           ),
         );
       });
@@ -158,7 +158,7 @@ export class WoBulb extends SwitchbotDevice {
     return new Promise((resolve, reject) => {
       this._command(req_buf)
         .then((res_bytes) => {
-          const res_buf = Buffer.from(res_bytes);
+          const res_buf = Buffer.from(res_bytes as ArrayBuffer | SharedArrayBuffer);
           if (res_buf.length === 2) {
             const code = res_buf.readUInt8(1);
             if (code === 0x00 || code === 0x80) {
