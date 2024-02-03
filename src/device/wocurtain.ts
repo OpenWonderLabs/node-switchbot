@@ -12,7 +12,7 @@ export class WoCurtain extends SwitchbotDevice {
    * - Open the curtain
    *
    * [Arguments]
-   * - mode | number | Opetional | runing mode (0x01 = QuietDrift, 0xff = Default)
+   * - mode | number | Optional | runing mode (0x01 = QuietDrift, 0xff = Default)
    *
    * [Return value]
    * - Promise object
@@ -27,7 +27,7 @@ export class WoCurtain extends SwitchbotDevice {
    * - close the curtain
    *
    * [Arguments]
-   * - mode | number | Opetional | runing mode (0x01 = QuietDrift, 0xff = Default)
+   * - mode | number | Optional | runing mode (0x01 = QuietDrift, 0xff = Default)
    *
    * [Return value]
    * - Promise object
@@ -58,7 +58,7 @@ export class WoCurtain extends SwitchbotDevice {
    *
    * [Arguments]
    * - percent | number | Required  | the percentage of target position
-   * - mode    | number | Opetional | runing mode (0x01 = QuietDrift, 0xff = Default)
+   * - mode    | number | Optional | runing mode (0x01 = QuietDrift, 0xff = Default)
    *
    * [Return value]
    * - Promise object

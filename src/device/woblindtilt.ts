@@ -68,7 +68,7 @@ export class WoBlindTilt extends SwitchbotDevice {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            'The type of target position percentage is incorrent: ' +
+            'The type of target position percentage is incorrect: ' +
             typeof percent,
           ),
         );
@@ -80,7 +80,7 @@ export class WoBlindTilt extends SwitchbotDevice {
       if (typeof mode !== 'number') {
         return new Promise((resolve, reject) => {
           reject(
-            new Error('The type of running mode is incorrent: ' + typeof mode),
+            new Error('The type of running mode is incorrect: ' + typeof mode),
           );
         });
       }

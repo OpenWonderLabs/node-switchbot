@@ -41,7 +41,7 @@ export class ParameterChecker {
    * [Arguments]
    * - obj      | Object  | Required | Object including parameters you want to check
    * - rules    | Object  | Required | Object including rules for the parameters
-   * - required | Boolean | Optional | Flag whther the `obj` is required or not.
+   * - required | Boolean | Optional | Flag whether the `obj` is required or not.
    *            |         |          | The default is `false`
    *
    * [Return value]

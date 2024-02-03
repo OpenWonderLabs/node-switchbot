@@ -249,7 +249,7 @@ export class SwitchBot {
             return;
           default:
             err = new Error(
-              'Uknown state: ' + this.noble.state,
+              'Unknown state: ' + this.noble.state,
             );
             reject(err);
             return;
