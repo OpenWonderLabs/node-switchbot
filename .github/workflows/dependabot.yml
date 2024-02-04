@@ -11,7 +11,7 @@ on:
     - latest
 
 jobs:
-  label:
+  dependabot:
     uses: OpenWonderLabs/.github/.github/workflows/dependabot.yml@latest
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
