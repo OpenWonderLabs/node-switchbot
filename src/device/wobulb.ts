@@ -47,7 +47,7 @@ export class WoBulb extends SwitchbotDevice {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            'The type of target brightness percentage is incorrent: ' +
+            'The type of target brightness percentage is incorrect: ' +
               typeof brightness,
           ),
         );
@@ -69,7 +69,7 @@ export class WoBulb extends SwitchbotDevice {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            'The type of target color_temperature percentage is incorrent: ' +
+            'The type of target color_temperature percentage is incorrect: ' +
               typeof color_temperature,
           ),
         );
@@ -91,7 +91,7 @@ export class WoBulb extends SwitchbotDevice {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            'The type of target brightness percentage is incorrent: ' +
+            'The type of target brightness percentage is incorrect: ' +
               typeof brightness,
           ),
         );
@@ -101,7 +101,7 @@ export class WoBulb extends SwitchbotDevice {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            'The type of target red is incorrent: ' +
+            'The type of target red is incorrect: ' +
               typeof red,
           ),
         );
@@ -111,7 +111,7 @@ export class WoBulb extends SwitchbotDevice {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            'The type of target green is incorrent: ' +
+            'The type of target green is incorrect: ' +
               typeof green,
           ),
         );
@@ -121,7 +121,7 @@ export class WoBulb extends SwitchbotDevice {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            'The type of target blue is incorrent: ' +
+            'The type of target blue is incorrect: ' +
               typeof blue,
           ),
         );

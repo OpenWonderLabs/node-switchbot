@@ -121,7 +121,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ### What's Changed
 
-- Fix Plug Mini (US) implimentation
+- Fix Plug Mini (US) implementation
 - Housekeeping and update dependencies
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.4.0...v1.4.1

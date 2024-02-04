@@ -520,7 +520,7 @@ export class SwitchbotDevice {
         reject('READ_TIMEOUT');
       }, this._READ_TIMEOUT_MSEC);
 
-      // Read charcteristic data
+      // Read characteristic data
       char.read((error, buf) => {
         if (timer) {
           clearTimeout(timer);
@@ -543,7 +543,7 @@ export class SwitchbotDevice {
         reject('WRITE_TIMEOUT');
       }, this._WRITE_TIMEOUT_MSEC);
 
-      // write charcteristic data
+      // write characteristic data
       char.write(buf, false, (error) => {
         if (timer) {
           clearTimeout(timer);
