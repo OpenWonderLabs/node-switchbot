@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
-## [2.0.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v2.0.0) (2024-02-XX)
+## [2.0.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v2.0.0) (2024-02-05)
 
 ### What's Changed
 - Rewrite into Typescript and Convert CommonJS to ES Module
