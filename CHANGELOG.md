@@ -2,7 +2,17 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
-## [1.10.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.10.0) (2024-1-5)
+## [2.0.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v2.0.0) (2024-02-05)
+
+### What's Changed
+- Rewrite into Typescript and Convert CommonJS to ES Module
+- Fix Linting, Thanks [@dnicolson](https://github.com/dnicolson) [#216](https://github.com/OpenWonderLabs/node-switchbot/pull/216)
+- Code Cleaup, Thanks [@dnicolson](https://github.com/dnicolson) [#217](https://github.com/OpenWonderLabs/node-switchbot/pull/217)
+- Housekeeping and update dependencies
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.10.0...v2.0.0
+
+## [1.10.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.10.0) (2024-01-05)
 
 ### What's Changed
 - Fix reversed bot state reporting, Thanks [@grelca](https://github.com/grelca) [#207](https://github.com/OpenWonderLabs/node-switchbot/pull/207)
@@ -11,7 +21,7 @@ All notable changes to this project will be documented in this file. This projec
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.9.1...v1.10.0
 
-## [1.9.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.9.1) (2023-11-2)
+## [1.9.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.9.1) (2023-11-02)
 
 ### What's Changed
 - Housekeeping and update dependencies
@@ -121,7 +131,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ### What's Changed
 
-- Fix Plug Mini (US) implimentation
+- Fix Plug Mini (US) implementation
 - Housekeeping and update dependencies
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.4.0...v1.4.1

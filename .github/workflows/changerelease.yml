@@ -7,7 +7,7 @@ on:
     branches: [latest]
 
 jobs:
-    changerelease:
-        uses: OpenWonderLabs/.github/.github/workflows/changerelease.yml@latest
-        secrets:
-            token: ${{ secrets.GITHUB_TOKEN }}
+  changerelease:
+      uses: OpenWonderLabs/.github/.github/workflows/changerelease.yml@latest
+      secrets:
+          token: ${{ secrets.GITHUB_TOKEN }}

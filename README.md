@@ -30,7 +30,7 @@ But some functionalities of this module were developed through trial and error. 
     - [Moving the arm of the Bot](#moving-the-arm-of-the-bot)
   - [`Switchbot` object](#switchbot-object)
     - [`discover()` method](#discover-method)
-    - [`ondiscover` event handler](#ondiscover-event-hander)
+    - [`ondiscover` event handler](#ondiscover-event-handler)
     - [`startScan()` method](#startscan-method)
     - [`stopScan()` method](#stopscan-method)
     - [`onadvertisement` event handler](#onadvertisement-event-handler)
@@ -117,7 +117,7 @@ const switchbot = new Switchbot();
 (async () => {
   // Start to monitor advertisement packets
   await switchbot.startScan();
-  // Set an event hander
+  // Set an event handler
   switchbot.onadvertisement = (ad) => {
     console.log(JSON.stringify(ad, null, '  '));
   };
@@ -145,7 +145,7 @@ const switchbot = new Switchbot();
 switchbot
   .startScan()
   .then(() => {
-    // Set an event hander
+    // Set an event handler
     switchbot.onadvertisement = (ad) => {
       console.log(JSON.stringify(ad, null, "  "));
     };

@@ -1,26 +1,28 @@
-"use strict";
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * wobulb.ts: Switchbot BLE API registration.
+ */
+import { Buffer } from 'buffer';
 
-const { Buffer } = require('buffer');
-
-const SwitchbotDevice = require("./switchbot-device.js");
+import { SwitchbotDevice } from '../switchbot.js';
 
 /**
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/colorbulb.md
  */
-class SwitchbotDeviceWoStrip extends SwitchbotDevice {
+export class WoBulb extends SwitchbotDevice {
   /**
    * @returns {Promise<boolean>} resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
    */
   readState() {
-    return this._operateBot([0x57, 0x0f, 0x4A, 0x01]);
+    return this._operateBot([0x57, 0x0f, 0x48, 0x01]);
   }
 
   /**
    * @private
    */
   _setState(reqByteArray) {
-    const base = [0x57, 0x0f, 0x49, 0x01];
-    return this._operateBot([].concat(base, reqByteArray));
+    const base = [0x57, 0x0f, 0x47, 0x01];
+    return this._operateBot(base.concat(reqByteArray));
   }
 
   /**
@@ -38,16 +40,16 @@ class SwitchbotDeviceWoStrip extends SwitchbotDevice {
   }
 
   /**
-   * @returns {Promise<number>} resolves with brightness percent 
+   * @returns {Promise<number>} resolves with brightness percent
    */
   setBrightness(brightness) {
-    if (typeof brightness != "number") {
+    if (typeof brightness !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            "The type of target brightness percentage is incorrent: " +
-              typeof brightness
-          )
+            'The type of target brightness percentage is incorrect: ' +
+              typeof brightness,
+          ),
         );
       });
     }
@@ -60,62 +62,68 @@ class SwitchbotDeviceWoStrip extends SwitchbotDevice {
   }
 
   /**
-   * @returns {Promise<number>} resolves with color temperature 
+   * @returns {Promise<number>} resolves with color_temperature percent
    */
   setColorTemperature(color_temperature) {
-    if (color_temperature) {
+    if (typeof color_temperature !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            "Strip Light Doesn't Support Color temperature: " +
-              typeof color_temperature
-          )
+            'The type of target color_temperature percentage is incorrect: ' +
+              typeof color_temperature,
+          ),
         );
       });
     }
+    if (color_temperature > 100) {
+      color_temperature = 100;
+    } else if (color_temperature < 0) {
+      color_temperature = 0;
+    }
+    return this._setState([0x02, 0x17, color_temperature]);
   }
 
   /**
-   * @returns {Promise<number>} resolves with brightness + rgb 
+   * @returns {Promise<number>} resolves with brightness percent
    */
-   setRGB(brightness, red, green, blue) {
-    if (typeof brightness != "number") {
+  setRGB(brightness, red, green, blue) {
+    if (typeof brightness !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            "The type of target brightness percentage is incorrent: " +
-              typeof brightness
-          )
+            'The type of target brightness percentage is incorrect: ' +
+              typeof brightness,
+          ),
         );
       });
     }
-    if (typeof red != "number") {
+    if (typeof red !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            "The type of target red is incorrent: " +
-              typeof red
-          )
+            'The type of target red is incorrect: ' +
+              typeof red,
+          ),
         );
       });
     }
-    if (typeof green != "number") {
+    if (typeof green !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            "The type of target green is incorrent: " +
-              typeof green
-          )
+            'The type of target green is incorrect: ' +
+              typeof green,
+          ),
         );
       });
     }
-    if (typeof blue != "number") {
+    if (typeof blue !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            "The type of target blue is incorrent: " +
-              typeof blue
-          )
+            'The type of target blue is incorrect: ' +
+              typeof blue,
+          ),
         );
       });
     }
@@ -150,7 +158,7 @@ class SwitchbotDeviceWoStrip extends SwitchbotDevice {
     return new Promise((resolve, reject) => {
       this._command(req_buf)
         .then((res_bytes) => {
-          const res_buf = Buffer.from(res_bytes);
+          const res_buf = Buffer.from(res_bytes as ArrayBuffer | SharedArrayBuffer);
           if (res_buf.length === 2) {
             const code = res_buf.readUInt8(1);
             if (code === 0x00 || code === 0x80) {
@@ -159,16 +167,16 @@ class SwitchbotDeviceWoStrip extends SwitchbotDevice {
             } else {
               reject(
                 new Error(
-                  "The device returned an error: 0x" + res_buf.toString("hex")
-                )
+                  'The device returned an error: 0x' + res_buf.toString('hex'),
+                ),
               );
             }
           } else {
             reject(
               new Error(
-                "Expecting a 2-byte response, got instead: 0x" +
-                  res_buf.toString("hex")
-              )
+                'Expecting a 2-byte response, got instead: 0x' +
+                  res_buf.toString('hex'),
+              ),
             );
           }
         })
@@ -178,5 +186,3 @@ class SwitchbotDeviceWoStrip extends SwitchbotDevice {
     });
   }
 }
-
-module.exports = SwitchbotDeviceWoStrip;

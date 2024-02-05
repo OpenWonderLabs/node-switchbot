@@ -1,16 +1,18 @@
-"use strict";
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * wocurtain.ts: Switchbot BLE API registration.
+ */
+import { Buffer } from 'buffer';
 
-const { Buffer } = require('buffer');
+import { SwitchbotDevice } from '../switchbot.js';
 
-const SwitchbotDevice = require("./switchbot-device.js");
-
-class SwitchbotDeviceWoCurtain extends SwitchbotDevice {
+export class WoCurtain extends SwitchbotDevice {
   /* ------------------------------------------------------------------
    * open()
    * - Open the curtain
    *
    * [Arguments]
-   * - mode | number | Opetional | runing mode (0x01 = QuietDrift, 0xff = Default)
+   * - mode | number | Optional | runing mode (0x01 = QuietDrift, 0xff = Default)
    *
    * [Return value]
    * - Promise object
@@ -25,7 +27,7 @@ class SwitchbotDeviceWoCurtain extends SwitchbotDevice {
    * - close the curtain
    *
    * [Arguments]
-   * - mode | number | Opetional | runing mode (0x01 = QuietDrift, 0xff = Default)
+   * - mode | number | Optional | runing mode (0x01 = QuietDrift, 0xff = Default)
    *
    * [Return value]
    * - Promise object
@@ -56,27 +58,27 @@ class SwitchbotDeviceWoCurtain extends SwitchbotDevice {
    *
    * [Arguments]
    * - percent | number | Required  | the percentage of target position
-   * - mode    | number | Opetional | runing mode (0x01 = QuietDrift, 0xff = Default)
+   * - mode    | number | Optional | runing mode (0x01 = QuietDrift, 0xff = Default)
    *
    * [Return value]
    * - Promise object
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
   runToPos(percent, mode = 0xff) {
-    if (typeof percent != "number") {
+    if (typeof percent !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
           new Error(
-            "The type of target position percentage is incorrect: " +
-              typeof percent
-          )
+            'The type of target position percentage is incorrect: ' +
+              typeof percent,
+          ),
         );
       });
     }
-    if (typeof mode != "number") {
+    if (typeof mode !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
-          new Error("The type of running mode is incorrect: " + typeof mode)
+          new Error('The type of running mode is incorrect: ' + typeof mode),
         );
       });
     }
@@ -92,18 +94,18 @@ class SwitchbotDeviceWoCurtain extends SwitchbotDevice {
   }
 
   _operateCurtain(bytes) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const req_buf = Buffer.from(bytes);
       this._command(req_buf)
-        .then((res_buf) => {
-          const code = res_buf.readUInt8(0);
-          if (res_buf.length === 3 && code === 0x01) {
+        .then((res_buf: unknown) => {
+          const code = (res_buf as Buffer).readUInt8(0);
+          if ((res_buf as Buffer).length === 3 && code === 0x01) {
             resolve();
           } else {
             reject(
               new Error(
-                "The device returned an error: 0x" + res_buf.toString("hex")
-              )
+                'The device returned an error: 0x' + (res_buf as Buffer).toString('hex'),
+              ),
             );
           }
         })
@@ -113,5 +115,3 @@ class SwitchbotDeviceWoCurtain extends SwitchbotDevice {
     });
   }
 }
-
-module.exports = SwitchbotDeviceWoCurtain;

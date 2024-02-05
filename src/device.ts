@@ -1,11 +1,36 @@
-"use strict";
+import { Buffer } from 'buffer';
 
-const { Buffer } = require('buffer');
+import { ParameterChecker } from './parameter-checker.js';
+import { Advertising } from './advertising.js';
 
-const parameterChecker = require("./parameter-checker.js");
-const switchbotAdvertising = require("./switchbot-advertising.js");
+type ad = {
+  id: any;
+  address: any;
+  rssi: any;
+  serviceData: any;
+} | null;
 
-class SwitchbotDevice {
+export class SwitchbotDevice {
+  _peripheral;
+  _noble;
+  _chars;
+  _SERV_UUID_PRIMARY;
+  _CHAR_UUID_WRITE;
+  _CHAR_UUID_NOTIFY;
+  _CHAR_UUID_DEVICE;
+  _READ_TIMEOUT_MSEC;
+  _WRITE_TIMEOUT_MSEC;
+  _COMMAND_TIMEOUT_MSEC;
+  _id;
+  _address;
+  _model;
+  _modelName;
+  _was_connected_explicitly;
+  _connected;
+  _onconnect: () => void;
+  _ondisconnect: () => void;
+  _ondisconnect_internal: () => void;
+  _onnotify_internal: () => void;
   /* ------------------------------------------------------------------
    * Constructor
    *
@@ -19,21 +44,14 @@ class SwitchbotDevice {
     this._noble = noble;
     this._chars = null;
 
-    this._SERV_UUID_PRIMARY = "cba20d00224d11e69fb80002a5d5c51b";
-    this._CHAR_UUID_WRITE = "cba20002224d11e69fb80002a5d5c51b";
-    this._CHAR_UUID_NOTIFY = "cba20003224d11e69fb80002a5d5c51b";
-    this._CHAR_UUID_DEVICE = "2a00";
-
-    this._READ_TIMEOUT_MSEC = 3000;
-    this._WRITE_TIMEOUT_MSEC = 3000;
-    this._COMMAND_TIMEOUT_MSEC = 3000;
-
+    this._SERV_UUID_PRIMARY = 'cba20d00224d11e69fb80002a5d5c51b';
+    this._CHAR_UUID_WRITE = 'cba20002224d11e69fb80002a5d5c51b';
     // Save the device information
-    const ad = switchbotAdvertising.parse(peripheral);
-    this._id = ad.id;
-    this._address = ad.address;
-    this._model = ad.serviceData.model;
-    this._modelName = ad.serviceData.modelName;
+    const ad: ad = Advertising.parse(peripheral);
+    this._id = ad?.id;
+    this._address = ad?.address;
+    this._model = ad?.serviceData.model;
+    this._modelName = ad?.serviceData.modelName;
 
     this._was_connected_explicitly = false;
     this._connected = false;
@@ -48,18 +66,22 @@ class SwitchbotDevice {
   get id() {
     return this._id;
   }
+
   get address() {
     return this._address;
   }
+
   get model() {
     return this._model;
   }
+
   get modelName() {
     return this._modelName;
   }
+
   get connectionState() {
-    if (!this._connected && this._peripheral.state === "disconnecting") {
-      return "disconnected";
+    if (!this._connected && this._peripheral.state === 'disconnecting') {
+      return 'disconnected';
     } else {
       return this._peripheral.state;
     }
@@ -67,14 +89,15 @@ class SwitchbotDevice {
 
   // Setters
   set onconnect(func) {
-    if (!func || typeof func !== "function") {
-      throw new Error("The `onconnect` must be a function.");
+    if (!func || typeof func !== 'function') {
+      throw new Error('The `onconnect` must be a function.');
     }
     this._onconnect = func;
   }
+
   set ondisconnect(func) {
-    if (!func || typeof func !== "function") {
-      throw new Error("The `ondisconnect` must be a function.");
+    if (!func || typeof func !== 'function') {
+      throw new Error('The `ondisconnect` must be a function.');
     }
     this._ondisconnect = func;
   }
@@ -96,36 +119,36 @@ class SwitchbotDevice {
   }
 
   _connect() {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       // Check the bluetooth state
-      if (this._noble.state !== "poweredOn") {
+      if (this._noble.state !== 'poweredOn') {
         reject(
           new Error(
-            "The Bluetooth status is " + this._noble.state + ", not poweredOn."
-          )
+            'The Bluetooth status is ' + this._noble.state + ', not poweredOn.',
+          ),
         );
         return;
       }
 
       // Check the connection state
       const state = this.connectionState;
-      if (state === "connected") {
+      if (state === 'connected') {
         resolve();
         return;
-      } else if (state === "connecting" || state === "disconnecting") {
+      } else if (state === 'connecting' || state === 'disconnecting') {
         reject(
-          new Error("Now " + state + ". Wait for a few seconds then try again.")
+          new Error('Now ' + state + '. Wait for a few seconds then try again.'),
         );
         return;
       }
 
       // Set event handlers for events fired on the `Peripheral` object
-      this._peripheral.once("connect", () => {
+      this._peripheral.once('connect', () => {
         this._connected = true;
         this._onconnect();
       });
 
-      this._peripheral.once("disconnect", () => {
+      this._peripheral.once('disconnect', () => {
         this._connected = false;
         this._chars = null;
         this._peripheral.removeAllListeners();
@@ -158,11 +181,11 @@ class SwitchbotDevice {
   _getCharacteristics() {
     return new Promise((resolve, reject) => {
       // Set timeout timer
-      let timer = setTimeout(() => {
+      let timer: NodeJS.Timeout | null = setTimeout(() => {
         this._ondisconnect_internal = () => {};
         timer = null;
         reject(
-          new Error("Failed to discover services and characteristics: TIMEOUT")
+          new Error('Failed to discover services and characteristics: TIMEOUT'),
         );
       }, 5000);
 
@@ -175,8 +198,8 @@ class SwitchbotDevice {
         }
         reject(
           new Error(
-            "Failed to discover services and characteristics: DISCONNECTED"
-          )
+            'Failed to discover services and characteristics: DISCONNECTED',
+          ),
         );
       };
 
@@ -184,7 +207,7 @@ class SwitchbotDevice {
       (async () => {
         const service_list = await this._discoverServices();
         if (!timer) {
-          throw new Error("");
+          throw new Error('');
         }
 
         const chars = {
@@ -193,9 +216,9 @@ class SwitchbotDevice {
           device: null,
         };
 
-        for (let service of service_list) {
+        for (const service of service_list as any[]) {
           const char_list = await this._discoverCharacteristics(service);
-          for (let char of char_list) {
+          for (const char of char_list as any[]) {
             if (char.uuid === this._CHAR_UUID_WRITE) {
               chars.write = char;
             } else if (char.uuid === this._CHAR_UUID_NOTIFY) {
@@ -210,7 +233,7 @@ class SwitchbotDevice {
         if (chars.write && chars.notify) {
           resolve(chars);
         } else {
-          reject(new Error("No characteristic was found."));
+          reject(new Error('No characteristic was found.'));
         }
       })().catch((error) => {
         if (timer) {
@@ -234,7 +257,7 @@ class SwitchbotDevice {
         }
 
         let service = null;
-        for (let s of service_list) {
+        for (const s of service_list) {
           if (s.uuid === this._SERV_UUID_PRIMARY) {
             service = s;
             break;
@@ -243,7 +266,7 @@ class SwitchbotDevice {
         if (service) {
           resolve(service_list);
         } else {
-          reject(new Error("No service was found."));
+          reject(new Error('No service was found.'));
         }
       });
     });
@@ -262,10 +285,10 @@ class SwitchbotDevice {
   }
 
   _subscribe() {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const char = this._chars.notify;
       if (!char) {
-        reject(new Error("No notify characteristic was found."));
+        reject(new Error('No notify characteristic was found.'));
         return;
       }
       char.subscribe((error) => {
@@ -273,8 +296,8 @@ class SwitchbotDevice {
           reject(error);
           return;
         }
-        char.on("data", (buf) => {
-          this._onnotify_internal(buf);
+        char.on('data', () => { // Remove the argument passed to the _onnotify_internal function
+          this._onnotify_internal();
         });
         resolve();
       });
@@ -282,7 +305,7 @@ class SwitchbotDevice {
   }
 
   _unsubscribe() {
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       const char = this._chars.notify;
       if (!char) {
         resolve();
@@ -307,16 +330,16 @@ class SwitchbotDevice {
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
   disconnect() {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       this._was_connected_explicitly = false;
       // Check the connection state
       const state = this._peripheral.state;
-      if (state === "disconnected") {
+      if (state === 'disconnected') {
         resolve();
         return;
-      } else if (state === "connecting" || state === "disconnecting") {
+      } else if (state === 'connecting' || state === 'disconnecting') {
         reject(
-          new Error("Now " + state + ". Wait for a few seconds then try again.")
+          new Error('Now ' + state + '. Wait for a few seconds then try again.'),
         );
         return;
       }
@@ -333,7 +356,7 @@ class SwitchbotDevice {
 
   _disconnect() {
     if (this._was_connected_explicitly) {
-      return new Promise((resolve) => {
+      return new Promise<void>((resolve) => {
         resolve();
       });
     } else {
@@ -354,21 +377,21 @@ class SwitchbotDevice {
    * ---------------------------------------------------------------- */
   getDeviceName() {
     return new Promise((resolve, reject) => {
-      let name = "";
+      let name = '';
       this._connect()
         .then(() => {
           if (!this._chars.device) {
             // Some models of Bot don't seem to support this characteristic UUID
             throw new Error(
-              "The device does not support the characteristic UUID 0x" +
+              'The device does not support the characteristic UUID 0x' +
                 this._CHAR_UUID_DEVICE +
-                "."
+                '.',
             );
           }
           return this._read(this._chars.device);
         })
-        .then((buf) => {
-          name = buf.toString("utf8");
+        .then((buf: any) => {
+          name = buf.toString('utf8');
           return this._disconnect();
         })
         .then(() => {
@@ -393,29 +416,30 @@ class SwitchbotDevice {
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
   setDeviceName(name) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       // Check the parameters
-      const valid = parameterChecker.check(
+      const valid = ParameterChecker.check(
         { name: name },
         {
-          name: { required: true, type: "string", minBytes: 1, maxBytes: 100 },
-        }
+          name: { required: true, type: 'string', minBytes: 1, maxBytes: 100 },
+        },
+        true, // Add the required argument
       );
 
       if (!valid) {
-        reject(new Error(parameterChecker.error.message));
+        reject(new Error(ParameterChecker.error.message));
         return;
       }
 
-      const buf = Buffer.from(name, "utf8");
+      const buf = Buffer.from(name, 'utf8');
       this._connect()
         .then(() => {
           if (!this._chars.device) {
             // Some models of Bot don't seem to support this characteristic UUID
             throw new Error(
-              "The device does not support the characteristic UUID 0x" +
+              'The device does not support the characteristic UUID 0x' +
                 this._CHAR_UUID_DEVICE +
-                "."
+                '.',
             );
           }
           return this._write(this._chars.device, buf);
@@ -438,16 +462,16 @@ class SwitchbotDevice {
   _command(req_buf) {
     return new Promise((resolve, reject) => {
       if (!Buffer.isBuffer(req_buf)) {
-        reject(new Error("The specified data is not acceptable for writing."));
+        reject(new Error('The specified data is not acceptable for writing.'));
         return;
       }
 
-      let res_buf = null;
+      let res_buf;
 
       this._connect()
         .then(() => {
           if (!this._chars) {
-            return reject(new Error("No characteristics available."));
+            return reject(new Error('No characteristics available.'));
           }
           return this._write(this._chars.write, req_buf);
         })
@@ -469,16 +493,18 @@ class SwitchbotDevice {
 
   _waitCommandResponse() {
     return new Promise((resolve, reject) => {
-      let timer = setTimeout(() => {
-        timer = null;
+      const buf: Buffer | null = null;
+
+      let timer: NodeJS.Timeout | undefined = setTimeout(() => {
+        timer = undefined;
         this._onnotify_internal = () => {};
-        reject(new Error("COMMAND_TIMEOUT"));
+        reject(new Error('COMMAND_TIMEOUT'));
       }, this._COMMAND_TIMEOUT_MSEC);
 
-      this._onnotify_internal = (buf) => {
+      this._onnotify_internal = () => {
         if (timer) {
           clearTimeout(timer);
-          timer = null;
+          timer = undefined;
         }
         this._onnotify_internal = () => {};
         resolve(buf);
@@ -490,15 +516,15 @@ class SwitchbotDevice {
   _read(char) {
     return new Promise((resolve, reject) => {
       // Set a timeout timer
-      let timer = setTimeout(() => {
-        reject("READ_TIMEOUT");
+      let timer: NodeJS.Timeout | undefined = setTimeout(() => {
+        reject('READ_TIMEOUT');
       }, this._READ_TIMEOUT_MSEC);
 
-      // Read charcteristic data
+      // Read characteristic data
       char.read((error, buf) => {
         if (timer) {
           clearTimeout(timer);
-          timer = null;
+          timer = undefined;
         }
         if (error) {
           reject(error);
@@ -511,17 +537,17 @@ class SwitchbotDevice {
 
   // Write the specified Buffer data to the specified characteristic
   _write(char, buf) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       // Set a timeout timer
-      let timer = setTimeout(() => {
-        reject("WRITE_TIMEOUT");
+      let timer: NodeJS.Timeout | undefined = setTimeout(() => {
+        reject('WRITE_TIMEOUT');
       }, this._WRITE_TIMEOUT_MSEC);
 
-      // write charcteristic data
+      // write characteristic data
       char.write(buf, false, (error) => {
         if (timer) {
           clearTimeout(timer);
-          timer = null;
+          timer = undefined;
         }
         if (error) {
           reject(error);
@@ -532,5 +558,3 @@ class SwitchbotDevice {
     });
   }
 }
-
-module.exports = SwitchbotDevice;

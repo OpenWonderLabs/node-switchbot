@@ -1,8 +1,7 @@
-"use strict";
+import { Buffer } from 'buffer';
 
-const { Buffer } = require('buffer');
+export class Advertising {
 
-class SwitchbotAdvertising {
   constructor() {}
 
   /* ------------------------------------------------------------------
@@ -62,7 +61,14 @@ class SwitchbotAdvertising {
    * If the specified `Peripheral` does not represent any switchbot
    * device, this method will return `null`.
    * ---------------------------------------------------------------- */
-  parse(peripheral, onlog) {
+  /**
+   * Parses the advertisement data of a peripheral device.
+   *
+   * @param peripheral - The peripheral device.
+   * @param onlog - The logging function.
+   * @returns The parsed data of the peripheral device.
+   */
+  static parse(peripheral, onlog?) {
     const ad = peripheral.advertisement;
     if (!ad || !ad.serviceData) {
       return null;
@@ -81,69 +87,69 @@ class SwitchbotAdvertising {
       return null;
     }
 
-    const model = buf.slice(0, 1).toString("utf8");
-    let sd = null;
+    const model = buf.slice(0, 1).toString('utf8');
+    let sd;
 
-    if (model === "H") {
-      sd = this._parseServiceDataForWoHand(buf, onlog);//WoHand
-    } else if (model === "T") {
-      sd = this._parseServiceDataForWoSensorTH(buf, onlog);//WoSensorTH
-    } else if (model === "e") {
-      sd = this._parseServiceDataForWoHumi(buf, onlog);//WoHumi
-    } else if (model === "s") {
-      sd = this._parseServiceDataForWoPresence(buf, onlog);//WoPresence
-    } else if (model === "d") {
-      sd = this._parseServiceDataForWoContact(buf, onlog);//WoContact
-    } else if (model === "c" || model === "{") {
-      sd = this._parseServiceDataForWoCurtain(buf, onlog);// WoCurtain
-    } else if (model === "x") {
-      sd = this._parseServiceDataForWoBlindTilt(buf, onlog);// WoBlindTilt
-    } else if (model === "u") {
-      sd = this._parseServiceDataForWoBulb(manufacturerData, onlog);// WoBulb
-    } else if (model === "g") {
-      sd = this._parseServiceDataForWoPlugMiniUS(manufacturerData, onlog);      // WoPlugMini (US)
-    } else if (model === "j") {
-      sd = this._parseServiceDataForWoPlugMiniJP(manufacturerData, onlog);// WoPlugMini (JP)
-    } else if (model === "o") {
-      sd = this._parseServiceDataForWoSmartLock(manufacturerData, onlog);// WoSmartLock
-    } else if (model === "i") {
-      sd = this._parseServiceDataForWoSensorTHPlus(buf, onlog);// WoMeterPlus
-    } else if (model === "r") {
-      sd = this._parseServiceDataForWoStrip(buf, onlog);// WoStrip
-    } else if (model === "w") {
-      sd = this._parseServiceDataForWoIOSensorTH(buf, manufacturerData, onlog); // Indoor/Outdoor Thermo-Hygrometer
+    if (model === 'H') {
+      sd = this.parseServiceDataForWoHand(buf, onlog);//WoHand
+    } else if (model === 'T') {
+      sd = this.parseServiceDataForWoSensorTH(buf, onlog);//WoSensorTH
+    } else if (model === 'e') {
+      sd = this.parseServiceDataForWoHumi(buf, onlog);//WoHumi
+    } else if (model === 's') {
+      sd = this.parseServiceDataForWoPresence(buf, onlog);//WoPresence
+    } else if (model === 'd') {
+      sd = this.parseServiceDataForWoContact(buf, onlog);//WoContact
+    } else if (model === 'c' || model === '{') {
+      sd = this.parseServiceDataForWoCurtain(buf, onlog);// WoCurtain
+    } else if (model === 'x') {
+      sd = this.parseServiceDataForWoBlindTilt(buf, onlog);// WoBlindTilt
+    } else if (model === 'u') {
+      sd = this.parseServiceDataForWoBulb(manufacturerData, onlog);// WoBulb
+    } else if (model === 'g') {
+      sd = this.parseServiceDataForWoPlugMiniUS(manufacturerData, onlog);      // WoPlugMini (US)
+    } else if (model === 'j') {
+      sd = this.parseServiceDataForWoPlugMiniJP(manufacturerData, onlog);// WoPlugMini (JP)
+    } else if (model === 'o') {
+      sd = this.parseServiceDataForWoSmartLock(manufacturerData, onlog);// WoSmartLock
+    } else if (model === 'i') {
+      sd = this.parseServiceDataForWoSensorTHPlus(buf, onlog);// WoMeterPlus
+    } else if (model === 'r') {
+      sd = this.parseServiceDataForWoStrip(buf, onlog);// WoStrip
+    } else if (model === 'w') {
+      sd = this.parseServiceDataForWoIOSensorTH(buf, manufacturerData, onlog); // Indoor/Outdoor Thermo-Hygrometer
     } else {
-      if (onlog && typeof onlog === "function") {
+      if (onlog && typeof onlog === 'function') {
         onlog(
-          `[parseAdvertising.${peripheral.id}] return null, model "${model}" not available!`
+          `[parseAdvertising.${peripheral.id}] return null, model "${model}" not available!`,
         );
       }
       return null;
     }
 
     if (!sd) {
-      if (onlog && typeof onlog === "function") {
+      if (onlog && typeof onlog === 'function') {
         onlog(
-          `[parseAdvertising.${peripheral.id}.${model}] return null, parsed serviceData empty!`
+          `[parseAdvertising.${peripheral.id}.${model}] return null, parsed serviceData empty!`,
         );
       }
       return null;
     }
-    let address = peripheral.address || "";
-    if (address === "") {
-      address = peripheral.advertisement.manufacturerData || "";
-      if (address !== "") {
+    let address = peripheral.address || '';
+    if (address === '') {
+      address = peripheral.advertisement.manufacturerData || '';
+      if (address !== '') {
         const str = peripheral.advertisement.manufacturerData
-          .toString("hex")
+          .toString('hex')
           .slice(4, 16);
         address = str.substr(0, 2);
-        for (var i = 2; i < str.length; i += 2) {
-          address = address + ":" + str.substr(i, 2);
+        for (let i = 2; i < str.length; i += 2) {
+          address = address + ':' + str.substr(i, 2);
         }
         // console.log("address", typeof(address), address);
       }
     } else {
-      address = address.replace(/-/g, ":");
+      address = address.replace(/-/g, ':');
     }
     const data = {
       id: peripheral.id,
@@ -152,21 +158,21 @@ class SwitchbotAdvertising {
       serviceData: sd,
     };
 
-    if (onlog && typeof onlog === "function") {
+    if (onlog && typeof onlog === 'function') {
       onlog(
         `[parseAdvertising.${peripheral.id}.${model}] return ${JSON.stringify(
-          data
-        )}`
+          data,
+        )}`,
       );
     }
     return data;
   }
 
-  _parseServiceDataForWoHand(buf, onlog) {
+  static parseServiceDataForWoHand(buf, onlog) {
     if (buf.length !== 3) {
-      if (onlog && typeof onlog === "function") {
+      if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoHand] Buffer length ${buf.length} !== 3!`
+          `[parseServiceDataForWoHand] Buffer length ${buf.length} !== 3!`,
         );
       }
       return null;
@@ -179,8 +185,8 @@ class SwitchbotAdvertising {
     const battery = byte2 & 0b01111111; // %
 
     const data = {
-      model: "H",
-      modelName: "WoHand",
+      model: 'H',
+      modelName: 'WoHand',
       mode: mode,
       state: state,
       battery: battery,
@@ -189,11 +195,11 @@ class SwitchbotAdvertising {
     return data;
   }
 
-  _parseServiceDataForWoSensorTH(buf, onlog) {
+  static parseServiceDataForWoSensorTH(buf, onlog) {
     if (buf.length !== 6) {
-      if (onlog && typeof onlog === "function") {
+      if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoSensorTH] Buffer length ${buf.length} !== 6!`
+          `[parseServiceDataForWoSensorTH] Buffer length ${buf.length} !== 6!`,
         );
       }
       return null;
@@ -208,8 +214,8 @@ class SwitchbotAdvertising {
     const temp_f = Math.round(((temp_c * 9 / 5) + 32) * 10) / 10;
 
     const data = {
-      model: "T",
-      modelName: "WoSensorTH",
+      model: 'T',
+      modelName: 'WoSensorTH',
       temperature: {
         c: temp_c,
         f: temp_f,
@@ -222,11 +228,11 @@ class SwitchbotAdvertising {
     return data;
   }
 
-  _parseServiceDataForWoHumi(buf, onlog) {
+  static parseServiceDataForWoHumi(buf, onlog) {
     if (buf.length !== 8) {
-      if (onlog && typeof onlog === "function") {
+      if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoHumi] Buffer length ${buf.length} !== 8!`
+          `[parseServiceDataForWoHumi] Buffer length ${buf.length} !== 8!`,
         );
       }
       return null;
@@ -240,8 +246,8 @@ class SwitchbotAdvertising {
     const percentage = byte4 & 0b01111111; // 0-100%, 101/102/103 - Quick gear 1/2/3
 
     const data = {
-      model: "e",
-      modelName: "WoHumi",
+      model: 'e',
+      modelName: 'WoHumi',
       onState: onState,
       autoMode: autoMode,
       percentage: autoMode ? 0 : percentage,
@@ -250,11 +256,11 @@ class SwitchbotAdvertising {
     return data;
   }
 
-  _parseServiceDataForWoPresence(buf, onlog) {
+  static parseServiceDataForWoPresence(buf, onlog) {
     if (buf.length !== 6) {
-      if (onlog && typeof onlog === "function") {
+      if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoPresence] Buffer length ${buf.length} !== 6!`
+          `[parseServiceDataForWoPresence] Buffer length ${buf.length} !== 6!`,
         );
       }
       return null;
@@ -274,8 +280,8 @@ class SwitchbotAdvertising {
     const is_light = byte5 & 0b00000010 ? true : false;
 
     const data = {
-      model: "s",
-      modelName: "WoMotion",
+      model: 's',
+      modelName: 'WoMotion',
       tested: tested,
       movement: movement,
       battery: battery,
@@ -283,18 +289,18 @@ class SwitchbotAdvertising {
       iot: iot,
       sense_distance: sense_distance,
       lightLevel:
-        lightLevel == 1 ? "dark" : lightLevel == 2 ? "bright" : "unknown",
+        lightLevel === 1 ? 'dark' : lightLevel === 2 ? 'bright' : 'unknown',
       is_light: is_light,
     };
 
     return data;
   }
 
-  _parseServiceDataForWoContact(buf, onlog) {
+  static parseServiceDataForWoContact(buf, onlog) {
     if (buf.length !== 9) {
-      if (onlog && typeof onlog === "function") {
+      if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoContact] Buffer length ${buf.length} !== 9!`
+          `[parseServiceDataForWoContact] Buffer length ${buf.length} !== 9!`,
         );
       }
       return null;
@@ -309,37 +315,37 @@ class SwitchbotAdvertising {
     const tested = byte1 & 0b10000000;
     const movement = byte1 & 0b01000000 ? true : false; // 1 - Movement detected
     const battery = byte2 & 0b01111111; // %
-    const contact_open = byte3 & 0b00000010 == 0b00000010;
-    const contact_timeout = byte3 & 0b00000100 == 0b00000100;
+    const contact_open = (byte3 & 0b00000010) === 0b00000010;
+    const contact_timeout = (byte3 & 0b00000100) === 0b00000100;
     const lightLevel = byte3 & 0b00000001;
     const button_count = byte8 & 0b00001111;
 
     const data = {
-      model: "d",
-      modelName: "WoContact",
+      model: 'd',
+      modelName: 'WoContact',
       movement: movement,
       tested: tested,
       battery: battery,
       contact_open: contact_open,
       contact_timeout: contact_timeout,
-      lightLevel: lightLevel == 0 ? "dark" : "bright",
+      lightLevel: lightLevel === 0 ? 'dark' : 'bright',
       button_count: button_count,
       doorState:
-        hallState == 0
-          ? "close"
-          : hallState == 1
-          ? "open"
-          : "timeout no closed",
+        hallState === 0
+          ? 'close'
+          : hallState === 1
+            ? 'open'
+            : 'timeout no closed',
     };
 
     return data;
   }
 
-  _parseServiceDataForWoCurtain(buf, onlog) {
+  static parseServiceDataForWoCurtain(buf, onlog) {
     if (buf.length !== 5 && buf.length !== 6) {
-      if (onlog && typeof onlog === "function") {
+      if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoCurtain] Buffer length ${buf.length} !== 5 or 6!`
+          `[parseServiceDataForWoCurtain] Buffer length ${buf.length} !== 5 or 6!`,
         );
       }
       return null;
@@ -355,11 +361,11 @@ class SwitchbotAdvertising {
     const currPosition = byte3 & 0b01111111; // current positon %
     const lightLevel = (byte4 >> 4) & 0b00001111; // light sensor level (1-10)
     const deviceChain = byte4 & 0b00000111;
-    const model = buf.slice(0, 1).toString("utf8");
+    const model = buf.slice(0, 1).toString('utf8');
 
     const data = {
       model: model,
-      modelName: "WoCurtain",
+      modelName: 'WoCurtain',
       calibration: calibration,
       battery: battery,
       inMotion: inMotion,
@@ -371,27 +377,27 @@ class SwitchbotAdvertising {
     return data;
   }
 
-  _parseServiceDataForWoBlindTilt(buf, onlog) {
+  static parseServiceDataForWoBlindTilt(buf, onlog) {
     if (buf.length !== 5 && buf.length !== 6) {
-      if (onlog && typeof onlog === "function") {
+      if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoBlindTilt] Buffer length ${buf.length} !== 5 or 6!`
+          `[parseServiceDataForWoBlindTilt] Buffer length ${buf.length} !== 5 or 6!`,
         );
       }
       return null;
     }
-    let byte1 = buf.readUInt8(1);
-    let byte2 = buf.readUInt8(2);
+    const byte1 = buf.readUInt8(1);
+    const byte2 = buf.readUInt8(2);
 
-    let calibration = byte1 & 0b00000001 ? true : false; // Whether the calibration is completed
-    let battery = byte2 & 0b01111111; // %
-    let inMotion = byte2 & 0b10000000 ? true : false;
-    let tilt = byte2 & 0b01111111; // current tilt % (100 - _tilt) if reverse else _tilt,
-    let lightLevel = (byte1 >> 4) & 0b00001111; // light sensor level (1-10)
+    const calibration = byte1 & 0b00000001 ? true : false; // Whether the calibration is completed
+    const battery = byte2 & 0b01111111; // %
+    const inMotion = byte2 & 0b10000000 ? true : false;
+    const tilt = byte2 & 0b01111111; // current tilt % (100 - _tilt) if reverse else _tilt,
+    const lightLevel = (byte1 >> 4) & 0b00001111; // light sensor level (1-10)
 
-    let data = {
-      model: "x",
-      modelName: "WoBlindTilt",
+    const data = {
+      model: 'x',
+      modelName: 'WoBlindTilt',
       calibration: calibration,
       battery: battery,
       inMotion: inMotion,
@@ -402,11 +408,11 @@ class SwitchbotAdvertising {
     return data;
   }
 
-  _parseServiceDataForWoBulb(manufacturerData, onlog) {
+  static parseServiceDataForWoBulb(manufacturerData, onlog) {
     if (manufacturerData.length !== 13) {
-      if (onlog && typeof onlog === "function") {
+      if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoBulb] Buffer length ${manufacturerData.length} !== 13!`
+          `[parseServiceDataForWoBulb] Buffer length ${manufacturerData.length} !== 13!`,
         );
       }
       return null;
@@ -436,8 +442,8 @@ class SwitchbotAdvertising {
     const loop_index = byte10 & 0b11111110;
 
     const data = {
-      model: "u",
-      modelName: "WoBulb",
+      model: 'u',
+      modelName: 'WoBulb',
       color_temperature: color_temperature,
       power: power,
       state: state,
@@ -455,11 +461,11 @@ class SwitchbotAdvertising {
     return data;
   }
 
-  _parseServiceDataForWoPlugMiniUS(manufacturerData, onlog) {
+  static parseServiceDataForWoPlugMiniUS(manufacturerData, onlog) {
     if (manufacturerData.length !== 14) {
-      if (onlog && typeof onlog === "function") {
+      if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoPlugMiniUS] Buffer length ${manufacturerData.length} should be 14`
+          `[parseServiceDataForWoPlugMiniUS] Buffer length ${manufacturerData.length} should be 14`,
         );
       }
       return null;
@@ -470,7 +476,7 @@ class SwitchbotAdvertising {
     const byte12 = manufacturerData.readUInt8(12); // byte12: bit7: overload?
     const byte13 = manufacturerData.readUInt8(13); // byte12[bit0~6] + byte13: current power value
 
-    const state = byte9 === 0x00 ? "off" : byte9 === 0x80 ? "on" : null;
+    const state = byte9 === 0x00 ? 'off' : byte9 === 0x80 ? 'on' : null;
     const delay = !!(byte10 & 0b00000001);
     const timer = !!(byte10 & 0b00000010);
     const syncUtcTime = !!(byte10 & 0b00000100);
@@ -480,8 +486,8 @@ class SwitchbotAdvertising {
     // TODO: voltage ???
 
     const data = {
-      model: "g",
-      modelName: "WoPlugMini",
+      model: 'g',
+      modelName: 'WoPlugMini',
       state: state,
       delay: delay,
       timer: timer,
@@ -494,11 +500,11 @@ class SwitchbotAdvertising {
     return data;
   }
 
-  _parseServiceDataForWoPlugMiniJP(manufacturerData, onlog) {
+  static parseServiceDataForWoPlugMiniJP(manufacturerData, onlog) {
     if (manufacturerData.length !== 14) {
-      if (onlog && typeof onlog === "function") {
+      if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoPlugMiniJP] Buffer length ${manufacturerData.length} should be 14`
+          `[parseServiceDataForWoPlugMiniJP] Buffer length ${manufacturerData.length} should be 14`,
         );
       }
       return null;
@@ -509,7 +515,7 @@ class SwitchbotAdvertising {
     const byte12 = manufacturerData.readUInt8(12); // byte12: bit7: overload?
     const byte13 = manufacturerData.readUInt8(13); // byte12[bit0~6] + byte13: current power value
 
-    const state = byte9 === 0x00 ? "off" : byte9 === 0x80 ? "on" : null;
+    const state = byte9 === 0x00 ? 'off' : byte9 === 0x80 ? 'on' : null;
     const delay = !!(byte10 & 0b00000001);
     const timer = !!(byte10 & 0b00000010);
     const syncUtcTime = !!(byte10 & 0b00000100);
@@ -519,8 +525,8 @@ class SwitchbotAdvertising {
     // TODO: voltage ???
 
     const data = {
-      model: "j",
-      modelName: "WoPlugMini",
+      model: 'j',
+      modelName: 'WoPlugMini',
       state: state,
       delay: delay,
       timer: timer,
@@ -533,11 +539,11 @@ class SwitchbotAdvertising {
     return data;
   }
 
-  _parseServiceDataForWoSmartLock(manufacturerData, onlog) {
+  static parseServiceDataForWoSmartLock(manufacturerData, onlog) {
     if (manufacturerData.length !== 6) {
-      if (onlog && typeof onlog === "function") {
+      if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoSmartLock] Buffer length ${manufacturerData.length} !== 6!`
+          `[parseServiceDataForWoSmartLock] Buffer length ${manufacturerData.length} !== 6!`,
         );
       }
       return null;
@@ -555,11 +561,11 @@ class SwitchbotAdvertising {
       LOCKING_STOP: 0b1000000,
       UNLOCKING_STOP: 0b1010000,
       NOT_FULLY_LOCKED: 0b1100000,  //Only EU lock type
-     }
+    };
 
     const battery = byte2 & 0b01111111; // %
     const calibration = byte7 & 0b10000000 ? true : false;
-    const status = LockStatus(byte7 & 0b01110000);
+    const status = LockStatus[byte7 & 0b01110000];
     const update_from_secondary_lock = byte7 & 0b00001000 ? true : false;
     const door_open = byte7 & 0b00000100 ? true : false;
     const double_lock_mode = byte8 & 0b10000000 ? true : false;
@@ -568,8 +574,8 @@ class SwitchbotAdvertising {
     const auto_lock_paused = byte8 & 0b00000010 ? true : false;
 
     const data = {
-      model: "o",
-      modelName: "WoSmartLock",
+      model: 'o',
+      modelName: 'WoSmartLock',
       battery: battery,
       calibration: calibration,
       status: status,
@@ -584,11 +590,11 @@ class SwitchbotAdvertising {
     return data;
   }
 
-  _parseServiceDataForWoSensorTHPlus(buf, onlog) {
+  static parseServiceDataForWoSensorTHPlus(buf, onlog) {
     if (buf.length !== 6) {
-      if (onlog && typeof onlog === "function") {
+      if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoSensorTHPlus] Buffer length ${buf.length} !== 6!`
+          `[parseServiceDataForWoSensorTHPlus] Buffer length ${buf.length} !== 6!`,
         );
       }
       return null;
@@ -603,8 +609,8 @@ class SwitchbotAdvertising {
     const temp_f = Math.round(((temp_c * 9 / 5) + 32) * 10) / 10;
 
     const data = {
-      model: "i",
-      modelName: "WoSensorTHPlus",
+      model: 'i',
+      modelName: 'WoSensorTHPlus',
       temperature: {
         c: temp_c,
         f: temp_f,
@@ -617,11 +623,11 @@ class SwitchbotAdvertising {
     return data;
   }
 
-  _parseServiceDataForWoStrip(buf, onlog) {
+  static parseServiceDataForWoStrip(buf, onlog) {
     if (buf.length !== 18) {
-      if (onlog && typeof onlog === "function") {
+      if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoStrip] Buffer length ${buf.length} !== 18!`
+          `[parseServiceDataForWoStrip] Buffer length ${buf.length} !== 18!`,
         );
       }
       return null;
@@ -649,8 +655,8 @@ class SwitchbotAdvertising {
     const loop_index = byte10 & 0b11111110;
 
     const data = {
-      model: "r",
-      modelName: "WoStrip",
+      model: 'r',
+      modelName: 'WoStrip',
       state: state,
       brightness: brightness,
       red: red,
@@ -666,19 +672,19 @@ class SwitchbotAdvertising {
     return data;
   }
 
-  _parseServiceDataForWoIOSensorTH(serviceDataBuf, manufacturerDataBuf, onlog) {
+  static parseServiceDataForWoIOSensorTH(serviceDataBuf, manufacturerDataBuf, onlog) {
     if (serviceDataBuf.length !== 3) {
-      if (onlog && typeof onlog === "function") {
+      if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoIOSensorTH] Service Data Buffer length ${serviceDataBuf.length} !== 3!`
+          `[parseServiceDataForWoIOSensorTH] Service Data Buffer length ${serviceDataBuf.length} !== 3!`,
         );
       }
       return null;
     }
     if (manufacturerDataBuf.length !== 14) {
-      if (onlog && typeof onlog === "function") {
+      if (onlog && typeof onlog === 'function') {
         onlog(
-          `[_parseServiceDataForWoIOSensorTH] Manufacturer Data Buffer length ${manufacturerDataBuf.length} !== 14!`
+          `[parseServiceDataForWoIOSensorTH] Manufacturer Data Buffer length ${manufacturerDataBuf.length} !== 14!`,
         );
       }
       return null;
@@ -694,8 +700,8 @@ class SwitchbotAdvertising {
     const temp_f = Math.round(((temp_c * 9 / 5) + 32) * 10) / 10;
 
     const data = {
-      model: "w",
-      modelName: "WoIOSensorTH",
+      model: 'w',
+      modelName: 'WoIOSensorTH',
       temperature: {
         c: temp_c,
         f: temp_f,
@@ -709,5 +715,3 @@ class SwitchbotAdvertising {
     return data;
   }
 }
-
-module.exports = new SwitchbotAdvertising();
