@@ -48,7 +48,7 @@ export class SwitchBot {
                * ---------------------------------------------------------------- */
 
 
-  constructor(params: params = {}) {
+  constructor(params?: params) {
     // Check parameters
     (async () => {
       let noble: any;
