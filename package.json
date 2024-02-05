@@ -7,12 +7,12 @@
   "scripts": {
     "check": "npm install && npm outdated",
     "update": "ncu -u && npm update && npm install",
-    "lint": "eslint src/**.ts",
+    "lint": "eslint src/**/*.ts",
     "build": "rimraf ./dist && tsc",
     "prepublishOnly": "npm run lint && npm run build",
     "postpublish": "npm run clean",
     "clean": "rimraf ./dist",
-    "test": "eslint src/**.ts"
+    "test": "npm run lint"
   },
   "keywords": [
     "switchbot",
