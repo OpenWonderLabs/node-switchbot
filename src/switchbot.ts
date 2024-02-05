@@ -13,7 +13,6 @@ import { WoHumi } from './device/wohumi.js';
 import { WoPlugMini } from './device/woplugmini.js';
 import { WoBulb } from './device/wobulb.js';
 import { WoStrip } from './device/wostrip.js';
-
 type params = {
     duration?: number,
     model?: string,
@@ -51,21 +50,23 @@ export class SwitchBot {
 
   constructor(params: params = {}) {
     // Check parameters
-    let noble = null;
-    if (params && params.noble) {
-      noble = params.noble;
-    } else {
-      noble = require('@abandonware/noble');
-    }
+    (async () => {
+      let noble: any;
+      if (params && params.noble) {
+        noble = params.noble;
+      } else {
+        noble = (await import('@abandonware/noble')).default;
+      }
 
-    // Public properties
-    this.noble = noble;
-    this.ondiscover = null;
-    this.onadvertisement = null;
-    this.onlog = null;
+      // Public properties
+      this.noble = noble;
+      this.ondiscover = null;
+      this.onadvertisement = null;
+      this.onlog = null;
 
-    // Private properties
-    this.scanning = false;
+      // Private properties
+      this.scanning = false;
+    })();
     this.DEFAULT_DISCOVERY_DURATION = 5000;
     this.PRIMARY_SERVICE_UUID_LIST = [];
   }
@@ -501,7 +502,7 @@ export class SwitchBot {
      * - Promise object
      *   Nothing will be passed to the `resolve()`.
      * ---------------------------------------------------------------- */
-  static wait(msec) {
+  static wait(msec: number) {
     return new Promise((resolve, reject) => {
       // Check the parameters
       const valid = ParameterChecker.check(
@@ -523,4 +524,3 @@ export class SwitchBot {
 }
 
 export { SwitchbotDevice };
-
