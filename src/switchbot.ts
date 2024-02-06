@@ -49,14 +49,14 @@ export class SwitchBot {
                * ---------------------------------------------------------------- */
 
 
-  constructor(params: params = {}) {
+  constructor(params?: params) {
     this.DEFAULT_DISCOVERY_DURATION = 5000;
     this.PRIMARY_SERVICE_UUID_LIST = [];
     this.ready = this.init(params);
   }
 
-  async init(params: params) {
-    // Check parameters
+  // Check parameters
+  async init(params?: params) {
     let noble: any;
     if (params && params.noble) {
       noble = params.noble;
