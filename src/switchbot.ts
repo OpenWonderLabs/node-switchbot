@@ -27,6 +27,7 @@ type peripherals = {
 }
 
 export class SwitchBot {
+  private ready: Promise<void>;
   noble;
   ondiscover;
   onadvertisement;
@@ -48,27 +49,29 @@ export class SwitchBot {
                * ---------------------------------------------------------------- */
 
 
-  constructor(params: params = {}) {
-    // Check parameters
-    (async () => {
-      let noble: any;
-      if (params && params.noble) {
-        noble = params.noble;
-      } else {
-        noble = (await import('@abandonware/noble')).default;
-      }
-
-      // Public properties
-      this.noble = noble;
-      this.ondiscover = null;
-      this.onadvertisement = null;
-      this.onlog = null;
-
-      // Private properties
-      this.scanning = false;
-    })();
+  constructor(params?: params) {
     this.DEFAULT_DISCOVERY_DURATION = 5000;
     this.PRIMARY_SERVICE_UUID_LIST = [];
+    this.ready = this.init(params);
+  }
+
+  // Check parameters
+  async init(params?: params) {
+    let noble: any;
+    if (params && params.noble) {
+      noble = params.noble;
+    } else {
+      noble = (await import('@abandonware/noble')).default;
+    }
+
+    // Public properties
+    this.noble = noble;
+    this.ondiscover = null;
+    this.onadvertisement = null;
+    this.onlog = null;
+
+    // Private properties
+    this.scanning = false;
   }
 
   /* ------------------------------------------------------------------
@@ -221,7 +224,8 @@ export class SwitchBot {
     return promise;
   }
 
-  _init() {
+  async _init() {
+    await this.ready;
     const promise = new Promise<void>((resolve, reject) => {
       let err;
       if (this.noble.state === 'poweredOn') {
