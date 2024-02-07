@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [2.0.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v2.0.1) (2024-02-06)
+
+### What's Changed
+- Fix async constructor, Thanks [@dnicolson](https://github.com/dnicolson) [#229](https://github.com/OpenWonderLabs/node-switchbot/pull/220)
+- Housekeeping and update dependencies
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v2.0.0...v2.0.1
+
 ## [2.0.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v2.0.0) (2024-02-05)
 
 ### What's Changed
