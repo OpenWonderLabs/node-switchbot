@@ -398,7 +398,7 @@ export class SwitchBot {
      * - Promise object
      *   Nothing will be passed to the `resolve()`.
      * ---------------------------------------------------------------- */
-  startScan(params) {
+  startScan(params?: params) {
     const promise = new Promise<void>((resolve, reject) => {
       // Check the parameters
       const valid = ParameterChecker.check(
@@ -443,8 +443,8 @@ export class SwitchBot {
         .then(() => {
           // Determine the values of the parameters
           const p = {
-            model: params.model || '',
-            id: params.id || '',
+            model: params?.model || '',
+            id: params?.id || '',
           };
 
           // Set a handler for the 'discover' event
@@ -506,7 +506,7 @@ export class SwitchBot {
      * - Promise object
      *   Nothing will be passed to the `resolve()`.
      * ---------------------------------------------------------------- */
-  static wait(msec: number) {
+  wait(msec: number) {
     return new Promise((resolve, reject) => {
       // Check the parameters
       const valid = ParameterChecker.check(
