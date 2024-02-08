@@ -97,9 +97,9 @@ export class Advertising {
     } else if (model === 'e') {
       sd = this.parseServiceDataForWoHumi(buf, onlog);//WoHumi
     } else if (model === 's') {
-      sd = this.parseServiceDataForWoPresence(buf, onlog);//WoPresence
+      sd = this.parseServiceDataForWoPresence(manufacturerData, onlog);//WoPresence
     } else if (model === 'd') {
-      sd = this.parseServiceDataForWoContact(buf, onlog);//WoContact
+      sd = this.parseServiceDataForWoContact(manufacturerData, onlog);//WoContact
     } else if (model === 'c' || model === '{') {
       sd = this.parseServiceDataForWoCurtain(buf, onlog);// WoCurtain
     } else if (model === 'x') {
@@ -256,19 +256,19 @@ export class Advertising {
     return data;
   }
 
-  static parseServiceDataForWoPresence(buf, onlog) {
-    if (buf.length !== 6) {
+  static parseServiceDataForWoPresence(manufacturerData, onlog) {
+    if (manufacturerData.length !== 6) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[parseServiceDataForWoPresence] Buffer length ${buf.length} !== 6!`,
+          `[parseServiceDataForWoPresence] Buffer length ${manufacturerData.length} !== 6!`,
         );
       }
       return null;
     }
 
-    const byte1 = buf.readUInt8(1);
-    const byte2 = buf.readUInt8(2);
-    const byte5 = buf.readUInt8(5);
+    const byte1 = manufacturerData.readUInt8(1);
+    const byte2 = manufacturerData.readUInt8(2);
+    const byte5 = manufacturerData.readUInt8(5);
 
     const tested = byte1 & 0b10000000 ? true : false;
     const movement = byte1 & 0b01000000 ? true : false;
@@ -296,20 +296,20 @@ export class Advertising {
     return data;
   }
 
-  static parseServiceDataForWoContact(buf, onlog) {
-    if (buf.length !== 9) {
+  static parseServiceDataForWoContact(manufacturerData, onlog) {
+    if (manufacturerData.length !== 9) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[parseServiceDataForWoContact] Buffer length ${buf.length} !== 9!`,
+          `[parseServiceDataForWoContact] Buffer length ${manufacturerData.length} !== 9!`,
         );
       }
       return null;
     }
 
-    const byte1 = buf.readUInt8(1);
-    const byte2 = buf.readUInt8(2);
-    const byte3 = buf.readUInt8(3);
-    const byte8 = buf.readUInt8(8);
+    const byte1 = manufacturerData.readUInt8(1);
+    const byte2 = manufacturerData.readUInt8(2);
+    const byte3 = manufacturerData.readUInt8(3);
+    const byte8 = manufacturerData.readUInt8(8);
 
     const hallState = (byte3 >> 1) & 0b00000011;
     const tested = byte1 & 0b10000000;
