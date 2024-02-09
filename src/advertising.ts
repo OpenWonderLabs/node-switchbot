@@ -17,7 +17,7 @@ import { parseServiceDataForWoIOSensorTH } from './device/woiosensorth.js';
 
 export class Advertising {
 
-  constructor() { }
+  constructor() {}
 
   /* ------------------------------------------------------------------
    * parse(peripheral)
@@ -102,60 +102,44 @@ export class Advertising {
       return null;
     }
 
-    const model = buf.subarray(0, 1).toString('utf8');
+    const model = buf.slice(0, 1).toString('utf8');
     let sd;
 
-    switch (model) {
-      case 'H':
-        sd = parseServiceDataForWoHand(buf, onlog);//WoHand
-        break;
-      case 'T':
-        sd = parseServiceDataForWoSensorTH(buf, onlog);//WoSensorTH
-        break;
-      case 'e':
-        sd = parseServiceDataForWoHumi(buf, onlog);//WoHumi
-        break;
-      case 's':
-        sd = parseServiceDataForWoPresence(buf, onlog);//WoPresence
-        break;
-      case 'd':
-        sd = parseServiceDataForWoContact(buf, onlog);//WoContact
-        break;
-      case 'c':
-      case '{':
-        sd = parseServiceDataForWoCurtain(buf, onlog);// WoCurtain
-        break;
-      case 'x':
-        sd = parseServiceDataForWoBlindTilt(manufacturerData, onlog);// WoBlindTilt
-        break;
-      case 'u':
-        sd = parseServiceDataForWoBulb(manufacturerData, onlog);// WoBulb
-        break;
-      case 'g':
-        sd = parseServiceDataForWoPlugMiniUS(manufacturerData, onlog);// WoPlugMini (US)
-        break;
-      case 'j':
-        sd = parseServiceDataForWoPlugMiniJP(manufacturerData, onlog);// WoPlugMini (JP)
-        break;
-      case 'o':
-        sd = parseServiceDataForWoSmartLock(manufacturerData, onlog);// WoSmartLock
-        break;
-      case 'i':
-        sd = parseServiceDataForWoSensorTHPlus(buf, onlog);// WoMeterPlus
-        break;
-      case 'r':
-        sd = parseServiceDataForWoStrip(buf, onlog);// WoStrip
-        break;
-      case 'w':
-        sd = parseServiceDataForWoIOSensorTH(buf, manufacturerData, onlog); // Indoor/Outdoor Thermo-Hygrometer
-        break;
-      default:
-        if (onlog && typeof onlog === 'function') {
-          onlog(
-            `[parseAdvertising.${peripheral.id}] return null, model "${model}" not available!`,
-          );
-        }
-        return null;
+    if (model === 'H') {
+      sd = parseServiceDataForWoHand(buf, onlog);//WoHand
+    } else if (model === 'T') {
+      sd = parseServiceDataForWoSensorTH(buf, onlog);//WoSensorTH
+    } else if (model === 'e') {
+      sd = parseServiceDataForWoHumi(buf, onlog);//WoHumi
+    } else if (model === 's') {
+      sd = parseServiceDataForWoPresence(buf, onlog);//WoPresence
+    } else if (model === 'd') {
+      sd = parseServiceDataForWoContact(buf, onlog);//WoContact
+    } else if (model === 'c' || model === '{') {
+      sd = parseServiceDataForWoCurtain(buf, onlog);// WoCurtain
+    } else if (model === 'x') {
+      sd = parseServiceDataForWoBlindTilt(buf, onlog);// WoBlindTilt
+    } else if (model === 'u') {
+      sd = parseServiceDataForWoBulb(manufacturerData, onlog);// WoBulb
+    } else if (model === 'g') {
+      sd = parseServiceDataForWoPlugMiniUS(manufacturerData, onlog);      // WoPlugMini (US)
+    } else if (model === 'j') {
+      sd = parseServiceDataForWoPlugMiniJP(manufacturerData, onlog);// WoPlugMini (JP)
+    } else if (model === 'o') {
+      sd = parseServiceDataForWoSmartLock(manufacturerData, onlog);// WoSmartLock
+    } else if (model === 'i') {
+      sd = parseServiceDataForWoSensorTHPlus(buf, onlog);// WoMeterPlus
+    } else if (model === 'r') {
+      sd = parseServiceDataForWoStrip(buf, onlog);// WoStrip
+    } else if (model === 'w') {
+      sd = parseServiceDataForWoIOSensorTH(buf, manufacturerData, onlog); // Indoor/Outdoor Thermo-Hygrometer
+    } else {
+      if (onlog && typeof onlog === 'function') {
+        onlog(
+          `[parseAdvertising.${peripheral.id}] return null, model "${model}" not available!`,
+        );
+      }
+      return null;
     }
 
     if (!sd) {

@@ -31,7 +31,6 @@ export function parseServiceDataForWoContact(buf, onlog) {
   const data = {
     model: 'd',
     modelName: 'WoContact',
-    modelFriendlyName: 'Curtain 3',
     movement: movement,
     tested: tested,
     battery: battery,
@@ -40,14 +39,14 @@ export function parseServiceDataForWoContact(buf, onlog) {
     lightLevel: lightLevel === 0 ? 'dark' : 'bright',
     button_count: button_count,
     doorState:
-      hallState === 0
-        ? 'close'
-        : hallState === 1
-          ? 'open'
-          : 'timeout no closed',
+        hallState === 0
+          ? 'close'
+          : hallState === 1
+            ? 'open'
+            : 'timeout no closed',
   };
 
   return data;
 }
 
-export class WoContact extends SwitchbotDevice { }
+export class WoContact extends SwitchbotDevice {}
