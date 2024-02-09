@@ -16,16 +16,16 @@ import { WoStrip } from './device/wostrip.js';
 import { WoSmartLock } from './device/wosmartlock.js';
 
 type params = {
-    duration?: number,
-    model?: string,
-    id?: string,
-    quick?: false,
-    noble?: any,
+  duration?: number,
+  model?: string,
+  id?: string,
+  quick?: false,
+  noble?: any,
 }
 
 type peripherals = {
-    addr?: string,
-    id?: string,
+  addr?: string,
+  id?: string,
 }
 
 export class SwitchBot {
@@ -169,7 +169,7 @@ export class SwitchBot {
       this._init()
         .then(() => {
           const peripherals: peripherals = {};
-          let timer: NodeJS.Timeout = setTimeout(() => {}, 0);
+          let timer: NodeJS.Timeout = setTimeout(() => { }, 0);
           const finishDiscovery = () => {
             if (timer) {
               clearTimeout(timer);
@@ -455,7 +455,7 @@ export class SwitchBot {
             if (SwitchBot.filterAdvertising(ad, p.id, p.model)) {
               if (
                 this.onadvertisement &&
-                                typeof this.onadvertisement === 'function'
+                typeof this.onadvertisement === 'function'
               ) {
                 this.onadvertisement(ad);
               }

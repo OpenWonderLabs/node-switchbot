@@ -6,22 +6,22 @@ import { Buffer } from 'buffer';
 
 import { SwitchbotDevice } from '../switchbot.js';
 
-export function parseServiceDataForWoBlindTilt(buf, onlog) {
-  if (buf.length !== 5 && buf.length !== 6) {
+export function parseServiceDataForWoBlindTilt(manufacturerData, onlog) {
+  if (manufacturerData.length !== 5 && manufacturerData.length !== 6) {
     if (onlog && typeof onlog === 'function') {
       onlog(
-        `[parseServiceDataForWoBlindTilt] Buffer length ${buf.length} !== 5 or 6!`,
+        `[parseServiceDataForWoBlindTilt] Buffer length ${manufacturerData.length} !== 5 or 6!`,
       );
     }
     return null;
   }
-  const byte1 = buf.readUInt8(1);
-  const byte2 = buf.readUInt8(2);
+  const byte1 = manufacturerData.readUInt8(1);
+  const byte2 = manufacturerData.readUInt8(2);
 
   const calibration = byte1 & 0b00000001 ? true : false; // Whether the calibration is completed
   const battery = byte2 & 0b01111111; // %
   const inMotion = byte2 & 0b10000000 ? true : false;
-  const tilt = byte2 & 0b01111111; // current tilt % (100 - _tilt) if reverse else _tilt,
+  const tilt = Math.max(Math.min(byte2 & 0b01111111, 100), 0); // current tilt % (100 - _tilt) if reverse else _tilt,
   const lightLevel = (byte1 >> 4) & 0b00001111; // light sensor level (1-10)
 
   const data = {
