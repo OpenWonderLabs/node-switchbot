@@ -1,6 +1,6 @@
 import { SwitchbotDevice } from '../switchbot.js';
 
-export async function parseServiceDataForWoPresence(buf, onlog) {
+export function parseServiceDataForWoPresence(buf, onlog) {
   if (buf.length !== 6) {
     if (onlog && typeof onlog === 'function') {
       onlog(

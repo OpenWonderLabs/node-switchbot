@@ -2,7 +2,7 @@ import { Buffer } from 'buffer';
 
 import { SwitchbotDevice } from '../switchbot.js';
 
-export async function parseServiceDataForWoHumi(buf, onlog) {
+export function parseServiceDataForWoHumi(buf, onlog) {
   if (buf.length !== 8) {
     if (onlog && typeof onlog === 'function') {
       onlog(

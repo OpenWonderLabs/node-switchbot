@@ -2,7 +2,7 @@ import { Buffer } from 'buffer';
 
 import { SwitchbotDevice } from '../switchbot.js';
 
-export async function parseServiceDataForWoStrip(buf, onlog) {
+export function parseServiceDataForWoStrip(buf, onlog) {
   if (buf.length !== 18) {
     if (onlog && typeof onlog === 'function') {
       onlog(

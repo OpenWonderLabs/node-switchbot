@@ -2,7 +2,7 @@ import { Buffer } from 'buffer';
 
 import { SwitchbotDevice } from '../switchbot.js';
 
-export async function parseServiceDataForWoHand(buf, onlog) {
+export function parseServiceDataForWoHand(buf, onlog) {
   if (buf.length !== 3) {
     if (onlog && typeof onlog === 'function') {
       onlog(
