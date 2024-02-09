@@ -4,7 +4,7 @@
  */
 //import { Buffer } from 'buffer';
 
-import { SwitchbotDevice } from '../switchbot.js';
+import { SwitchbotDevice } from '../device.js';
 
 export class WoSmartLock extends SwitchbotDevice {
   static parseServiceData(manufacturerData, onlog) {

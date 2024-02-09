@@ -1,4 +1,4 @@
-import { SwitchbotDevice } from '../switchbot.js';
+import { SwitchbotDevice } from '../device.js';
 
 export class WoSensorTH extends SwitchbotDevice {
   static parseServiceData(buf, onlog) {

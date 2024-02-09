@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer';
 
-import { SwitchbotDevice } from '../switchbot.js';
+import { SwitchbotDevice } from '../device.js';
 
 export class WoHand extends SwitchbotDevice {
   static parseServiceData(buf, onlog) {
