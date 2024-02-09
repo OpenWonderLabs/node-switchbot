@@ -2,7 +2,7 @@
  *
  * wocontact.ts: Switchbot BLE API registration.
  */
-import { SwitchbotDevice } from '../switchbot.js';
+import { SwitchbotDevice } from '../device.js';
 
 export class WoContact extends SwitchbotDevice {
   static parseServiceData(buf, onlog) {

@@ -4,7 +4,7 @@
  */
 import { Buffer } from 'buffer';
 
-import { SwitchbotDevice } from '../switchbot.js';
+import { SwitchbotDevice } from '../device.js';
 
 export class WoBlindTilt extends SwitchbotDevice {
   static parseServiceData(buf, onlog) {
