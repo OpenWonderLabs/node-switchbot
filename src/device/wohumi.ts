@@ -2,34 +2,6 @@ import { Buffer } from 'buffer';
 
 import { SwitchbotDevice } from '../switchbot.js';
 
-export function parseServiceDataForWoHumi(buf, onlog) {
-  if (buf.length !== 8) {
-    if (onlog && typeof onlog === 'function') {
-      onlog(
-        `[parseServiceDataForWoHumi] Buffer length ${buf.length} !== 8!`,
-      );
-    }
-    return null;
-  }
-  const byte1 = buf.readUInt8(1);
-  const byte4 = buf.readUInt8(4);
-
-
-  const onState = byte1 & 0b10000000 ? true : false; // 1 - on
-  const autoMode = byte4 & 0b10000000 ? true : false; // 1 - auto
-  const percentage = byte4 & 0b01111111; // 0-100%, 101/102/103 - Quick gear 1/2/3
-
-  const data = {
-    model: 'e',
-    modelName: 'WoHumi',
-    onState: onState,
-    autoMode: autoMode,
-    percentage: autoMode ? 0 : percentage,
-  };
-
-  return data;
-}
-
 export class WoHumi extends SwitchbotDevice {
   /* ------------------------------------------------------------------
    * press()

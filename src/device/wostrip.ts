@@ -2,57 +2,8 @@ import { Buffer } from 'buffer';
 
 import { SwitchbotDevice } from '../switchbot.js';
 
-export function parseServiceDataForWoStrip(buf, onlog) {
-  if (buf.length !== 18) {
-    if (onlog && typeof onlog === 'function') {
-      onlog(
-        `[parseServiceDataForWoStrip] Buffer length ${buf.length} !== 18!`,
-      );
-    }
-    return null;
-  }
-
-  //const byte1 = buf.readUInt8(1);//power and light status
-  //const byte2 = buf.readUInt8(2);//bulb brightness
-  const byte3 = buf.readUInt8(3);//bulb R
-  const byte4 = buf.readUInt8(4);//bulb G
-  const byte5 = buf.readUInt8(5);//bulb B
-  const byte7 = buf.readUInt8(7);
-  const byte8 = buf.readUInt8(8);
-  const byte9 = buf.readUInt8(9);
-  const byte10 = buf.readUInt8(10);
-
-  const state = byte7 & 0b10000000 ? true : false;
-  const brightness = byte7 & 0b01111111;
-  const red = byte3;
-  const green = byte4;
-  const blue = byte5;
-  const delay = byte8 & 0b10000000;
-  const preset = byte8 & 0b00001000;
-  const color_mode = byte8 & 0b00000111;
-  const speed = byte9 & 0b01111111;
-  const loop_index = byte10 & 0b11111110;
-
-  const data = {
-    model: 'r',
-    modelName: 'WoStrip',
-    state: state,
-    brightness: brightness,
-    red: red,
-    green: green,
-    blue: blue,
-    delay: delay,
-    preset: preset,
-    color_mode: color_mode,
-    speed: speed,
-    loop_index: loop_index,
-  };
-
-  return data;
-}
-
 /**
- * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/tree/latest/devicetypes
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/colorbulb.md
  */
 export class WoStrip extends SwitchbotDevice {
   /**

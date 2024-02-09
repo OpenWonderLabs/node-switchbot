@@ -2,33 +2,6 @@ import { Buffer } from 'buffer';
 
 import { SwitchbotDevice } from '../switchbot.js';
 
-export function parseServiceDataForWoHand(buf, onlog) {
-  if (buf.length !== 3) {
-    if (onlog && typeof onlog === 'function') {
-      onlog(
-        `[parseServiceDataForWoHand] Buffer length ${buf.length} !== 3!`,
-      );
-    }
-    return null;
-  }
-  const byte1 = buf.readUInt8(1);
-  const byte2 = buf.readUInt8(2);
-
-  const mode = byte1 & 0b10000000 ? true : false; // Whether the light switch Add-on is used or not. 0 = press, 1 = switch
-  const state = byte1 & 0b01000000 ? false : true; // Whether the switch status is ON or OFF. 0 = on, 1 = off
-  const battery = byte2 & 0b01111111; // %
-
-  const data = {
-    model: 'H',
-    modelName: 'WoHand',
-    mode: mode,
-    state: state,
-    battery: battery,
-  };
-
-  return data;
-}
-
 export class WoHand extends SwitchbotDevice {
   /* ------------------------------------------------------------------
    * press()
