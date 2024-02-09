@@ -6,7 +6,7 @@ import { Buffer } from 'buffer';
 
 import { SwitchbotDevice } from '../switchbot.js';
 
-export function parseServiceDataForWoBlindTilt(manufacturerData, onlog) {
+export async function parseServiceDataForWoBlindTilt(manufacturerData, onlog) {
   if (manufacturerData.length !== 5 && manufacturerData.length !== 6) {
     if (onlog && typeof onlog === 'function') {
       onlog(

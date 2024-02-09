@@ -83,7 +83,7 @@ export class Advertising {
    * @param onlog - The logging function.
    * @returns The parsed data of the peripheral device.
    */
-  static parse(peripheral, onlog?) {
+  static async parse(peripheral, onlog?) {
     const ad = peripheral.advertisement;
     if (!ad || !ad.serviceData) {
       return null;
@@ -107,47 +107,47 @@ export class Advertising {
 
     switch (model) {
       case 'H':
-        sd = parseServiceDataForWoHand(buf, onlog);//WoHand
+        sd = await parseServiceDataForWoHand(buf, onlog);//WoHand
         break;
       case 'T':
-        sd = parseServiceDataForWoSensorTH(buf, onlog);//WoSensorTH
+        sd = await parseServiceDataForWoSensorTH(buf, onlog);//WoSensorTH
         break;
       case 'e':
-        sd = parseServiceDataForWoHumi(buf, onlog);//WoHumi
+        sd = await parseServiceDataForWoHumi(buf, onlog);//WoHumi
         break;
       case 's':
-        sd = parseServiceDataForWoPresence(buf, onlog);//WoPresence
+        sd = await parseServiceDataForWoPresence(buf, onlog);//WoPresence
         break;
       case 'd':
-        sd = parseServiceDataForWoContact(buf, onlog);//WoContact
+        sd = await parseServiceDataForWoContact(buf, onlog);//WoContact
         break;
       case 'c':
       case '{':
-        sd = parseServiceDataForWoCurtain(buf, onlog);// WoCurtain
+        sd = await parseServiceDataForWoCurtain(buf, onlog);// WoCurtain
         break;
       case 'x':
-        sd = parseServiceDataForWoBlindTilt(manufacturerData, onlog);// WoBlindTilt
+        sd = await parseServiceDataForWoBlindTilt(manufacturerData, onlog);// WoBlindTilt
         break;
       case 'u':
-        sd = parseServiceDataForWoBulb(manufacturerData, onlog);// WoBulb
+        sd = await parseServiceDataForWoBulb(manufacturerData, onlog);// WoBulb
         break;
       case 'g':
-        sd = parseServiceDataForWoPlugMiniUS(manufacturerData, onlog);// WoPlugMini (US)
+        sd = await parseServiceDataForWoPlugMiniUS(manufacturerData, onlog);// WoPlugMini (US)
         break;
       case 'j':
-        sd = parseServiceDataForWoPlugMiniJP(manufacturerData, onlog);// WoPlugMini (JP)
+        sd = await parseServiceDataForWoPlugMiniJP(manufacturerData, onlog);// WoPlugMini (JP)
         break;
       case 'o':
-        sd = parseServiceDataForWoSmartLock(manufacturerData, onlog);// WoSmartLock
+        sd = await parseServiceDataForWoSmartLock(manufacturerData, onlog);// WoSmartLock
         break;
       case 'i':
-        sd = parseServiceDataForWoSensorTHPlus(buf, onlog);// WoMeterPlus
+        sd = await parseServiceDataForWoSensorTHPlus(buf, onlog);// WoMeterPlus
         break;
       case 'r':
-        sd = parseServiceDataForWoStrip(buf, onlog);// WoStrip
+        sd = await parseServiceDataForWoStrip(buf, onlog);// WoStrip
         break;
       case 'w':
-        sd = parseServiceDataForWoIOSensorTH(buf, manufacturerData, onlog); // Indoor/Outdoor Thermo-Hygrometer
+        sd = await parseServiceDataForWoIOSensorTH(buf, manufacturerData, onlog); // Indoor/Outdoor Thermo-Hygrometer
         break;
       default:
         if (onlog && typeof onlog === 'function') {

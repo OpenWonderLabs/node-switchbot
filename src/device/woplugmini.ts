@@ -2,7 +2,7 @@ import { Buffer } from 'buffer';
 
 import { SwitchbotDevice } from '../switchbot.js';
 
-export function parseServiceDataForWoPlugMiniUS(manufacturerData, onlog) {
+export async function parseServiceDataForWoPlugMiniUS(manufacturerData, onlog) {
   if (manufacturerData.length !== 14) {
     if (onlog && typeof onlog === 'function') {
       onlog(

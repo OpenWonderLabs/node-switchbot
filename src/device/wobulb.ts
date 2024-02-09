@@ -6,7 +6,7 @@ import { Buffer } from 'buffer';
 
 import { SwitchbotDevice } from '../switchbot.js';
 
-export function parseServiceDataForWoBulb(manufacturerData, onlog) {
+export async function parseServiceDataForWoBulb(manufacturerData, onlog) {
   if (manufacturerData.length !== 13) {
     if (onlog && typeof onlog === 'function') {
       onlog(

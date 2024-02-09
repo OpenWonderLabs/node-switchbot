@@ -1,6 +1,6 @@
 import { SwitchbotDevice } from '../switchbot.js';
 
-export function parseServiceDataForWoIOSensorTH(serviceDataBuf, manufacturerDataBuf, onlog) {
+export async function parseServiceDataForWoIOSensorTH(serviceDataBuf, manufacturerDataBuf, onlog) {
   if (serviceDataBuf.length !== 3) {
     if (onlog && typeof onlog === 'function') {
       onlog(

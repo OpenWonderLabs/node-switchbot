@@ -47,11 +47,13 @@ export class SwitchbotDevice {
     this._SERV_UUID_PRIMARY = 'cba20d00224d11e69fb80002a5d5c51b';
     this._CHAR_UUID_WRITE = 'cba20002224d11e69fb80002a5d5c51b';
     // Save the device information
-    const ad: ad = Advertising.parse(peripheral);
-    this._id = ad?.id;
-    this._address = ad?.address;
-    this._model = ad?.serviceData.model;
-    this._modelName = ad?.serviceData.modelName;
+    (async () => {
+      const ad: ad = await Advertising.parse(peripheral);
+      this._id = ad?.id;
+      this._address = ad?.address;
+      this._model = ad?.serviceData.model;
+      this._modelName = ad?.serviceData.modelName;
+    })();
 
     this._was_connected_explicitly = false;
     this._connected = false;

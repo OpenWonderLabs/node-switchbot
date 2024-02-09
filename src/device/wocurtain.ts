@@ -6,7 +6,7 @@ import { Buffer } from 'buffer';
 
 import { SwitchbotDevice } from '../switchbot.js';
 
-export function parseServiceDataForWoCurtain(buf, onlog) {
+export async function parseServiceDataForWoCurtain(buf, onlog) {
   if (buf.length !== 5 && buf.length !== 6) {
     if (onlog && typeof onlog === 'function') {
       onlog(

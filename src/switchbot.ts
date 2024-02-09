@@ -186,8 +186,8 @@ export class SwitchBot {
           };
 
           // Set a handler for the 'discover' event
-          this.noble.on('discover', (peripheral) => {
-            const device = SwitchBot.getDeviceObject(peripheral, p.id, p.model) as SwitchbotDevice;
+          this.noble.on('discover', async (peripheral) => {
+            const device = await SwitchBot.getDeviceObject(peripheral, p.id, p.model) as SwitchbotDevice;
             if (!device) {
               return;
             }
@@ -266,8 +266,8 @@ export class SwitchBot {
     return promise;
   }
 
-  static getDeviceObject(peripheral, id, model) {
-    const ad = Advertising.parse(peripheral, this.onlog);
+  static async getDeviceObject(peripheral, id, model) {
+    const ad = await Advertising.parse(peripheral, this.onlog);
     if (this.filterAdvertising(ad, id, model)) {
       let device;
       if (ad && ad.serviceData && ad.serviceData.model) {

@@ -6,7 +6,7 @@
 
 import { SwitchbotDevice } from '../switchbot.js';
 
-export function parseServiceDataForWoSmartLock(manufacturerData, onlog) {
+export async function parseServiceDataForWoSmartLock(manufacturerData, onlog) {
   if (manufacturerData.length !== 6) {
     if (onlog && typeof onlog === 'function') {
       onlog(

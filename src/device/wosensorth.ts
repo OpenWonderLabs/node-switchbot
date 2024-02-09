@@ -1,6 +1,6 @@
 import { SwitchbotDevice } from '../switchbot.js';
 
-export function parseServiceDataForWoSensorTH(buf, onlog) {
+export async function parseServiceDataForWoSensorTH(buf, onlog) {
   if (buf.length !== 6) {
     if (onlog && typeof onlog === 'function') {
       onlog(
