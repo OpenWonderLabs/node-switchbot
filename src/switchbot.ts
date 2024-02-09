@@ -113,7 +113,7 @@ export class SwitchBot {
        *   An array will be passed to the `resolve()`, which includes
        *   `SwitchbotDevice` objects representing the found devices.
        * ---------------------------------------------------------------- */
-  async discover(params: params = {}) {
+  discover(params: params = {}) {
     const promise = new Promise((resolve, reject) => {
       // Check the parameters
       const valid = ParameterChecker.check(
@@ -399,7 +399,7 @@ export class SwitchBot {
      * - Promise object
      *   Nothing will be passed to the `resolve()`.
      * ---------------------------------------------------------------- */
-  async startScan(params?: params) {
+  startScan(params?: params) {
     const promise = new Promise<void>((resolve, reject) => {
       // Check the parameters
       const valid = ParameterChecker.check(
@@ -491,7 +491,7 @@ export class SwitchBot {
      * [Return value]
      * - none
      * ---------------------------------------------------------------- */
-  async stopScan() {
+  stopScan() {
     this.noble.removeAllListeners('discover');
     this.noble.stopScanning();
   }
@@ -507,7 +507,7 @@ export class SwitchBot {
      * - Promise object
      *   Nothing will be passed to the `resolve()`.
      * ---------------------------------------------------------------- */
-  async wait(msec: number) {
+  wait(msec: number) {
     return new Promise((resolve, reject) => {
       // Check the parameters
       const valid = ParameterChecker.check(
