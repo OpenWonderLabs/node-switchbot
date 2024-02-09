@@ -56,10 +56,10 @@ export class SwitchbotDevice {
     this._was_connected_explicitly = false;
     this._connected = false;
 
-    this._onconnect = () => {};
-    this._ondisconnect = () => {};
-    this._ondisconnect_internal = () => {};
-    this._onnotify_internal = () => {};
+    this._onconnect = () => { };
+    this._ondisconnect = () => { };
+    this._ondisconnect_internal = () => { };
+    this._onnotify_internal = () => { };
   }
 
   // Getters
@@ -182,7 +182,7 @@ export class SwitchbotDevice {
     return new Promise((resolve, reject) => {
       // Set timeout timer
       let timer: NodeJS.Timeout | null = setTimeout(() => {
-        this._ondisconnect_internal = () => {};
+        this._ondisconnect_internal = () => { };
         timer = null;
         reject(
           new Error('Failed to discover services and characteristics: TIMEOUT'),
@@ -194,7 +194,7 @@ export class SwitchbotDevice {
         if (timer) {
           clearTimeout(timer);
           timer = null;
-          this._ondisconnect_internal = () => {};
+          this._ondisconnect_internal = () => { };
         }
         reject(
           new Error(
@@ -239,7 +239,7 @@ export class SwitchbotDevice {
         if (timer) {
           clearTimeout(timer);
           timer = null;
-          this._ondisconnect_internal = () => {};
+          this._ondisconnect_internal = () => { };
           reject(error);
         } else {
           // Do nothing
@@ -384,8 +384,8 @@ export class SwitchbotDevice {
             // Some models of Bot don't seem to support this characteristic UUID
             throw new Error(
               'The device does not support the characteristic UUID 0x' +
-                this._CHAR_UUID_DEVICE +
-                '.',
+              this._CHAR_UUID_DEVICE +
+              '.',
             );
           }
           return this._read(this._chars.device);
@@ -438,8 +438,8 @@ export class SwitchbotDevice {
             // Some models of Bot don't seem to support this characteristic UUID
             throw new Error(
               'The device does not support the characteristic UUID 0x' +
-                this._CHAR_UUID_DEVICE +
-                '.',
+              this._CHAR_UUID_DEVICE +
+              '.',
             );
           }
           return this._write(this._chars.device, buf);
@@ -497,7 +497,7 @@ export class SwitchbotDevice {
 
       let timer: NodeJS.Timeout | undefined = setTimeout(() => {
         timer = undefined;
-        this._onnotify_internal = () => {};
+        this._onnotify_internal = () => { };
         reject(new Error('COMMAND_TIMEOUT'));
       }, this._COMMAND_TIMEOUT_MSEC);
 
@@ -506,7 +506,7 @@ export class SwitchbotDevice {
           clearTimeout(timer);
           timer = undefined;
         }
-        this._onnotify_internal = () => {};
+        this._onnotify_internal = () => { };
         resolve(buf);
       };
     });
