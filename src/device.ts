@@ -30,7 +30,7 @@ export class SwitchbotDevice {
   _onconnect: () => void;
   _ondisconnect: () => void;
   _ondisconnect_internal: () => void;
-  _onnotify_internal: () => void;
+  _onnotify_internal: (buf: Buffer) => void;
   /* ------------------------------------------------------------------
    * Constructor
    *
@@ -46,6 +46,13 @@ export class SwitchbotDevice {
 
     this._SERV_UUID_PRIMARY = 'cba20d00224d11e69fb80002a5d5c51b';
     this._CHAR_UUID_WRITE = 'cba20002224d11e69fb80002a5d5c51b';
+    this._CHAR_UUID_NOTIFY = 'cba20003224d11e69fb80002a5d5c51b';
+    this._CHAR_UUID_DEVICE = '2a00';
+
+    this._READ_TIMEOUT_MSEC = 3000;
+    this._WRITE_TIMEOUT_MSEC = 3000;
+    this._COMMAND_TIMEOUT_MSEC = 3000;
+
     // Save the device information
     const ad: ad = Advertising.parse(peripheral);
     this._id = ad?.id;
@@ -296,8 +303,8 @@ export class SwitchbotDevice {
           reject(error);
           return;
         }
-        char.on('data', () => { // Remove the argument passed to the _onnotify_internal function
-          this._onnotify_internal();
+        char.on('data', (buf) => { // Remove the argument passed to the _onnotify_internal function
+          this._onnotify_internal(buf);
         });
         resolve();
       });
@@ -459,14 +466,14 @@ export class SwitchbotDevice {
   // Write the specified Buffer data to the write characteristic
   // and receive the response from the notify characteristic
   // with connection handling
-  _command(req_buf) {
+  _command(req_buf: Buffer) {
     return new Promise((resolve, reject) => {
       if (!Buffer.isBuffer(req_buf)) {
         reject(new Error('The specified data is not acceptable for writing.'));
         return;
       }
 
-      let res_buf;
+      let res_buf: Buffer | unknown;
 
       this._connect()
         .then(() => {
@@ -493,15 +500,13 @@ export class SwitchbotDevice {
 
   _waitCommandResponse() {
     return new Promise((resolve, reject) => {
-      const buf: Buffer | null = null;
-
       let timer: NodeJS.Timeout | undefined = setTimeout(() => {
         timer = undefined;
         this._onnotify_internal = () => { };
         reject(new Error('COMMAND_TIMEOUT'));
       }, this._COMMAND_TIMEOUT_MSEC);
 
-      this._onnotify_internal = () => {
+      this._onnotify_internal = (buf) => {
         if (timer) {
           clearTimeout(timer);
           timer = undefined;

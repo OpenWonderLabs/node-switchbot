@@ -186,7 +186,7 @@ export class SwitchBot {
 
           // Set a handler for the 'discover' event
           this.noble.on('discover', (peripheral) => {
-            const device = SwitchBot.getDeviceObject(peripheral, p.id, p.model) as SwitchbotDevice;
+            const device = this.getDeviceObject(peripheral, p.id, p.model) as SwitchbotDevice;
             if (!device) {
               return;
             }
@@ -265,7 +265,7 @@ export class SwitchBot {
     return promise;
   }
 
-  static getDeviceObject(peripheral, id, model) {
+  getDeviceObject(peripheral, id, model) {
     const ad = Advertising.parse(peripheral, this.onlog);
     if (this.filterAdvertising(ad, id, model)) {
       let device;
@@ -322,7 +322,7 @@ export class SwitchBot {
     }
   }
 
-  static filterAdvertising(ad, id, model) {
+  filterAdvertising(ad, id, model) {
     if (!ad) {
       return false;
     }
@@ -451,7 +451,7 @@ export class SwitchBot {
           // Set a handler for the 'discover' event
           this.noble.on('discover', (peripheral) => {
             const ad = Advertising.parse(peripheral, this.onlog);
-            if (SwitchBot.filterAdvertising(ad, p.id, p.model)) {
+            if (this.filterAdvertising(ad, p.id, p.model)) {
               if (
                 this.onadvertisement &&
                 typeof this.onadvertisement === 'function'
