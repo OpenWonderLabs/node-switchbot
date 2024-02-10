@@ -2,10 +2,19 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [2.0.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v2.0.2) (2024-02-09)
+
+### What's Changed
+- Fix various 2.0.0 issues [#224](https://github.com/OpenWonderLabs/node-switchbot/pull/224), Thanks [@dnicolson](https://github.com/dnicolson)
+- Code Cleanup [#225](https://github.com/OpenWonderLabs/node-switchbot/pull/225) [#226](https://github.com/OpenWonderLabs/node-switchbot/pull/226), Thanks [@dnicolson](https://github.com/dnicolson)
+- Housekeeping and update dependencies
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v2.0.1...v2.0.2
+
 ## [2.0.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v2.0.1) (2024-02-06)
 
 ### What's Changed
-- Fix async constructor, Thanks [@dnicolson](https://github.com/dnicolson) [#229](https://github.com/OpenWonderLabs/node-switchbot/pull/220)
+- Fix async constructor [#220](https://github.com/OpenWonderLabs/node-switchbot/pull/220), Thanks [@dnicolson](https://github.com/dnicolson)
 - Housekeeping and update dependencies
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v2.0.0...v2.0.1
@@ -14,8 +23,8 @@ All notable changes to this project will be documented in this file. This projec
 
 ### What's Changed
 - Rewrite into Typescript and Convert CommonJS to ES Module
-- Fix Linting, Thanks [@dnicolson](https://github.com/dnicolson) [#216](https://github.com/OpenWonderLabs/node-switchbot/pull/216)
-- Code Cleaup, Thanks [@dnicolson](https://github.com/dnicolson) [#217](https://github.com/OpenWonderLabs/node-switchbot/pull/217)
+- Fix Linting [#216](https://github.com/OpenWonderLabs/node-switchbot/pull/216), Thanks [@dnicolson](https://github.com/dnicolson)
+- Code Cleaup [#217](https://github.com/OpenWonderLabs/node-switchbot/pull/217), Thanks [@dnicolson](https://github.com/dnicolson)
 - Housekeeping and update dependencies
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.10.0...v2.0.0
@@ -23,8 +32,8 @@ All notable changes to this project will be documented in this file. This projec
 ## [1.10.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.10.0) (2024-01-05)
 
 ### What's Changed
-- Fix reversed bot state reporting, Thanks [@grelca](https://github.com/grelca) [#207](https://github.com/OpenWonderLabs/node-switchbot/pull/207)
-- Add support for Curtain 3, Thanks [@tsia](https://github.com/tsia) [#209](https://github.com/OpenWonderLabs/node-switchbot/pull/209)
+- Fix reversed bot state reporting [#207](https://github.com/OpenWonderLabs/node-switchbot/pull/207), Thanks [@grelca](https://github.com/grelca)
+- Add support for Curtain 3 [#209](https://github.com/OpenWonderLabs/node-switchbot/pull/209), Thanks [@tsia](https://github.com/tsia)
 - Housekeeping and update dependencies
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.9.1...v1.10.0
@@ -39,8 +48,8 @@ All notable changes to this project will be documented in this file. This projec
 ## [1.9.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.9.0) (2023-09-16)
 
 ### What's Changed
-- Add support for the Indoor/Outdoor Thermo-Hygrometer (WoIOSensorTH), Thanks [@moritzmhmk](https://github.com/moritzmhmk) [#200](https://github.com/OpenWonderLabs/node-switchbot/pull/200)
-- Handle noble not being "poweredOn" on init, Thanks [@moritzmhmk](https://github.com/moritzmhmk) [#199](https://github.com/OpenWonderLabs/node-switchbot/pull/199)
+- Add support for the Indoor/Outdoor Thermo-Hygrometer (WoIOSensorTH) [#200](https://github.com/OpenWonderLabs/node-switchbot/pull/200), Thanks [@moritzmhmk](https://github.com/moritzmhmk)
+- Handle noble not being "poweredOn" on init [#199](https://github.com/OpenWonderLabs/node-switchbot/pull/199), Thanks [@moritzmhmk](https://github.com/moritzmhmk)
 - Housekeeping and update dependencies
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.8.2...v1.9.0
@@ -48,10 +57,10 @@ All notable changes to this project will be documented in this file. This projec
 ## [1.8.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.8.2) (2023-07-25)
 
 ### What's Changed
-- Added Lint Script, Thanks [@dnicolson](https://github.com/dnicolson) [#195](https://github.com/OpenWonderLabs/node-switchbot/pull/195)
-- Fixed a Linting Issues, Thanks [@dnicolson](https://github.com/dnicolson) [#196](https://github.com/OpenWonderLabs/node-switchbot/pull/196)
-- Fixed 'TypeError: Assignment to constant variable', Thanks [@banboobee](https://github.com/banboobee) [#194](https://github.com/OpenWonderLabs/node-switchbot/pull/194)
-- Fix issue of re-assigning to constant for Temperature, Thanks [@gravity-addiction](https://github.com/gravity-addiction) [#191](https://github.com/OpenWonderLabs/node-switchbot/pull/191)
+- Added Lint Script [#195](https://github.com/OpenWonderLabs/node-switchbot/pull/195), Thanks [@dnicolson](https://github.com/dnicolson)
+- Fixed a Linting Issues [#196](https://github.com/OpenWonderLabs/node-switchbot/pull/196), Thanks [@dnicolson](https://github.com/dnicolson)
+- Fixed 'TypeError: Assignment to constant variable' [#194](https://github.com/OpenWonderLabs/node-switchbot/pull/194), Thanks [@banboobee](https://github.com/banboobee)
+- Fix issue of re-assigning to constant for Temperature [#191](https://github.com/OpenWonderLabs/node-switchbot/pull/191), Thanks [@gravity-addiction](https://github.com/gravity-addiction)
 - Housekeeping and update dependencies
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.8.1...v1.8.2
@@ -59,8 +68,8 @@ All notable changes to this project will be documented in this file. This projec
 ## [1.8.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v1.8.1) (2023-04-08)
 
 ### What's Changed
-- Use const keyword for immutable variables, Thanks [@dnicolson](https://github.com/dnicolson/). [#184](https://github.com/OpenWonderLabs/node-switchbot/pull/184) 
-- Use Error object for promise rejection, Thanks [@dnicolson](https://github.com/dnicolson/). [#181](https://github.com/OpenWonderLabs/node-switchbot/pull/181)
+- Use const keyword for immutable variables [#184](https://github.com/OpenWonderLabs/node-switchbot/pull/184), Thanks [@dnicolson](https://github.com/dnicolson/)
+- Use Error object for promise rejection [#181](https://github.com/OpenWonderLabs/node-switchbot/pull/181), Thanks [@dnicolson](https://github.com/dnicolson/)
 - Housekeeping and update dependencies
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.8.0...v1.8.1
@@ -70,7 +79,7 @@ All notable changes to this project will be documented in this file. This projec
 ### What's Changed
 
 - Add Support for BlindTilt (Read Only)
-- Use Error object for promise rejection, Thanks [@dnicolson](https://github.com/dnicolson/). [#181](https://github.com/OpenWonderLabs/node-switchbot/pull/181)
+- Use Error object for promise rejection [#181](https://github.com/OpenWonderLabs/node-switchbot/pull/181), Thanks [@dnicolson](https://github.com/dnicolson/)
 - Housekeeping and update dependencies
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.7.3...v1.8.0
@@ -79,7 +88,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ### What's Changed
 
-- Improve error handling, Thanks [@dnicolson](https://github.com/dnicolson/). [#175](https://github.com/OpenWonderLabs/node-switchbot/pull/175)
+- Improve error handling [#175](https://github.com/OpenWonderLabs/node-switchbot/pull/175), Thanks [@dnicolson](https://github.com/dnicolson/)
 - Housekeeping and update dependencies
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v1.7.2...v1.7.3
@@ -275,7 +284,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ### What's Changed
 
-- Modify Curtain's action command to support group and running mode. (Thanks to [@SwitchBot-Wonderlabs](https://github.com/OpenWonderLabs/node-switchbot/pull/7/))
+- Modify Curtain's action command to support group and running mode [#7](https://github.com/OpenWonderLabs/node-switchbot/pull/7), Thanks [@SwitchBot-Wonderlabs](https://github.com/SwitchBot-Wonderlabs)
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v0.1.0...v0.2.0
 
@@ -283,8 +292,8 @@ All notable changes to this project will be documented in this file. This projec
 
 ### What's Changed
 
-- Added support for SwitchBot Curtain. (Thanks to [@SwitchBot-Wonderlabs](https://github.com/OpenWonderLabs/node-switchbot/pull/6/))
-- Added support for running on the Raspberry Pi Zero W. (Thanks to [@zizi4n5](https://github.com/OpenWonderLabs/node-switchbot/pull/5))
+- Added support for SwitchBot Curtain [#6](https://github.com/OpenWonderLabs/node-switchbot/pull/6), Thanks [@SwitchBot-Wonderlabs](https://github.com/SwitchBot-Wonderlabs)
+- Added support for running on the Raspberry Pi Zero W [#5](https://github.com/OpenWonderLabs/node-switchbot/pull/5), Thanks [@Szizi4n5](https://github.com/zizi4n5)
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v0.0.5...v0.1.0
 
@@ -292,7 +301,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ### What's Changed
 
-- Improved the stability of discovering the BLE characteristics. (Thanks to [@dnicolson](https://github.com/OpenWonderLabs/node-switchbot/issues/3))
+- Improved the stability of discovering the BLE characteristics [#3](https://github.com/OpenWonderLabs/node-switchbot/pull/3), Thanks [@dnicolson](https://github.com/dnicolson)
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v0.0.4...v0.0.5
 
@@ -300,7 +309,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ### What's Changed
 
-- Fixed the bug that temperature value lower than 0 degC could not be handled. (Thanks to [@musimasami](https://github.com/OpenWonderLabs/node-switchbot/issues/2))
+- Fixed the bug that temperature value lower than 0 degC could not be handled [#2](https://github.com/OpenWonderLabs/node-switchbot/pull/2), Thanks [@musimasami](https://github.com/musimasami)
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v0.0.3...v0.0.4
 
@@ -308,7 +317,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ### What's Changed
 
-- Now the characteristic UUID `0x2a00` (Device Name) is not mandatory. Some models of Bot don't seem to support the characteristic. (Thanks to [@dnicolson](https://github.com/OpenWonderLabs/node-switchbot/issues/1))
+- Now the characteristic UUID `0x2a00` (Device Name) is not mandatory. Some models of Bot don't seem to support the characteristic [#3](https://github.com/OpenWonderLabs/node-switchbot/pull/1), Thanks [@dnicolson](https://github.com/dnicolson)
 - Fixed the bug that the `turnOn()` method returns an error if the "Press mode" is selected on the Bot.
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v0.0.2...v0.0.3

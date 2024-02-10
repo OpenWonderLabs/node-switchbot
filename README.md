@@ -111,7 +111,7 @@ Monitoring the advertising packets, you can find your devices and know the lates
 ```Typescript
 // Load the node-switchbot and get a `Switchbot` constructor object
 import { SwitchBot } from 'node-switchbot';
-// Create an `Switchbot` object
+// Create a `Switchbot` object
 const switchbot = new SwitchBot();
 
 (async () => {
@@ -138,7 +138,7 @@ The [`startScan()`](#startscan-method) and [`wait()`](#Switchbot-wait-method) me
 ```Typescript
 // Load the node-switchbot and get a `Switchbot` constructor object
 const Switchbot = require("node-switchbot");
-// Create an `Switchbot` object
+// Create a `Switchbot` object
 const switchbot = new Switchbot();
 
 // Start to monitor advertisement packets
@@ -214,7 +214,7 @@ This sample discovers a Bot (WoHand), then put the Bot's arm down, finally put i
 ```Typescript
 // Load the node-switchbot and get a `Switchbot` constructor object
 import { SwitchBot } from 'node-switchbot';
-// Create an `Switchbot` object
+// Create a `Switchbot` object
 const switchbot = new SwitchBot();
 
 (async () => {
@@ -249,7 +249,7 @@ In order to use the node-switchbot, you have to load the node-switchbot module a
 import { SwitchBot } from 'node-switchbot';
 ```
 
-You can get an `SwitchBot` constructor from the code above. Then you have to create an `SwitchBot` object from the `SwitchBot` constructor as follows:
+You can get an `SwitchBot` constructor from the code above. Then you have to create a `SwitchBot` object from the `SwitchBot` constructor as follows:
 
 ```typescript
 const switchbot = new SwitchBot();
@@ -303,9 +303,8 @@ If you want a quick response, you can set the `quick` property to `true`.
 
 ```Typescript
 switchbot.discover({
-    duration: 5000,
-    quick: true
-  });
+  duration: 5000,
+  quick: true
 }).then((device_list) => {
   // Do something...
 }).catch((error) => {
@@ -749,7 +748,7 @@ Actually, the `WoCurtain` is an object inherited from the [`SwitchbotDevice`](#S
 
 ### `open()` method
 
-The `open()` method sends a open command to the Curtain. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
+The `open()` method sends an open command to the Curtain. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
 
 If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
 

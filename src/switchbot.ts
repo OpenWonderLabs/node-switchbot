@@ -13,17 +13,18 @@ import { WoHumi } from './device/wohumi.js';
 import { WoPlugMini } from './device/woplugmini.js';
 import { WoBulb } from './device/wobulb.js';
 import { WoStrip } from './device/wostrip.js';
+
 type params = {
-    duration?: number,
-    model?: string,
-    id?: string,
-    quick?: false,
-    noble?: any,
+  duration?: number,
+  model?: string,
+  id?: string,
+  quick?: false,
+  noble?: any,
 }
 
 type peripherals = {
-    addr?: string,
-    id?: string,
+  addr?: string,
+  id?: string,
 }
 
 export class SwitchBot {
@@ -167,7 +168,7 @@ export class SwitchBot {
       this._init()
         .then(() => {
           const peripherals: peripherals = {};
-          let timer: NodeJS.Timeout = setTimeout(() => {}, 0);
+          let timer: NodeJS.Timeout = setTimeout(() => { }, 0);
           const finishDiscovery = () => {
             if (timer) {
               clearTimeout(timer);
@@ -185,7 +186,7 @@ export class SwitchBot {
 
           // Set a handler for the 'discover' event
           this.noble.on('discover', (peripheral) => {
-            const device = SwitchBot.getDeviceObject(peripheral, p.id, p.model) as SwitchbotDevice;
+            const device = this.getDeviceObject(peripheral, p.id, p.model) as SwitchbotDevice;
             if (!device) {
               return;
             }
@@ -264,7 +265,7 @@ export class SwitchBot {
     return promise;
   }
 
-  static getDeviceObject(peripheral, id, model) {
+  getDeviceObject(peripheral, id, model) {
     const ad = Advertising.parse(peripheral, this.onlog);
     if (this.filterAdvertising(ad, id, model)) {
       let device;
@@ -300,7 +301,7 @@ export class SwitchBot {
             device = new WoPlugMini(peripheral, this.noble);
             break;
           case 'o':
-          //device = new SwitchbotDeviceWoSmartLock(peripheral, this.noble);
+            //device = new SwitchbotDeviceWoSmartLock(peripheral, this.noble);
             break;
           case 'i':
             device = new WoSensorTH(peripheral, this.noble);
@@ -321,7 +322,7 @@ export class SwitchBot {
     }
   }
 
-  static filterAdvertising(ad, id, model) {
+  filterAdvertising(ad, id, model) {
     if (!ad) {
       return false;
     }
@@ -398,7 +399,7 @@ export class SwitchBot {
      * - Promise object
      *   Nothing will be passed to the `resolve()`.
      * ---------------------------------------------------------------- */
-  startScan(params) {
+  startScan(params?: params) {
     const promise = new Promise<void>((resolve, reject) => {
       // Check the parameters
       const valid = ParameterChecker.check(
@@ -443,17 +444,17 @@ export class SwitchBot {
         .then(() => {
           // Determine the values of the parameters
           const p = {
-            model: params.model || '',
-            id: params.id || '',
+            model: params?.model || '',
+            id: params?.id || '',
           };
 
           // Set a handler for the 'discover' event
           this.noble.on('discover', (peripheral) => {
             const ad = Advertising.parse(peripheral, this.onlog);
-            if (SwitchBot.filterAdvertising(ad, p.id, p.model)) {
+            if (this.filterAdvertising(ad, p.id, p.model)) {
               if (
                 this.onadvertisement &&
-                                typeof this.onadvertisement === 'function'
+                typeof this.onadvertisement === 'function'
               ) {
                 this.onadvertisement(ad);
               }
@@ -506,7 +507,7 @@ export class SwitchBot {
      * - Promise object
      *   Nothing will be passed to the `resolve()`.
      * ---------------------------------------------------------------- */
-  static wait(msec: number) {
+  wait(msec: number) {
     return new Promise((resolve, reject) => {
       // Check the parameters
       const valid = ParameterChecker.check(
