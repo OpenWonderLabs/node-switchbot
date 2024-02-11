@@ -2,7 +2,6 @@
  *
  * wosmartlock.ts: Switchbot BLE API registration.
  */
-//import { Buffer } from 'buffer';
 
 import { SwitchbotDevice } from '../device.js';
 

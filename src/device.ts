@@ -1,5 +1,3 @@
-import { Buffer } from 'buffer';
-
 import { Characteristic, Peripheral, Service } from '@abandonware/noble';
 import { ParameterChecker } from './parameter-checker.js';
 import { Advertising } from './advertising.js';

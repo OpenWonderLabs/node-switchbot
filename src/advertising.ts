@@ -1,5 +1,3 @@
-import { Buffer } from 'buffer';
-
 import { Peripheral } from '@abandonware/noble';
 
 import { WoHand } from './device/wohand.js';

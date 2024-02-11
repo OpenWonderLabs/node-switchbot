@@ -1,5 +1,3 @@
-import { Buffer } from 'buffer';
-
 import { SwitchbotDevice } from '../device.js';
 
 export class WoHand extends SwitchbotDevice {
