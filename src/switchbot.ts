@@ -428,17 +428,13 @@ export class SwitchBot {
         return;
       }
 
-      if (!params) {
-        params = {};
-      }
-
       // Initialize the noble object
       this._init()
         .then(() => {
           // Determine the values of the parameters
           const p = {
-            model: params?.model || '',
-            id: params?.id || '',
+            model: params.model || '',
+            id: params.id || '',
           };
 
           // Set a handler for the 'discover' event
