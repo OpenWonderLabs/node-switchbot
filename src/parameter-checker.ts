@@ -1,5 +1,3 @@
-import { Buffer } from 'buffer';
-
 type Rule = {
   required?: boolean;
   min?: number;

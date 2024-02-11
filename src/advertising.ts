@@ -1,5 +1,3 @@
-import { Buffer } from 'buffer';
-
 import { WoHand } from './device/wohand.js';
 import { WoCurtain } from './device/wocurtain.js';
 import { WoBlindTilt } from './device/woblindtilt.js';
