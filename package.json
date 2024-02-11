@@ -39,14 +39,14 @@
     "@abandonware/noble": "^1.9.2-24"
   },
   "optionalDependencies": {
-    "@abandonware/bluetooth-hci-socket": "^0.5.3-10"
+    "@abandonware/bluetooth-hci-socket": "^0.5.3-11"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.56.0",
-    "npm-check-updates": "^16.14.14",
+    "npm-check-updates": "^16.14.15",
     "rimraf": "^5.0.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
