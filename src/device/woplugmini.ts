@@ -4,7 +4,7 @@ import { SwitchbotDevice } from '../device.js';
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/plugmini.md
  */
 export class WoPlugMini extends SwitchbotDevice {
-  static parseServiceData_US(manufacturerData, onlog) {
+  static parseServiceData_US(manufacturerData: Buffer, onlog: ((message: string) => void) | undefined) {
     if (manufacturerData.length !== 14) {
       if (onlog && typeof onlog === 'function') {
         onlog(
@@ -43,7 +43,7 @@ export class WoPlugMini extends SwitchbotDevice {
     return data;
   }
 
-  static parseServiceData_JP(manufacturerData, onlog) {
+  static parseServiceData_JP(manufacturerData: Buffer, onlog: ((message: string) => void) | undefined) {
     if (manufacturerData.length !== 14) {
       if (onlog && typeof onlog === 'function') {
         onlog(
@@ -92,7 +92,7 @@ export class WoPlugMini extends SwitchbotDevice {
   /**
    * @private
    */
-  _setState(reqByteArray) {
+  _setState(reqByteArray: number[]) {
     const base = [0x57, 0x0f, 0x50, 0x01];
     return this._operateBot([...base, ...reqByteArray]);
   }
@@ -121,7 +121,7 @@ export class WoPlugMini extends SwitchbotDevice {
   /**
    * @private
    */
-  _operateBot(bytes) {
+  _operateBot(bytes: number[]) {
     const req_buf = Buffer.from(bytes);
     return new Promise((resolve, reject) => {
       this._command(req_buf)

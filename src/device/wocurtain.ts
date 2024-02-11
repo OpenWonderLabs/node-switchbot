@@ -6,7 +6,7 @@
 import { SwitchbotDevice } from '../device.js';
 
 export class WoCurtain extends SwitchbotDevice {
-  static parseServiceData(buf, onlog) {
+  static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
     if (buf.length !== 5 && buf.length !== 6) {
       if (onlog && typeof onlog === 'function') {
         onlog(
@@ -53,7 +53,7 @@ export class WoCurtain extends SwitchbotDevice {
    * - Promise object
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
-  open(mode) {
+  open(mode?: number) {
     return this.runToPos(0, mode);
   }
 
@@ -68,7 +68,7 @@ export class WoCurtain extends SwitchbotDevice {
    * - Promise object
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
-  close(mode) {
+  close(mode?: number) {
     return this.runToPos(100, mode);
   }
 
@@ -99,7 +99,7 @@ export class WoCurtain extends SwitchbotDevice {
    * - Promise object
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
-  runToPos(percent, mode = 0xff) {
+  runToPos(percent: number, mode = 0xff) {
     if (typeof percent !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
@@ -128,7 +128,7 @@ export class WoCurtain extends SwitchbotDevice {
     return this._operateCurtain([0x57, 0x0f, 0x45, 0x01, 0x05, mode, percent]);
   }
 
-  _operateCurtain(bytes) {
+  _operateCurtain(bytes: number[]) {
     return new Promise<void>((resolve, reject) => {
       const req_buf = Buffer.from(bytes);
       this._command(req_buf)

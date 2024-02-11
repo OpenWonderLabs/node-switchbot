@@ -9,7 +9,7 @@ import { SwitchbotDevice } from '../device.js';
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/colorbulb.md
  */
 export class WoBulb extends SwitchbotDevice {
-  static parseServiceData(manufacturerData, onlog) {
+  static parseServiceData(manufacturerData: Buffer, onlog: ((message: string) => void) | undefined) {
     if (manufacturerData.length !== 13) {
       if (onlog && typeof onlog === 'function') {
         onlog(
@@ -72,7 +72,7 @@ export class WoBulb extends SwitchbotDevice {
   /**
    * @private
    */
-  _setState(reqByteArray) {
+  _setState(reqByteArray: number[]) {
     const base = [0x57, 0x0f, 0x47, 0x01];
     return this._operateBot(base.concat(reqByteArray));
   }
@@ -94,7 +94,7 @@ export class WoBulb extends SwitchbotDevice {
   /**
    * @returns {Promise<number>} resolves with brightness percent
    */
-  setBrightness(brightness) {
+  setBrightness(brightness: number) {
     if (typeof brightness !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
@@ -116,7 +116,7 @@ export class WoBulb extends SwitchbotDevice {
   /**
    * @returns {Promise<number>} resolves with color_temperature percent
    */
-  setColorTemperature(color_temperature) {
+  setColorTemperature(color_temperature: number) {
     if (typeof color_temperature !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
@@ -138,7 +138,7 @@ export class WoBulb extends SwitchbotDevice {
   /**
    * @returns {Promise<number>} resolves with brightness percent
    */
-  setRGB(brightness, red, green, blue) {
+  setRGB(brightness: number, red: number, green: number, blue: number) {
     if (typeof brightness !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
@@ -205,7 +205,7 @@ export class WoBulb extends SwitchbotDevice {
   /**
    * @private
    */
-  _operateBot(bytes) {
+  _operateBot(bytes: number[]) {
     const req_buf = Buffer.from(bytes);
     return new Promise((resolve, reject) => {
       this._command(req_buf)

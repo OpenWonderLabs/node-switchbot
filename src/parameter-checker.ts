@@ -6,11 +6,12 @@ type Rule = {
   maxBytes?: number;
   pattern?: RegExp;
   enum?: any[];
+  type?: 'float' | 'integer' | 'boolean' | 'array' | 'object' | 'string';
 };
 
 export class ParameterChecker {
 
-  _error;
+  _error: Error | null;
   static error: any;
   constructor() {
     this._error = null;
@@ -28,7 +29,7 @@ export class ParameterChecker {
     return this._error;
   }
 
-  static isSpecified(value) {
+  static isSpecified(value: unknown) {
     return value === void 0 ? false : true;
   }
 
@@ -65,7 +66,7 @@ export class ParameterChecker {
    *   throw new Error(message);
    * }
    * ---------------------------------------------------------------- */
-  static check(obj, rules, required) {
+  static check(obj: Record<string, unknown>, rules: {[key: string]: Rule}, required: boolean) {
     this.error;
     if (required) {
       if (!this.isSpecified(obj)) {
@@ -95,7 +96,7 @@ export class ParameterChecker {
     for (let i = 0; i < name_list.length; i++) {
       const name = name_list[i];
       const v = obj[name];
-      let rule = rules[name];
+      let rule: Rule = rules[name as keyof typeof rules] as Rule;
 
       if (!rule) {
         rule = {};
@@ -167,7 +168,7 @@ export class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  static isFloat(value, rule: Rule, name = 'value') {
+  static isFloat(value: unknown, rule: Rule, name = 'value'): boolean {
     this.error;
 
     if (!rule.required && !this.isSpecified(value)) {
@@ -249,7 +250,7 @@ export class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  static isInteger(value, rule: Rule, name = 'value') {
+  static isInteger(value: unknown, rule: Rule, name = 'value') {
     this.error = null;
 
     if (!rule.required && !this.isSpecified(value)) {
@@ -257,7 +258,7 @@ export class ParameterChecker {
     }
 
     if (this.isFloat(value, rule)) {
-      if (value % 1 === 0) {
+      if ((value as number) % 1 === 0) {
         return true;
       } else {
         this.error = {
@@ -286,7 +287,7 @@ export class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  static isBoolean(value, rule: Rule, name = 'value') {
+  static isBoolean(value: unknown, rule: Rule, name = 'value') {
     this.error = null;
 
     if (!rule.required && !this.isSpecified(value)) {
@@ -318,7 +319,7 @@ export class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  static isObject(value, rule: Rule, name = 'value') {
+  static isObject(value: unknown, rule: Rule, name = 'value') {
     this.error = null;
     if (!rule.required && !this.isSpecified(value)) {
       return true;
@@ -354,7 +355,7 @@ export class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  static isArray(value, rule: Rule, name = 'value') {
+  static isArray(value: unknown, rule: Rule, name = 'value') {
     this.error = null;
 
     if (!rule.required && !this.isSpecified(value)) {
@@ -425,7 +426,7 @@ export class ParameterChecker {
    * - If the value is invalid, this method will return `false` and
    *   an `Error` object will be set to `this._error`.
    * ---------------------------------------------------------------- */
-  static isString(value, rule: Rule, name = 'value') {
+  static isString(value: unknown, rule: Rule, name = 'value') {
     this.error = null;
 
     if (!rule.required && !this.isSpecified(value)) {
