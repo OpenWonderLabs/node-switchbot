@@ -3,7 +3,7 @@ import { Buffer } from 'buffer';
 import { SwitchbotDevice } from '../device.js';
 
 export class WoHand extends SwitchbotDevice {
-  static parseServiceData(buf, onlog) {
+  static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
     if (buf.length !== 3) {
       if (onlog && typeof onlog === 'function') {
         onlog(
@@ -104,7 +104,7 @@ export class WoHand extends SwitchbotDevice {
     return this._operateBot([0x57, 0x01, 0x04]);
   }
 
-  _operateBot(bytes) {
+  _operateBot(bytes: number[]) {
     return new Promise<void>((resolve, reject) => {
       const req_buf = Buffer.from(bytes);
       this._command(req_buf)

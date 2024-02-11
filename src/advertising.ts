@@ -1,5 +1,7 @@
 import { Buffer } from 'buffer';
 
+import { Peripheral } from '@abandonware/noble';
+
 import { WoHand } from './device/wohand.js';
 import { WoCurtain } from './device/wocurtain.js';
 import { WoBlindTilt } from './device/woblindtilt.js';
@@ -12,6 +14,13 @@ import { WoPlugMini } from './device/woplugmini.js';
 import { WoBulb } from './device/wobulb.js';
 import { WoStrip } from './device/wostrip.js';
 import { WoSmartLock } from './device/wosmartlock.js';
+
+export type Ad = {
+  id: string;
+  address: string;
+  rssi: number,
+  serviceData: any;
+} | null
 
 export class Advertising {
 
@@ -81,7 +90,7 @@ export class Advertising {
    * @param onlog - The logging function.
    * @returns The parsed data of the peripheral device.
    */
-  static parse(peripheral, onlog?) {
+  static parse(peripheral: Peripheral, onlog?: (message: string) => void) {
     const ad = peripheral.advertisement;
     if (!ad || !ad.serviceData) {
       return null;

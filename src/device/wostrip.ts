@@ -6,7 +6,7 @@ import { SwitchbotDevice } from '../device.js';
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/colorbulb.md
  */
 export class WoStrip extends SwitchbotDevice {
-  static parseServiceData(buf, onlog) {
+  static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
     if (buf.length !== 18) {
       if (onlog && typeof onlog === 'function') {
         onlog(
@@ -65,7 +65,7 @@ export class WoStrip extends SwitchbotDevice {
   /**
    * @private
    */
-  _setState(reqByteArray) {
+  _setState(reqByteArray: number[]) {
     const base = [0x57, 0x0f, 0x49, 0x01];
     return this._operateBot([...base, ...reqByteArray]);
   }
@@ -87,7 +87,7 @@ export class WoStrip extends SwitchbotDevice {
   /**
    * @returns {Promise<number>} resolves with brightness percent
    */
-  setBrightness(brightness) {
+  setBrightness(brightness: number) {
     if (typeof brightness !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
@@ -109,7 +109,7 @@ export class WoStrip extends SwitchbotDevice {
   /**
    * @returns {Promise<number>} resolves with color temperature
    */
-  setColorTemperature(color_temperature) {
+  setColorTemperature(color_temperature: unknown) {
     if (color_temperature) {
       return new Promise((resolve, reject) => {
         reject(
@@ -125,7 +125,7 @@ export class WoStrip extends SwitchbotDevice {
   /**
    * @returns {Promise<number>} resolves with brightness + rgb
    */
-  setRGB(brightness, red, green, blue) {
+  setRGB(brightness: number, red: number, green: number, blue: number) {
     if (typeof brightness !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
@@ -192,7 +192,7 @@ export class WoStrip extends SwitchbotDevice {
   /**
    * @private
    */
-  _operateBot(bytes) {
+  _operateBot(bytes: number[]) {
     const req_buf = Buffer.from(bytes);
     return new Promise((resolve, reject) => {
       this._command(req_buf)

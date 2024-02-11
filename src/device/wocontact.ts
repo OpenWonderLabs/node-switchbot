@@ -5,7 +5,7 @@
 import { SwitchbotDevice } from '../device.js';
 
 export class WoContact extends SwitchbotDevice {
-  static parseServiceData(buf, onlog) {
+  static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
     if (buf.length !== 9) {
       if (onlog && typeof onlog === 'function') {
         onlog(
