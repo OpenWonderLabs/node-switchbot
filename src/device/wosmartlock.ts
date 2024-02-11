@@ -7,7 +7,7 @@
 import { SwitchbotDevice } from '../device.js';
 
 export class WoSmartLock extends SwitchbotDevice {
-  static parseServiceData(manufacturerData, onlog) {
+  static parseServiceData(manufacturerData: Buffer, onlog: ((message: string) => void) | undefined) {
     if (manufacturerData.length !== 6) {
       if (onlog && typeof onlog === 'function') {
         onlog(

@@ -1,7 +1,7 @@
 import { SwitchbotDevice } from '../device.js';
 
 export class WoSensorTH extends SwitchbotDevice {
-  static parseServiceData(buf, onlog) {
+  static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
     if (buf.length !== 6) {
       if (onlog && typeof onlog === 'function') {
         onlog(
@@ -34,7 +34,7 @@ export class WoSensorTH extends SwitchbotDevice {
     return data;
   }
 
-  static parseServiceData_Plus(buf, onlog) {
+  static parseServiceData_Plus(buf: Buffer, onlog: ((message: string) => void) | undefined) {
     if (buf.length !== 6) {
       if (onlog && typeof onlog === 'function') {
         onlog(
