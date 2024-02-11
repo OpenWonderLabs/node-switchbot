@@ -159,16 +159,14 @@ export class Advertising {
     }
     let address = peripheral.address || '';
     if (address === '') {
-      address = peripheral.advertisement.manufacturerData || '';
-      if (address !== '') {
-        const str = peripheral.advertisement.manufacturerData
-          .toString('hex')
-          .slice(4, 16);
+      const str = peripheral.advertisement.manufacturerData
+        .toString('hex')
+        .slice(4, 16);
+      if (str !== '') {
         address = str.substr(0, 2);
         for (let i = 2; i < str.length; i += 2) {
           address = address + ':' + str.substr(i, 2);
         }
-        // console.log("address", typeof(address), address);
       }
     } else {
       address = address.replace(/-/g, ':');
