@@ -2,12 +2,10 @@
  *
  * woblindtilt.ts: Switchbot BLE API registration.
  */
-import { Buffer } from 'buffer';
-
 import { SwitchbotDevice } from '../device.js';
 
 export class WoBlindTilt extends SwitchbotDevice {
-  static parseServiceData(buf, onlog) {
+  static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
     if (buf.length !== 5 && buf.length !== 6) {
       if (onlog && typeof onlog === 'function') {
         onlog(
@@ -94,7 +92,7 @@ export class WoBlindTilt extends SwitchbotDevice {
    * - Promise object
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
-  runToPos(percent, mode) {
+  runToPos(percent: number, mode: number) {
     if (typeof percent !== 'number') {
       return new Promise((resolve, reject) => {
         reject(
@@ -127,7 +125,7 @@ export class WoBlindTilt extends SwitchbotDevice {
     return this._operateBlindTilt([0x57, 0x0f, 0x45, 0x01, 0x05, mode, percent]);
   }
 
-  _operateBlindTilt(bytes) {
+  _operateBlindTilt(bytes: number[]) {
     return new Promise<void>((resolve, reject) => {
       const req_buf = Buffer.from(bytes);
       this._command(req_buf)

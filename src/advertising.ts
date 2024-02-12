@@ -1,4 +1,8 @@
-import { Buffer } from 'buffer';
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * advertising.ts: Switchbot BLE API registration.
+ */
+import { Peripheral } from '@abandonware/noble';
 
 import { WoHand } from './device/wohand.js';
 import { WoCurtain } from './device/wocurtain.js';
@@ -13,9 +17,16 @@ import { WoBulb } from './device/wobulb.js';
 import { WoStrip } from './device/wostrip.js';
 import { WoSmartLock } from './device/wosmartlock.js';
 
+export type Ad = {
+  id: string;
+  address: string;
+  rssi: number,
+  serviceData: any;
+} | null
+
 export class Advertising {
 
-  constructor() {}
+  constructor() { }
 
   /* ------------------------------------------------------------------
    * parse(peripheral)
@@ -81,7 +92,7 @@ export class Advertising {
    * @param onlog - The logging function.
    * @returns The parsed data of the peripheral device.
    */
-  static parse(peripheral, onlog?) {
+  static parse(peripheral: Peripheral, onlog?: (message: string) => void) {
     const ad = peripheral.advertisement;
     if (!ad || !ad.serviceData) {
       return null;
@@ -150,16 +161,14 @@ export class Advertising {
     }
     let address = peripheral.address || '';
     if (address === '') {
-      address = peripheral.advertisement.manufacturerData || '';
-      if (address !== '') {
-        const str = peripheral.advertisement.manufacturerData
-          .toString('hex')
-          .slice(4, 16);
+      const str = peripheral.advertisement.manufacturerData
+        .toString('hex')
+        .slice(4, 16);
+      if (str !== '') {
         address = str.substr(0, 2);
         for (let i = 2; i < str.length; i += 2) {
           address = address + ':' + str.substr(i, 2);
         }
-        // console.log("address", typeof(address), address);
       }
     } else {
       address = address.replace(/-/g, ':');

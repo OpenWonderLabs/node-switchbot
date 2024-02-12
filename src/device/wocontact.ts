@@ -5,7 +5,7 @@
 import { SwitchbotDevice } from '../device.js';
 
 export class WoContact extends SwitchbotDevice {
-  static parseServiceData(buf, onlog) {
+  static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
     if (buf.length !== 9) {
       if (onlog && typeof onlog === 'function') {
         onlog(
@@ -40,11 +40,11 @@ export class WoContact extends SwitchbotDevice {
       lightLevel: lightLevel === 0 ? 'dark' : 'bright',
       button_count: button_count,
       doorState:
-                hallState === 0
-                  ? 'close'
-                  : hallState === 1
-                    ? 'open'
-                    : 'timeout no closed',
+        hallState === 0
+          ? 'close'
+          : hallState === 1
+            ? 'open'
+            : 'timeout no closed',
     };
 
     return data;

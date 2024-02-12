@@ -1,26 +1,28 @@
-import { Buffer } from 'buffer';
-
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * device.ts: Switchbot BLE API registration.
+ */
+import { Characteristic, Peripheral, Service } from '@abandonware/noble';
 import { ParameterChecker } from './parameter-checker.js';
 import { Advertising } from './advertising.js';
 
-type ad = {
-  id: any;
-  address: any;
-  rssi: any;
-  serviceData: any;
+type Chars = {
+  write: Characteristic | null,
+  notify: Characteristic | null,
+  device: Characteristic | null,
 } | null;
 
 export class SwitchbotDevice {
   _peripheral;
   _noble;
-  _chars;
-  _SERV_UUID_PRIMARY;
-  _CHAR_UUID_WRITE;
-  _CHAR_UUID_NOTIFY;
-  _CHAR_UUID_DEVICE;
-  _READ_TIMEOUT_MSEC;
-  _WRITE_TIMEOUT_MSEC;
-  _COMMAND_TIMEOUT_MSEC;
+  _chars: Chars;
+  _SERV_UUID_PRIMARY = 'cba20d00224d11e69fb80002a5d5c51b';
+  _CHAR_UUID_WRITE = 'cba20002224d11e69fb80002a5d5c51b';
+  _CHAR_UUID_NOTIFY = 'cba20003224d11e69fb80002a5d5c51b';
+  _CHAR_UUID_DEVICE = '2a00';
+  _READ_TIMEOUT_MSEC = 3000;
+  _WRITE_TIMEOUT_MSEC = 3000;
+  _COMMAND_TIMEOUT_MSEC = 3000;
   _id;
   _address;
   _model;
@@ -39,22 +41,13 @@ export class SwitchbotDevice {
    *              |        |          | which represents this device
    * - noble      | Noble  | Required | The Noble object created by the noble module.
    * ---------------------------------------------------------------- */
-  constructor(peripheral, noble) {
+  constructor(peripheral: Peripheral, noble: any) {
     this._peripheral = peripheral;
     this._noble = noble;
     this._chars = null;
 
-    this._SERV_UUID_PRIMARY = 'cba20d00224d11e69fb80002a5d5c51b';
-    this._CHAR_UUID_WRITE = 'cba20002224d11e69fb80002a5d5c51b';
-    this._CHAR_UUID_NOTIFY = 'cba20003224d11e69fb80002a5d5c51b';
-    this._CHAR_UUID_DEVICE = '2a00';
-
-    this._READ_TIMEOUT_MSEC = 3000;
-    this._WRITE_TIMEOUT_MSEC = 3000;
-    this._COMMAND_TIMEOUT_MSEC = 3000;
-
     // Save the device information
-    const ad: ad = Advertising.parse(peripheral);
+    const ad = Advertising.parse(peripheral);
     this._id = ad?.id;
     this._address = ad?.address;
     this._model = ad?.serviceData.model;
@@ -95,14 +88,14 @@ export class SwitchbotDevice {
   }
 
   // Setters
-  set onconnect(func) {
+  set onconnect(func: () => void) {
     if (!func || typeof func !== 'function') {
       throw new Error('The `onconnect` must be a function.');
     }
     this._onconnect = func;
   }
 
-  set ondisconnect(func) {
+  set ondisconnect(func: () => void) {
     if (!func || typeof func !== 'function') {
       throw new Error('The `ondisconnect` must be a function.');
     }
@@ -185,7 +178,7 @@ export class SwitchbotDevice {
     });
   }
 
-  _getCharacteristics() {
+  _getCharacteristics(): Promise<Chars> {
     return new Promise((resolve, reject) => {
       // Set timeout timer
       let timer: NodeJS.Timeout | null = setTimeout(() => {
@@ -279,7 +272,7 @@ export class SwitchbotDevice {
     });
   }
 
-  _discoverCharacteristics(service) {
+  _discoverCharacteristics(service: Service) {
     return new Promise((resolve, reject) => {
       service.discoverCharacteristics([], (error, char_list) => {
         if (error) {
@@ -293,7 +286,7 @@ export class SwitchbotDevice {
 
   _subscribe() {
     return new Promise<void>((resolve, reject) => {
-      const char = this._chars.notify;
+      const char = this._chars?.notify;
       if (!char) {
         reject(new Error('No notify characteristic was found.'));
         return;
@@ -313,7 +306,7 @@ export class SwitchbotDevice {
 
   _unsubscribe() {
     return new Promise<void>((resolve) => {
-      const char = this._chars.notify;
+      const char = this._chars?.notify;
       if (!char) {
         resolve();
         return;
@@ -387,7 +380,7 @@ export class SwitchbotDevice {
       let name = '';
       this._connect()
         .then(() => {
-          if (!this._chars.device) {
+          if (!this._chars?.device) {
             // Some models of Bot don't seem to support this characteristic UUID
             throw new Error(
               'The device does not support the characteristic UUID 0x' +
@@ -422,7 +415,7 @@ export class SwitchbotDevice {
    * - Promise object
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
-  setDeviceName(name) {
+  setDeviceName(name: string) {
     return new Promise<void>((resolve, reject) => {
       // Check the parameters
       const valid = ParameterChecker.check(
@@ -441,7 +434,7 @@ export class SwitchbotDevice {
       const buf = Buffer.from(name, 'utf8');
       this._connect()
         .then(() => {
-          if (!this._chars.device) {
+          if (!this._chars?.device) {
             // Some models of Bot don't seem to support this characteristic UUID
             throw new Error(
               'The device does not support the characteristic UUID 0x' +
@@ -477,7 +470,7 @@ export class SwitchbotDevice {
 
       this._connect()
         .then(() => {
-          if (!this._chars) {
+          if (!this._chars?.write) {
             return reject(new Error('No characteristics available.'));
           }
           return this._write(this._chars.write, req_buf);
@@ -518,7 +511,7 @@ export class SwitchbotDevice {
   }
 
   // Read data from the specified characteristic
-  _read(char) {
+  _read(char: Characteristic) {
     return new Promise((resolve, reject) => {
       // Set a timeout timer
       let timer: NodeJS.Timeout | undefined = setTimeout(() => {
@@ -541,7 +534,7 @@ export class SwitchbotDevice {
   }
 
   // Write the specified Buffer data to the specified characteristic
-  _write(char, buf) {
+  _write(char: Characteristic, buf: Buffer) {
     return new Promise<void>((resolve, reject) => {
       // Set a timeout timer
       let timer: NodeJS.Timeout | undefined = setTimeout(() => {

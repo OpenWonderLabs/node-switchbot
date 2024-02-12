@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [2.0.3](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v2.0.3) (2024-02-11)
+
+### What's Changed
+- Add some TypeScript types [#228](https://github.com/OpenWonderLabs/node-switchbot/pull/228), Thanks [@dnicolson](https://github.com/dnicolson)
+- Remove Buffer import [#229](https://github.com/OpenWonderLabs/node-switchbot/pull/229), Thanks [@dnicolson](https://github.com/dnicolson)
+- Housekeeping and update dependencies
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v2.0.2...v2.0.3
+
 ## [2.0.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v2.0.2) (2024-02-09)
 
 ### What's Changed

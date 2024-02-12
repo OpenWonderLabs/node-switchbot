@@ -1,7 +1,11 @@
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * woiosensorth.ts: Switchbot BLE API registration.
+ */
 import { SwitchbotDevice } from '../device.js';
 
 export class WoIOSensorTH extends SwitchbotDevice {
-  static parseServiceData(serviceDataBuf, manufacturerDataBuf, onlog) {
+  static parseServiceData(serviceDataBuf: Buffer, manufacturerDataBuf: Buffer, onlog: ((message: string) => void) | undefined) {
     if (serviceDataBuf.length !== 3) {
       if (onlog && typeof onlog === 'function') {
         onlog(

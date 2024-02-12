@@ -1,3 +1,7 @@
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * switchbot.ts: Switchbot BLE API registration.
+ */
 import { ParameterChecker } from './parameter-checker.js';
 import { Advertising } from './advertising.js';
 import { SwitchbotDevice } from './device.js';
@@ -13,8 +17,11 @@ import { WoHumi } from './device/wohumi.js';
 import { WoPlugMini } from './device/woplugmini.js';
 import { WoBulb } from './device/wobulb.js';
 import { WoStrip } from './device/wostrip.js';
+import { Ad } from './advertising.js';
 
-type params = {
+import { Peripheral } from '@abandonware/noble';
+
+type Params = {
   duration?: number,
   model?: string,
   id?: string,
@@ -22,20 +29,15 @@ type params = {
   noble?: any,
 }
 
-type peripherals = {
-  addr?: string,
-  id?: string,
-}
-
 export class SwitchBot {
   private ready: Promise<void>;
-  noble;
-  ondiscover;
-  onadvertisement;
-  onlog;
-  scanning;
-  DEFAULT_DISCOVERY_DURATION;
-  PRIMARY_SERVICE_UUID_LIST;
+  noble?: any;
+  ondiscover?: (device: SwitchbotDevice) => void;
+  onadvertisement?: (ad: Ad) => void;
+  onlog: ((message: string) => void) | undefined;
+  scanning = false;
+  DEFAULT_DISCOVERY_DURATION = 5000;
+  PRIMARY_SERVICE_UUID_LIST = [];
   static onlog: any;
   static noble: any;
   /* ------------------------------------------------------------------
@@ -50,15 +52,13 @@ export class SwitchBot {
                * ---------------------------------------------------------------- */
 
 
-  constructor(params?: params) {
-    this.DEFAULT_DISCOVERY_DURATION = 5000;
-    this.PRIMARY_SERVICE_UUID_LIST = [];
+  constructor(params?: Params) {
     this.ready = this.init(params);
   }
 
   // Check parameters
-  async init(params?: params) {
-    let noble: any;
+  async init(params?: Params) {
+    let noble;
     if (params && params.noble) {
       noble = params.noble;
     } else {
@@ -67,9 +67,6 @@ export class SwitchBot {
 
     // Public properties
     this.noble = noble;
-    this.ondiscover = null;
-    this.onadvertisement = null;
-    this.onlog = null;
 
     // Private properties
     this.scanning = false;
@@ -113,7 +110,7 @@ export class SwitchBot {
        *   An array will be passed to the `resolve()`, which includes
        *   `SwitchbotDevice` objects representing the found devices.
        * ---------------------------------------------------------------- */
-  discover(params: params = {}) {
+  discover(params: Params = {}) {
     const promise = new Promise((resolve, reject) => {
       // Check the parameters
       const valid = ParameterChecker.check(
@@ -167,14 +164,14 @@ export class SwitchBot {
       // Initialize the noble object
       this._init()
         .then(() => {
-          const peripherals: peripherals = {};
+          const peripherals: Record<string, SwitchbotDevice> = {};
           let timer: NodeJS.Timeout = setTimeout(() => { }, 0);
           const finishDiscovery = () => {
             if (timer) {
               clearTimeout(timer);
             }
-            this.noble.removeAllListeners('discover');
-            this.noble.stopScanning();
+            this.noble?.removeAllListeners('discover');
+            this.noble?.stopScanning();
             const device_list: SwitchbotDevice[] = [];
             for (const addr in peripherals) {
               device_list.push(peripherals[addr]);
@@ -185,12 +182,12 @@ export class SwitchBot {
           };
 
           // Set a handler for the 'discover' event
-          this.noble.on('discover', (peripheral) => {
+          this.noble?.on('discover', (peripheral: Peripheral) => {
             const device = this.getDeviceObject(peripheral, p.id, p.model) as SwitchbotDevice;
             if (!device) {
               return;
             }
-            const id = device.id;
+            const id = device.id as string;
             peripherals[id] = device;
 
             if (this.ondiscover && typeof this.ondiscover === 'function') {
@@ -204,10 +201,10 @@ export class SwitchBot {
           });
 
           // Start scanning
-          this.noble.startScanning(
+          this.noble?.startScanning(
             this.PRIMARY_SERVICE_UUID_LIST,
             false,
-            (error) => {
+            (error: Error) => {
               if (error) {
                 reject(error);
                 return;
@@ -233,7 +230,7 @@ export class SwitchBot {
         resolve();
         return;
       }
-      this.noble.once('stateChange', state => {
+      this.noble?.once('stateChange', (state: any) => {
         switch (state) {
           case 'unsupported':
           case 'unauthorized':
@@ -265,7 +262,7 @@ export class SwitchBot {
     return promise;
   }
 
-  getDeviceObject(peripheral, id, model) {
+  getDeviceObject(peripheral: Peripheral, id: string, model: string) {
     const ad = Advertising.parse(peripheral, this.onlog);
     if (this.filterAdvertising(ad, id, model)) {
       let device;
@@ -322,7 +319,7 @@ export class SwitchBot {
     }
   }
 
-  filterAdvertising(ad, id, model) {
+  filterAdvertising(ad: Ad, id: string, model: string) {
     if (!ad) {
       return false;
     }
@@ -399,7 +396,7 @@ export class SwitchBot {
      * - Promise object
      *   Nothing will be passed to the `resolve()`.
      * ---------------------------------------------------------------- */
-  startScan(params?: params) {
+  startScan(params: Params = {}) {
     const promise = new Promise<void>((resolve, reject) => {
       // Check the parameters
       const valid = ParameterChecker.check(
@@ -435,21 +432,17 @@ export class SwitchBot {
         return;
       }
 
-      if (!params) {
-        params = {};
-      }
-
       // Initialize the noble object
       this._init()
         .then(() => {
           // Determine the values of the parameters
           const p = {
-            model: params?.model || '',
-            id: params?.id || '',
+            model: params.model || '',
+            id: params.id || '',
           };
 
           // Set a handler for the 'discover' event
-          this.noble.on('discover', (peripheral) => {
+          this.noble?.on('discover', (peripheral: Peripheral) => {
             const ad = Advertising.parse(peripheral, this.onlog);
             if (this.filterAdvertising(ad, p.id, p.model)) {
               if (
@@ -462,10 +455,10 @@ export class SwitchBot {
           });
 
           // Start scanning
-          this.noble.startScanning(
+          this.noble?.startScanning(
             this.PRIMARY_SERVICE_UUID_LIST,
             true,
-            (error) => {
+            (error: Error) => {
               if (error) {
                 reject(error);
               } else {
@@ -492,8 +485,8 @@ export class SwitchBot {
      * - none
      * ---------------------------------------------------------------- */
   stopScan() {
-    this.noble.removeAllListeners('discover');
-    this.noble.stopScanning();
+    this.noble?.removeAllListeners('discover');
+    this.noble?.stopScanning();
   }
 
   /* ------------------------------------------------------------------
@@ -515,7 +508,7 @@ export class SwitchBot {
         {
           msec: { required: true, type: 'integer', min: 0 },
         },
-        {}, // Add an empty object as the third argument
+        true, // Add the required argument
       );
 
       if (!valid) {
