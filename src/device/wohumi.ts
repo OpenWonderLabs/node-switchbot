@@ -1,3 +1,7 @@
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * wohumi.ts: Switchbot BLE API registration.
+ */
 import { SwitchbotDevice } from '../device.js';
 
 export class WoHumi extends SwitchbotDevice {

@@ -2,7 +2,6 @@
  *
  * wosmartlock.ts: Switchbot BLE API registration.
  */
-
 import { SwitchbotDevice } from '../device.js';
 
 export class WoSmartLock extends SwitchbotDevice {

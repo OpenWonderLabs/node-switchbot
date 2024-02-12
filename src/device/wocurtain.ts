@@ -2,7 +2,6 @@
  *
  * wocurtain.ts: Switchbot BLE API registration.
  */
-
 import { SwitchbotDevice } from '../device.js';
 
 export class WoCurtain extends SwitchbotDevice {

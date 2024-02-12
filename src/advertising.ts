@@ -1,3 +1,7 @@
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * advertising.ts: Switchbot BLE API registration.
+ */
 import { Peripheral } from '@abandonware/noble';
 
 import { WoHand } from './device/wohand.js';
@@ -22,7 +26,7 @@ export type Ad = {
 
 export class Advertising {
 
-  constructor() {}
+  constructor() { }
 
   /* ------------------------------------------------------------------
    * parse(peripheral)

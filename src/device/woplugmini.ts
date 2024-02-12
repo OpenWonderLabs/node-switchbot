@@ -1,3 +1,7 @@
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * woplugmini.ts: Switchbot BLE API registration.
+ */
 import { SwitchbotDevice } from '../device.js';
 
 /**

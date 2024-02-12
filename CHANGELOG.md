@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
-## [2.0.3](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v2.0.3) (2024-02-XX)
+## [2.0.3](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v2.0.3) (2024-02-11)
 
 ### What's Changed
 - Add some TypeScript types [#228](https://github.com/OpenWonderLabs/node-switchbot/pull/228), Thanks [@dnicolson](https://github.com/dnicolson)

@@ -2,7 +2,6 @@
  *
  * wobulb.ts: Switchbot BLE API registration.
  */
-
 import { SwitchbotDevice } from '../device.js';
 
 /**

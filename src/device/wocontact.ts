@@ -2,7 +2,6 @@
  *
  * wocontact.ts: Switchbot BLE API registration.
  */
-
 import { SwitchbotDevice } from '../device.js';
 
 export class WoContact extends SwitchbotDevice {
@@ -41,11 +40,11 @@ export class WoContact extends SwitchbotDevice {
       lightLevel: lightLevel === 0 ? 'dark' : 'bright',
       button_count: button_count,
       doorState:
-                hallState === 0
-                  ? 'close'
-                  : hallState === 1
-                    ? 'open'
-                    : 'timeout no closed',
+        hallState === 0
+          ? 'close'
+          : hallState === 1
+            ? 'open'
+            : 'timeout no closed',
     };
 
     return data;

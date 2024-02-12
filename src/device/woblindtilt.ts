@@ -2,7 +2,6 @@
  *
  * woblindtilt.ts: Switchbot BLE API registration.
  */
-
 import { SwitchbotDevice } from '../device.js';
 
 export class WoBlindTilt extends SwitchbotDevice {

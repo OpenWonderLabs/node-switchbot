@@ -1,3 +1,7 @@
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * device.ts: Switchbot BLE API registration.
+ */
 import { Characteristic, Peripheral, Service } from '@abandonware/noble';
 import { ParameterChecker } from './parameter-checker.js';
 import { Advertising } from './advertising.js';
