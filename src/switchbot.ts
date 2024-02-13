@@ -17,6 +17,7 @@ import { WoHumi } from './device/wohumi.js';
 import { WoPlugMini } from './device/woplugmini.js';
 import { WoBulb } from './device/wobulb.js';
 import { WoStrip } from './device/wostrip.js';
+import { WoSmartLock } from './device/wosmartlock.js';
 import { Ad } from './advertising.js';
 
 import { Peripheral } from '@abandonware/noble';
@@ -164,25 +165,29 @@ export class SwitchBot {
       // Initialize the noble object
       this._init()
         .then(() => {
+          if (this.noble == null) {
+            return reject(new Error('noble failed to initialize'));
+          }
           const peripherals: Record<string, SwitchbotDevice> = {};
           let timer: NodeJS.Timeout = setTimeout(() => { }, 0);
           const finishDiscovery = () => {
             if (timer) {
               clearTimeout(timer);
             }
-            this.noble?.removeAllListeners('discover');
-            this.noble?.stopScanning();
+            
+            this.noble.removeAllListeners('discover');
+            this.noble.stopScanning();
+            
             const device_list: SwitchbotDevice[] = [];
             for (const addr in peripherals) {
               device_list.push(peripherals[addr]);
             }
-            if (device_list.length) {
-              resolve(device_list);
-            }
+
+            resolve(device_list);
           };
 
           // Set a handler for the 'discover' event
-          this.noble?.on('discover', (peripheral: Peripheral) => {
+          this.noble.on('discover', (peripheral: Peripheral) => {
             const device = this.getDeviceObject(peripheral, p.id, p.model) as SwitchbotDevice;
             if (!device) {
               return;
@@ -199,9 +204,8 @@ export class SwitchBot {
               return;
             }
           });
-
           // Start scanning
-          this.noble?.startScanning(
+          this.noble.startScanning(
             this.PRIMARY_SERVICE_UUID_LIST,
             false,
             (error: Error) => {
@@ -230,7 +234,7 @@ export class SwitchBot {
         resolve();
         return;
       }
-      this.noble?.once('stateChange', (state: any) => {
+      this.noble.once('stateChange', (state: any) => {
         switch (state) {
           case 'unsupported':
           case 'unauthorized':
@@ -298,7 +302,7 @@ export class SwitchBot {
             device = new WoPlugMini(peripheral, this.noble);
             break;
           case 'o':
-            //device = new SwitchbotDeviceWoSmartLock(peripheral, this.noble);
+            device = new WoSmartLock(peripheral, this.noble);
             break;
           case 'i':
             device = new WoSensorTH(peripheral, this.noble);
@@ -435,6 +439,9 @@ export class SwitchBot {
       // Initialize the noble object
       this._init()
         .then(() => {
+          if (this.noble == null) {
+            return reject(new Error('noble object failed to initialize'));
+          }
           // Determine the values of the parameters
           const p = {
             model: params.model || '',
@@ -442,7 +449,7 @@ export class SwitchBot {
           };
 
           // Set a handler for the 'discover' event
-          this.noble?.on('discover', (peripheral: Peripheral) => {
+          this.noble.on('discover', (peripheral: Peripheral) => {
             const ad = Advertising.parse(peripheral, this.onlog);
             if (this.filterAdvertising(ad, p.id, p.model)) {
               if (
@@ -455,7 +462,7 @@ export class SwitchBot {
           });
 
           // Start scanning
-          this.noble?.startScanning(
+          this.noble.startScanning(
             this.PRIMARY_SERVICE_UUID_LIST,
             true,
             (error: Error) => {
@@ -485,8 +492,10 @@ export class SwitchBot {
      * - none
      * ---------------------------------------------------------------- */
   stopScan() {
-    this.noble?.removeAllListeners('discover');
-    this.noble?.stopScanning();
+    if (this.noble == null) return;
+
+    this.noble.removeAllListeners('discover');
+    this.noble.stopScanning();
   }
 
   /* ------------------------------------------------------------------
