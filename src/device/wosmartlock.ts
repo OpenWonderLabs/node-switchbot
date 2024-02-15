@@ -57,7 +57,7 @@ export class WoSmartLock extends SwitchbotDevice {
   }
 
   static parseServiceData(serviceData: Buffer, manufacturerData: Buffer, onlog: ((message: string) => void) | undefined) {
-    if (manufacturerData.length < 8) {
+    if (manufacturerData.length < 11) {
       if (onlog && typeof onlog === 'function') {
         onlog(
           `[parseServiceDataForWoSmartLock] Buffer length ${manufacturerData.length} is too short!`,
