@@ -1149,6 +1149,53 @@ Structure of the `serviceData`:
 
 ---
 
+### SmartLock (WoSmartLock)
+
+Example of the advertisement data:
+
+```json
+{
+  "id: 'd30864110b8c',
+  "address": 'd3:08:64:11:0b:8c',
+  "rssi": -52,
+  "serviceData": {
+    "model": "o",
+    "modelName": "WoSmartLock",
+    "battery": 100,
+    "calibration": true,
+    "status": "LOCKED",
+    "update_from_secondary_lock": false,
+    "door_open": false,
+    "double_lock_mode": false,
+    "unclosed_alarm": false,
+    "unlocked_alarm": false,
+    "auto_lock_paused": false
+  }
+}
+
+```
+
+Structure of the `serviceData`:
+
+| Property                      | Type    | Description                                                                         |
+| :---------------------------- | :------ | :---------------------------------------------------------------------------------- |
+| `model`                       | String  | This value is `"o"`, which means "Lock (WoSmartLock)".                              |
+| `modelName`                   | String  | This value is always `"WoSmartLock"`, which means "Lock".                           |
+| `battery`                     | Integer | This value indicates the battery level (`1-100`, `%`).                              |
+| `calibration`                 | Boolean | This value indicates the calibration status (`true` or `false`).                    |
+| `status`                      | String  | This value indicates the current locked state. Possible values:                     |
+|                               |         | `"LOCKED"`, `"UNLOCKED"`, `"LOCKING"`, `"UNLOCKING"`                                |
+|                               |         | `"LOCKING_STOP"`, `"UNLOCKING_STOP"` (stuck when locking or unlocking respectively) |
+|                               |         | `"NOT_FULLY_LOCKED"` (eu model only), `"UNKNOWN"` (fallback: must be some error)    |
+| `update_from_secondary_lock`  | Boolean |  ??                                                                                 |
+| `door_open`                   | Boolean |  door open status - whether the door is not detecting the sensor magnet             |
+| `double_lock_mode`            | Boolean |  dual lock mode enabled status - two locks working simultaneously                   |
+| `unclosed_alarm`              | Boolean |  enabled status for door ajar alarm function                                        |
+| `unlocked_alarm`              | Boolean |  whether the alarm function is enabled for door left unlocked                       |
+| `auto_lock_paused`            | Boolean |  auto lock mode paused                                                              |
+| `night_latch`                 | Boolean |  night latch mode enabled (eu firmware only)                                        |
+
+
 ## References
 
 - [Switchbot official global site](https://www.switch-bot.com/)

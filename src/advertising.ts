@@ -135,7 +135,7 @@ export class Advertising {
     } else if (model === 'j') {
       sd = WoPlugMini.parseServiceData_JP(manufacturerData, onlog);// WoPlugMini (JP)
     } else if (model === 'o') {
-      sd = WoSmartLock.parseServiceData(manufacturerData, onlog);// WoSmartLock
+      sd = WoSmartLock.parseServiceData(buf, manufacturerData, onlog);// WoSmartLock
     } else if (model === 'i') {
       sd = WoSensorTH.parseServiceData_Plus(buf, onlog);// WoMeterPlus
     } else if (model === 'r') {
