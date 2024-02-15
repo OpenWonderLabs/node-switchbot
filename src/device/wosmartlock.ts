@@ -74,7 +74,7 @@ export class WoSmartLock extends SwitchbotDevice {
 
     const battery = byte2 & 0b01111111; // %
     const calibration = byte15 & 0b10000000 ? true : false;
-    const status = WoSmartLock.getLockStatus((byte15 & 0b01110000) >> 4);
+    const status = WoSmartLock.getLockStatus(byte15 & 0b01110000);
     const update_from_secondary_lock = byte15 & 0b00001000 ? true : false;
     const door_open = byte15 & 0b00000100 ? true : false;
     const double_lock_mode = byte16 & 0b10000000 ? true : false;
