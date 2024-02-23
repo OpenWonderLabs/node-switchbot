@@ -35,11 +35,8 @@ export class SwitchBot {
   ondiscover?: (device: SwitchbotDevice) => void;
   onadvertisement?: (ad: Ad) => void;
   onlog: ((message: string) => void) | undefined;
-  scanning = false;
   DEFAULT_DISCOVERY_DURATION = 5000;
   PRIMARY_SERVICE_UUID_LIST = [];
-  static onlog: any;
-  static noble: any;
   /* ------------------------------------------------------------------
                * Constructor
                *
@@ -67,9 +64,6 @@ export class SwitchBot {
 
     // Public properties
     this.noble = noble;
-
-    // Private properties
-    this.scanning = false;
   }
 
   /* ------------------------------------------------------------------
