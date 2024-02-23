@@ -2,7 +2,7 @@
  *
  * switchbot.ts: Switchbot BLE API registration.
  */
-import { ParameterChecker } from './parameter-checker.js';
+import { parameterChecker } from './parameter-checker.js';
 import { Advertising } from './advertising.js';
 import { SwitchbotDevice } from './device.js';
 
@@ -113,7 +113,7 @@ export class SwitchBot {
   discover(params: Params = {}) {
     const promise = new Promise((resolve, reject) => {
       // Check the parameters
-      const valid = ParameterChecker.check(
+      const valid = parameterChecker.check(
         params,
         {
           duration: { required: false, type: 'integer', min: 1, max: 60000 },
@@ -145,7 +145,7 @@ export class SwitchBot {
       );
 
       if (!valid) {
-        reject(new Error(ParameterChecker.error.message));
+        reject(new Error(parameterChecker?.error?.message));
         return;
       }
 
@@ -399,7 +399,7 @@ export class SwitchBot {
   startScan(params: Params = {}) {
     const promise = new Promise<void>((resolve, reject) => {
       // Check the parameters
-      const valid = ParameterChecker.check(
+      const valid = parameterChecker.check(
         params,
         {
           model: {
@@ -428,7 +428,7 @@ export class SwitchBot {
         false,
       );
       if (!valid) {
-        reject(new Error(ParameterChecker.error.message));
+        reject(new Error(parameterChecker?.error?.message));
         return;
       }
 
@@ -503,7 +503,7 @@ export class SwitchBot {
   wait(msec: number) {
     return new Promise((resolve, reject) => {
       // Check the parameters
-      const valid = ParameterChecker.check(
+      const valid = parameterChecker.check(
         { msec: msec },
         {
           msec: { required: true, type: 'integer', min: 0 },
@@ -512,7 +512,7 @@ export class SwitchBot {
       );
 
       if (!valid) {
-        reject(new Error(ParameterChecker.error.message));
+        reject(new Error(parameterChecker?.error?.message));
         return;
       }
       // Set a timer

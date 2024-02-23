@@ -3,7 +3,7 @@
  * device.ts: Switchbot BLE API registration.
  */
 import { Characteristic, Peripheral, Service } from '@abandonware/noble';
-import { ParameterChecker } from './parameter-checker.js';
+import { parameterChecker } from './parameter-checker.js';
 import { Advertising } from './advertising.js';
 
 type Chars = {
@@ -418,7 +418,7 @@ export class SwitchbotDevice {
   setDeviceName(name: string) {
     return new Promise<void>((resolve, reject) => {
       // Check the parameters
-      const valid = ParameterChecker.check(
+      const valid = parameterChecker.check(
         { name: name },
         {
           name: { required: true, type: 'string', minBytes: 1, maxBytes: 100 },
@@ -427,7 +427,7 @@ export class SwitchbotDevice {
       );
 
       if (!valid) {
-        reject(new Error(ParameterChecker.error.message));
+        reject(new Error(parameterChecker?.error?.message));
         return;
       }
 
