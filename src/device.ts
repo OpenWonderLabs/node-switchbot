@@ -356,9 +356,7 @@ export class SwitchbotDevice {
 
   _disconnect() {
     if (this._was_connected_explicitly) {
-      return new Promise<void>((resolve) => {
-        resolve();
-      });
+      return Promise.resolve();
     } else {
       return this.disconnect();
     }
