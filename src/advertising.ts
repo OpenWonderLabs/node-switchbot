@@ -21,8 +21,8 @@ export type Ad = {
   id: string;
   address: string;
   rssi: number,
-  serviceData: any;
-} | null
+  serviceData: Record<string, unknown>;
+} | null;
 
 export class Advertising {
 

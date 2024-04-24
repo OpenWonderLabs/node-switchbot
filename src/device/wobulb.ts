@@ -209,7 +209,7 @@ export class WoBulb extends SwitchbotDevice {
     return new Promise((resolve, reject) => {
       this._command(req_buf)
         .then((res_bytes) => {
-          const res_buf = Buffer.from(res_bytes as ArrayBuffer | SharedArrayBuffer);
+          const res_buf = Buffer.from(res_bytes);
           if (res_buf.length === 2) {
             const code = res_buf.readUInt8(1);
             if (code === 0x00 || code === 0x80) {

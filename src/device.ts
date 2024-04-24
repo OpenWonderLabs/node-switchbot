@@ -2,14 +2,14 @@
  *
  * device.ts: Switchbot BLE API registration.
  */
-import { Characteristic, Peripheral, Service } from '@abandonware/noble';
-import { ParameterChecker } from './parameter-checker.js';
+import Noble from '@abandonware/noble';
+import { parameterChecker } from './parameter-checker.js';
 import { Advertising, Ad } from './advertising.js';
 
 type Chars = {
-  write: Characteristic | null,
-  notify: Characteristic | null,
-  device: Characteristic | null,
+  write: Noble.Characteristic | null,
+  notify: Noble.Characteristic | null,
+  device: Noble.Characteristic | null,
 } | null;
 
 export class SwitchbotDevice {
@@ -41,7 +41,7 @@ export class SwitchbotDevice {
    *              |        |          | which represents this device
    * - noble      | Noble  | Required | The Noble object created by the noble module.
    * ---------------------------------------------------------------- */
-  constructor(peripheral: Peripheral, noble: any) {
+  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
     this._peripheral = peripheral;
     this._noble = noble;
     this._chars = null;
@@ -122,10 +122,10 @@ export class SwitchbotDevice {
   _connect() {
     return new Promise<void>((resolve, reject) => {
       // Check the bluetooth state
-      if (this._noble.state !== 'poweredOn') {
+      if (this._noble._state !== 'poweredOn') {
         reject(
           new Error(
-            'The Bluetooth status is ' + this._noble.state + ', not poweredOn.',
+            'The Bluetooth status is ' + this._noble._state + ', not poweredOn.',
           ),
         );
         return;
@@ -211,15 +211,15 @@ export class SwitchbotDevice {
           throw new Error('');
         }
 
-        const chars = {
+        const chars: Chars = {
           write: null,
           notify: null,
           device: null,
         };
 
-        for (const service of service_list as any[]) {
+        for (const service of service_list) {
           const char_list = await this._discoverCharacteristics(service);
-          for (const char of char_list as any[]) {
+          for (const char of char_list) {
             if (char.uuid === this._CHAR_UUID_WRITE) {
               chars.write = char;
             } else if (char.uuid === this._CHAR_UUID_NOTIFY) {
@@ -249,7 +249,7 @@ export class SwitchbotDevice {
     });
   }
 
-  _discoverServices() {
+  _discoverServices(): Promise<Noble.Service[]> {
     return new Promise((resolve, reject) => {
       this._peripheral.discoverServices([], (error, service_list) => {
         if (error) {
@@ -273,7 +273,7 @@ export class SwitchbotDevice {
     });
   }
 
-  _discoverCharacteristics(service: Service) {
+  _discoverCharacteristics(service: Noble.Service): Promise<Noble.Characteristic[]> {
     return new Promise((resolve, reject) => {
       service.discoverCharacteristics([], (error, char_list) => {
         if (error) {
@@ -357,9 +357,7 @@ export class SwitchbotDevice {
 
   _disconnect() {
     if (this._was_connected_explicitly) {
-      return new Promise<void>((resolve) => {
-        resolve();
-      });
+      return Promise.resolve();
     } else {
       return this.disconnect();
     }
@@ -391,7 +389,7 @@ export class SwitchbotDevice {
           }
           return this._read(this._chars.device);
         })
-        .then((buf: any) => {
+        .then((buf) => {
           name = buf.toString('utf8');
           return this._disconnect();
         })
@@ -419,7 +417,7 @@ export class SwitchbotDevice {
   setDeviceName(name: string) {
     return new Promise<void>((resolve, reject) => {
       // Check the parameters
-      const valid = ParameterChecker.check(
+      const valid = parameterChecker.check(
         { name: name },
         {
           name: { required: true, type: 'string', minBytes: 1, maxBytes: 100 },
@@ -428,7 +426,7 @@ export class SwitchbotDevice {
       );
 
       if (!valid) {
-        reject(new Error(ParameterChecker.error.message));
+        reject(new Error(parameterChecker?.error?.message));
         return;
       }
 
@@ -460,14 +458,14 @@ export class SwitchbotDevice {
   // Write the specified Buffer data to the write characteristic
   // and receive the response from the notify characteristic
   // with connection handling
-  _command(req_buf: Buffer) {
+  _command(req_buf: Buffer): Promise<Buffer>{
     return new Promise((resolve, reject) => {
       if (!Buffer.isBuffer(req_buf)) {
         reject(new Error('The specified data is not acceptable for writing.'));
         return;
       }
 
-      let res_buf: Buffer | unknown;
+      let res_buf: Buffer;
 
       this._connect()
         .then(() => {
@@ -492,7 +490,7 @@ export class SwitchbotDevice {
     });
   }
 
-  _waitCommandResponse() {
+  _waitCommandResponse(): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       let timer: NodeJS.Timeout | undefined = setTimeout(() => {
         timer = undefined;
@@ -512,7 +510,7 @@ export class SwitchbotDevice {
   }
 
   // Read data from the specified characteristic
-  _read(char: Characteristic) {
+  _read(char: Noble.Characteristic): Promise<Buffer>{
     return new Promise((resolve, reject) => {
       // Set a timeout timer
       let timer: NodeJS.Timeout | undefined = setTimeout(() => {
@@ -535,7 +533,7 @@ export class SwitchbotDevice {
   }
 
   // Write the specified Buffer data to the specified characteristic
-  _write(char: Characteristic, buf: Buffer) {
+  _write(char: Noble.Characteristic, buf: Buffer): Promise<void | string>{
     return new Promise<void>((resolve, reject) => {
       // Set a timeout timer
       let timer: NodeJS.Timeout | undefined = setTimeout(() => {
