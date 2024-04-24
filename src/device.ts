@@ -426,7 +426,7 @@ export class SwitchbotDevice {
       );
 
       if (!valid) {
-        reject(new Error(parameterChecker?.error?.message));
+        reject(new Error(parameterChecker.error!.message));
         return;
       }
 

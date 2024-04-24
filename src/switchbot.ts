@@ -139,7 +139,7 @@ export class SwitchBot {
       );
 
       if (!valid) {
-        reject(new Error(parameterChecker?.error?.message));
+        reject(new Error(parameterChecker.error!.message));
         return;
       }
 
@@ -425,7 +425,7 @@ export class SwitchBot {
         false,
       );
       if (!valid) {
-        reject(new Error(parameterChecker?.error?.message));
+        reject(new Error(parameterChecker.error!.message));
         return;
       }
 
@@ -516,7 +516,7 @@ export class SwitchBot {
       );
 
       if (!valid) {
-        reject(new Error(parameterChecker?.error?.message));
+        reject(new Error(parameterChecker.error!.message));
         return;
       }
       // Set a timer
