@@ -223,7 +223,7 @@ export class SwitchBot {
     await this.ready;
     const promise = new Promise<void>((resolve, reject) => {
       let err;
-      if (this.noble?._state === 'poweredOn') {
+      if (this.noble._state === 'poweredOn') {
         resolve();
         return;
       }
@@ -233,14 +233,14 @@ export class SwitchBot {
           case 'unauthorized':
           case 'poweredOff':
             err = new Error(
-              'Failed to initialize the Noble object: ' + this.noble?._state,
+              'Failed to initialize the Noble object: ' + this.noble._state,
             );
             reject(err);
             return;
           case 'resetting':
           case 'unknown':
             err = new Error(
-              'Adapter is not ready: ' + this.noble?._state,
+              'Adapter is not ready: ' + this.noble._state,
             );
             reject(err);
             return;
@@ -249,7 +249,7 @@ export class SwitchBot {
             return;
           default:
             err = new Error(
-              'Unknown state: ' + this.noble?._state,
+              'Unknown state: ' + this.noble._state,
             );
             reject(err);
             return;
