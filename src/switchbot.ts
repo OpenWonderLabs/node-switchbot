@@ -158,7 +158,7 @@ export class SwitchBot {
       // Initialize the noble object
       this._init()
         .then(() => {
-          if (this.noble == null) {
+          if (this.noble === null) {
             return reject(new Error('noble failed to initialize'));
           }
           const peripherals: Record<string, SwitchbotDevice> = {};
@@ -167,10 +167,10 @@ export class SwitchBot {
             if (timer) {
               clearTimeout(timer);
             }
-            
+
             this.noble.removeAllListeners('discover');
             this.noble.stopScanning();
-            
+
             const device_list: SwitchbotDevice[] = [];
             for (const addr in peripherals) {
               device_list.push(peripherals[addr]);
@@ -432,7 +432,7 @@ export class SwitchBot {
       // Initialize the noble object
       this._init()
         .then(() => {
-          if (this.noble == null) {
+          if (this.noble === null) {
             return reject(new Error('noble object failed to initialize'));
           }
           // Determine the values of the parameters
@@ -485,7 +485,9 @@ export class SwitchBot {
      * - none
      * ---------------------------------------------------------------- */
   stopScan() {
-    if (this.noble == null) return;
+    if (this.noble === null) {
+      return;
+    }
 
     this.noble.removeAllListeners('discover');
     this.noble.stopScanning();
