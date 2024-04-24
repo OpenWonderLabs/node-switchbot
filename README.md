@@ -8,7 +8,7 @@
 </span>
 
 The node-switchbot is a Node.js module which allows you to move your [Switchbot (Bot)'s](https://www.switch-bot.com/bot) arm
-and [Switchbot Curtain](https://www.switch-bot.com/products/switchbot-curtain),
+and [Switchbot Curtain](https://www.switch-bot.com/products/switchbot-curtain), operate your [Switchbot Lock](https://www.switch-bot.com/products/switchbot-lock),
 also monitor the temperature/humidity from [SwitchBot Thermometer & Hygrometer (Meter)](https://www.switch-bot.com/meter)
 as well as the status from [SwitchBot Motion Sensor](https://www.switch-bot.com/products/motion-sensor)
 and [SwitchBot Contact Sensor](https://www.switch-bot.com/products/contact-sensor)
@@ -43,21 +43,26 @@ But some functionalities of this module were developed through trial and error. 
     - [`disconnect()` method](#disconnect-method)
     - [`onconnect` event handler](#onconnect-event-handler)
     - [`ondisconnect` event handler](#ondisconnect-event-handler)
-  - [`WoHand` object](#switchbotdevicewohand-object)
+  - [`WoHand` object](#wohand-object)
     - [`press()` method](#press-method)
     - [`turnOn()` method](#turnon-method)
     - [`turnOff()` method](#turnoff-method)
     - [`down()` method](#down-method)
     - [`up()` method](#up-method)
-  - [`WoCurtain` object](#switchbotdevicewocurtain-object)
+  - [`WoCurtain` object](#wocurtain-object)
     - [`open()` method](#open-method)
     - [`close()` method](#close-method)
     - [`pause()` method](#pause-method)
     - [`runToPos()` method](#runtopos-method)
-  - [`WoPlugMini` object](#switchbotdevicewoplugmini-object)
+  - [`WoPlugMini` object](#woplugmini-object)
     - [`turnOn()` method](#turnon-method)
     - [`turnOff()` method](#turnoff-method)
     - [`toggle()` method](#toggle-method)
+  - [`WoSmartLock` object](#wosmartlock-object)
+    - [`lock()` method](#lock-method)
+    - [`unlock()` method](#unlock-method)
+    - [`unlock_no_unlatch()` method](#unlock_no_unlatch-method)
+    - [`info()` method](#info-method)
   - [Advertisement data](#advertisement-data)
     - [Bot (WoHand)](#bot-wohand)
     - [Meter (WoSensorTH)](#meter-wosensorth)
@@ -876,6 +881,49 @@ If no connection is established with the device, this method automatically estab
 
 ---
 
+---
+## `WoSmartLock` object
+
+The `WoSmartLock ` object represents a SmartLock, which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
+
+Actually, the `WoSmartLock ` is an object inherited from the [`SwitchbotDevice`](#SwitchbotDevice-object). You can use not only the method described in this section but also the properties and methods implemented in the [`SwitchbotDevice`](#SwitchbotDevice-object) object.
+
+### `setKey()` method
+
+The `setKey()` method initialises the key information required for encrypted communication with the SmartLock
+
+This must be set before any control commands are sent to the device. To obtain the key information you will need to use an external tool - see [`pySwitchbot`](https://github.com/Danielhiversen/pySwitchbot/tree/master?tab=readme-ov-file#obtaining-locks-encryption-key) project for an example script.
+
+| Property         | Type    | Description                                                                                                                            |
+| :--------------- | :------ | :------------------------------------------------------------------------------------------------------------------------------------- |
+| `keyId`          | String  | unique2 character ID for the key. (e.g., `"ff"`) returned from the SwitchBot api for your device                                       |
+| `encryptionKey`  | String  | the unique encryption key returned from the SwitchBot api for your device                                                              |
+
+### `lock()` method
+
+The `lock()` method sends a lock command to the SmartLock. This method returns a `Promise` object. A `boolean` value indicating whether the SmartLock is locked (`true`), is passed to the `resolve()` method of the Promise.
+
+If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
+
+### `unlock()` method
+
+The `unlock()` method sends an unlock command to the SmartLock. This method returns a `Promise` object. A `boolean` value indicating whether the SmartLock is locked (`false`), is passed to the `resolve()` method of the Promise.
+
+If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
+
+### `unlockNoUnlatch()` method
+
+The `unlockNoUnlatch()` method sends a partial unlock command to the SmartLock, unlocking without the full unlatch.
+
+If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
+
+### `info()` method
+
+The `info()` method retreieves state information from the SmartLock, This method returns a `Promise` object. An `object` value indicating with the state infor, is passed to the `resolve()` method of the Promise.
+
+If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
+
+
 ## Advertisement data
 
 After the [`startScan()`](#startscan-method) method is invoked, the [`onadvertisement`](#Switchbot-onadvertisement-event-handler) event handler will be called whenever an advertising packet comes from the switchbot devices. An object containing the properties as follows will be passed to the event handler:
@@ -1100,6 +1148,53 @@ Structure of the `serviceData`:
 | `currentPower`| Float   | Current power consumption in Watts.                                                 |
 
 ---
+
+### SmartLock (WoSmartLock)
+
+Example of the advertisement data:
+
+```json
+{
+  "id: 'd30864110b8c',
+  "address": 'd3:08:64:11:0b:8c',
+  "rssi": -52,
+  "serviceData": {
+    "model": "o",
+    "modelName": "WoSmartLock",
+    "battery": 100,
+    "calibration": true,
+    "status": "LOCKED",
+    "update_from_secondary_lock": false,
+    "door_open": false,
+    "double_lock_mode": false,
+    "unclosed_alarm": false,
+    "unlocked_alarm": false,
+    "auto_lock_paused": false
+  }
+}
+
+```
+
+Structure of the `serviceData`:
+
+| Property                      | Type    | Description                                                                         |
+| :---------------------------- | :------ | :---------------------------------------------------------------------------------- |
+| `model`                       | String  | This value is `"o"`, which means "Lock (WoSmartLock)".                              |
+| `modelName`                   | String  | This value is always `"WoSmartLock"`, which means "Lock".                           |
+| `battery`                     | Integer | This value indicates the battery level (`1-100`, `%`).                              |
+| `calibration`                 | Boolean | This value indicates the calibration status (`true` or `false`).                    |
+| `status`                      | String  | This value indicates the current locked state. Possible values:                     |
+|                               |         | `"LOCKED"`, `"UNLOCKED"`, `"LOCKING"`, `"UNLOCKING"`                                |
+|                               |         | `"LOCKING_STOP"`, `"UNLOCKING_STOP"` (stuck when locking or unlocking respectively) |
+|                               |         | `"NOT_FULLY_LOCKED"` (eu model only), `"UNKNOWN"` (fallback: must be some error)    |
+| `update_from_secondary_lock`  | Boolean |  ??                                                                                 |
+| `door_open`                   | Boolean |  door open status - whether the door is not detecting the sensor magnet             |
+| `double_lock_mode`            | Boolean |  dual lock mode enabled status - two locks working simultaneously                   |
+| `unclosed_alarm`              | Boolean |  enabled status for door ajar alarm function                                        |
+| `unlocked_alarm`              | Boolean |  whether the alarm function is enabled for door left unlocked                       |
+| `auto_lock_paused`            | Boolean |  auto lock mode paused                                                              |
+| `night_latch`                 | Boolean |  night latch mode enabled (eu firmware only)                                        |
+
 
 ## References
 
