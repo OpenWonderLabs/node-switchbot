@@ -4,7 +4,7 @@
  */
 import Noble from '@abandonware/noble';
 import { parameterChecker } from './parameter-checker.js';
-import { Advertising, Ad } from './advertising.js';
+import { Advertising } from './advertising.js';
 
 type Chars = {
   write: Noble.Characteristic | null,
@@ -47,7 +47,7 @@ export class SwitchbotDevice {
     this._chars = null;
 
     // Save the device information
-    const ad: Ad = Advertising.parse(peripheral);
+    const ad = Advertising.parse(peripheral);
     this._id = ad ? ad.id : null;
     this._address = ad ? ad.address : null;
     this._model = ad ? ad.serviceData.model : null;
