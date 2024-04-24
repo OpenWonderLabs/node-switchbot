@@ -61,7 +61,7 @@ class ParameterChecker {
    *   }
    * });
    * if(!valid) {
-   *   const e = parameterChecker.error.message;
+   *   const message = parameterChecker.error.message;
    *   throw new Error(message);
    * }
    * ---------------------------------------------------------------- */
