@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /*
  * wosmartlock.ts: Switchbot BLE API registration.
  * adapted off the work done by [pySwitchbot](https://github.com/Danielhiversen/pySwitchbot)
@@ -7,9 +8,9 @@ import { Peripheral } from '@abandonware/noble';
 import * as Crypto from 'crypto';
 
 export class WoSmartLock extends SwitchbotDevice {
-  _iv:any;
-  _key_id:string;
-  _encryption_key:any;
+  _iv: any;
+  _key_id: string;
+  _encryption_key: any;
 
   static COMMAND_GET_CK_IV = '570f2103';
   static COMMAND_LOCK_INFO = '570f4f8101';

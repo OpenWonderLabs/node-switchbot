@@ -158,7 +158,7 @@ export class SwitchBot {
       // Initialize the noble object
       this._init()
         .then(() => {
-          if (this.noble == null) {
+          if (this.noble === null) {
             return reject(new Error('noble failed to initialize'));
           }
           const peripherals: Record<string, SwitchbotDevice> = {};
@@ -167,10 +167,10 @@ export class SwitchBot {
             if (timer) {
               clearTimeout(timer);
             }
-            
+
             this.noble.removeAllListeners('discover');
             this.noble.stopScanning();
-            
+
             const device_list: SwitchbotDevice[] = [];
             for (const addr in peripherals) {
               device_list.push(peripherals[addr]);
@@ -223,24 +223,24 @@ export class SwitchBot {
     await this.ready;
     const promise = new Promise<void>((resolve, reject) => {
       let err;
-      if (this.noble?._state === 'poweredOn') {
+      if (this.noble?.state === 'poweredOn') {
         resolve();
         return;
       }
-      this.noble.once('stateChange', (state: typeof Noble._state) => {
+      this.noble.once('stateChange', (state: typeof Noble.state) => {
         switch (state) {
           case 'unsupported':
           case 'unauthorized':
           case 'poweredOff':
             err = new Error(
-              'Failed to initialize the Noble object: ' + this.noble?._state,
+              'Failed to initialize the Noble object: ' + this.noble?.state,
             );
             reject(err);
             return;
           case 'resetting':
           case 'unknown':
             err = new Error(
-              'Adapter is not ready: ' + this.noble?._state,
+              'Adapter is not ready: ' + this.noble?.state,
             );
             reject(err);
             return;
@@ -249,7 +249,7 @@ export class SwitchBot {
             return;
           default:
             err = new Error(
-              'Unknown state: ' + this.noble?._state,
+              'Unknown state: ' + this.noble?.state,
             );
             reject(err);
             return;
@@ -432,7 +432,7 @@ export class SwitchBot {
       // Initialize the noble object
       this._init()
         .then(() => {
-          if (this.noble == null) {
+          if (this.noble === null) {
             return reject(new Error('noble object failed to initialize'));
           }
           // Determine the values of the parameters
@@ -485,7 +485,9 @@ export class SwitchBot {
      * - none
      * ---------------------------------------------------------------- */
   stopScan() {
-    if (this.noble == null) return;
+    if (this.noble === null) {
+      return;
+    }
 
     this.noble.removeAllListeners('discover');
     this.noble.stopScanning();
