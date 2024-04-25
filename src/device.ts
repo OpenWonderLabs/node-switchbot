@@ -122,10 +122,10 @@ export class SwitchbotDevice {
   _connect() {
     return new Promise<void>((resolve, reject) => {
       // Check the bluetooth state
-      if (this._noble._state !== 'poweredOn') {
+      if (this._noble.state !== 'poweredOn') {
         reject(
           new Error(
-            'The Bluetooth status is ' + this._noble._state + ', not poweredOn.',
+            'The Bluetooth status is ' + this._noble.state + ', not poweredOn.',
           ),
         );
         return;

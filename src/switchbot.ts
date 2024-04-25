@@ -227,7 +227,7 @@ export class SwitchBot {
         resolve();
         return;
       }
-      this.noble.once('stateChange', (state: typeof Noble._state) => {
+      this.noble.once('stateChange', (state: typeof Noble.state) => {
         switch (state) {
           case 'unsupported':
           case 'unauthorized':
