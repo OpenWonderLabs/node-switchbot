@@ -1,16 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /*
  * wosmartlock.ts: Switchbot BLE API registration.
  * adapted off the work done by [pySwitchbot](https://github.com/Danielhiversen/pySwitchbot)
  */
 import { SwitchbotDevice } from '../device.js';
-import { Peripheral } from '@abandonware/noble';
+import Noble from '@abandonware/noble';
 import * as Crypto from 'crypto';
 
 export class WoSmartLock extends SwitchbotDevice {
-  _iv: any;
+  _iv: Buffer | null;
   _key_id: string;
-  _encryption_key: any;
+  _encryption_key: Buffer | null;
 
   static COMMAND_GET_CK_IV = '570f2103';
   static COMMAND_LOCK_INFO = '570f4f8101';
@@ -102,7 +101,7 @@ export class WoSmartLock extends SwitchbotDevice {
     return data;
   }
 
-  constructor(peripheral: Peripheral, noble: any) {
+  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
     super(peripheral, noble);
     this._iv = null;
     this._key_id = '';
@@ -221,18 +220,18 @@ export class WoSmartLock extends SwitchbotDevice {
   }
 
   _encrypt(str:string) {
-    const cipher = Crypto.createCipheriv('aes-128-ctr', this._encryption_key, this._iv);
+    const cipher = Crypto.createCipheriv('aes-128-ctr', this._encryption_key!, this._iv);
     return Buffer.concat([cipher.update(str, 'hex'), cipher.final()]).toString('hex');
   }
 
   _decrypt(data:Buffer) {
-    const decipher = Crypto.createDecipheriv('aes-128-ctr', this._encryption_key, this._iv);
+    const decipher = Crypto.createDecipheriv('aes-128-ctr', this._encryption_key!, this._iv);
     return Buffer.concat([decipher.update(data), decipher.final()]);
   }
 
-  async _getIv() {
+  async _getIv(): Promise<Buffer> {
     if (this._iv === null) {
-      const res:Buffer = await this._operateLock(WoSmartLock.COMMAND_GET_CK_IV + this._key_id, false);
+      const res = await this._operateLock(WoSmartLock.COMMAND_GET_CK_IV + this._key_id, false);
       this._iv = res.subarray(4);
     }
     return this._iv;
@@ -258,14 +257,14 @@ export class WoSmartLock extends SwitchbotDevice {
     }
   }
 
-  _operateLock(key: string, encrypt: boolean = true) {
+  _operateLock(key: string, encrypt: boolean = true): Promise<Buffer> {
     //encrypted command
     if (encrypt) {
       return this._encryptedCommand(key);
     }
 
     //unencypted command
-    return new Promise<any>((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const req = Buffer.from(key.substring(0, 2) + '000000' + key.substring(2), 'hex');
 
       this._command(req).then(bytes => {
