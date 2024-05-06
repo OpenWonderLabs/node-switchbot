@@ -36,7 +36,7 @@
   ],
   "readmeFilename": "README.md",
   "dependencies": {
-    "@abandonware/noble": "^1.9.2-24"
+    "@abandonware/noble": "^1.9.2-25"
   },
   "optionalDependencies": {
     "@abandonware/bluetooth-hci-socket": "^0.5.3-12"
