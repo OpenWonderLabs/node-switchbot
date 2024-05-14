@@ -1,6 +1,6 @@
 {
   "name": "node-switchbot",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "description": "The node-switchbot is a Node.js module which allows you to control your Switchbot Devices through Bluetooth (BLE).",
   "homepage": "https://github.com/OpenWonderLabs/node-switchbot",
   "author": "OpenWonderLabs (https://github.com/OpenWonderLabs)",
@@ -36,19 +36,19 @@
   ],
   "readmeFilename": "README.md",
   "dependencies": {
-    "@abandonware/noble": "^1.9.2-24"
+    "@abandonware/noble": "^1.9.2-25"
   },
   "optionalDependencies": {
-    "@abandonware/bluetooth-hci-socket": "^0.5.3-11"
+    "@abandonware/bluetooth-hci-socket": "^0.5.3-12"
   },
   "devDependencies": {
-    "@types/node": "^20.11.17",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "eslint": "^8.56.0",
-    "npm-check-updates": "^16.14.15",
-    "rimraf": "^5.0.5",
+    "@types/node": "^20.12.12",
+    "@typescript-eslint/eslint-plugin": "^7.9.0",
+    "@typescript-eslint/parser": "^7.9.0",
+    "eslint": "^8.57.0",
+    "npm-check-updates": "^16.14.20",
+    "rimraf": "^5.0.7",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.4.5"
   }
 }

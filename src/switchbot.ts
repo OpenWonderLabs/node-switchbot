@@ -2,7 +2,8 @@
  *
  * switchbot.ts: Switchbot BLE API registration.
  */
-import { ParameterChecker } from './parameter-checker.js';
+import Noble from '@abandonware/noble';
+import { parameterChecker } from './parameter-checker.js';
 import { Advertising } from './advertising.js';
 import { SwitchbotDevice } from './device.js';
 
@@ -17,29 +18,25 @@ import { WoHumi } from './device/wohumi.js';
 import { WoPlugMini } from './device/woplugmini.js';
 import { WoBulb } from './device/wobulb.js';
 import { WoStrip } from './device/wostrip.js';
+import { WoSmartLock } from './device/wosmartlock.js';
 import { Ad } from './advertising.js';
-
-import { Peripheral } from '@abandonware/noble';
 
 type Params = {
   duration?: number,
   model?: string,
   id?: string,
   quick?: false,
-  noble?: any,
+  noble?: typeof Noble,
 }
 
 export class SwitchBot {
   private ready: Promise<void>;
-  noble?: any;
+  noble!: typeof Noble;
   ondiscover?: (device: SwitchbotDevice) => void;
   onadvertisement?: (ad: Ad) => void;
   onlog: ((message: string) => void) | undefined;
-  scanning = false;
   DEFAULT_DISCOVERY_DURATION = 5000;
   PRIMARY_SERVICE_UUID_LIST = [];
-  static onlog: any;
-  static noble: any;
   /* ------------------------------------------------------------------
                * Constructor
                *
@@ -58,7 +55,7 @@ export class SwitchBot {
 
   // Check parameters
   async init(params?: Params) {
-    let noble;
+    let noble: typeof Noble;
     if (params && params.noble) {
       noble = params.noble;
     } else {
@@ -67,9 +64,6 @@ export class SwitchBot {
 
     // Public properties
     this.noble = noble;
-
-    // Private properties
-    this.scanning = false;
   }
 
   /* ------------------------------------------------------------------
@@ -113,7 +107,7 @@ export class SwitchBot {
   discover(params: Params = {}) {
     const promise = new Promise((resolve, reject) => {
       // Check the parameters
-      const valid = ParameterChecker.check(
+      const valid = parameterChecker.check(
         params,
         {
           duration: { required: false, type: 'integer', min: 1, max: 60000 },
@@ -145,7 +139,7 @@ export class SwitchBot {
       );
 
       if (!valid) {
-        reject(new Error(ParameterChecker.error.message));
+        reject(new Error(parameterChecker.error!.message));
         return;
       }
 
@@ -164,31 +158,35 @@ export class SwitchBot {
       // Initialize the noble object
       this._init()
         .then(() => {
+          if (this.noble === null) {
+            return reject(new Error('noble failed to initialize'));
+          }
           const peripherals: Record<string, SwitchbotDevice> = {};
           let timer: NodeJS.Timeout = setTimeout(() => { }, 0);
           const finishDiscovery = () => {
             if (timer) {
               clearTimeout(timer);
             }
-            this.noble?.removeAllListeners('discover');
-            this.noble?.stopScanning();
+
+            this.noble.removeAllListeners('discover');
+            this.noble.stopScanning();
+
             const device_list: SwitchbotDevice[] = [];
             for (const addr in peripherals) {
               device_list.push(peripherals[addr]);
             }
-            if (device_list.length) {
-              resolve(device_list);
-            }
+
+            resolve(device_list);
           };
 
           // Set a handler for the 'discover' event
-          this.noble?.on('discover', (peripheral: Peripheral) => {
-            const device = this.getDeviceObject(peripheral, p.id, p.model) as SwitchbotDevice;
+          this.noble.on('discover', (peripheral: Noble.Peripheral) => {
+            const device = this.getDeviceObject(peripheral, p.id, p.model);
             if (!device) {
               return;
             }
-            const id = device.id as string;
-            peripherals[id] = device;
+            const id = device.id;
+            peripherals[id!] = device;
 
             if (this.ondiscover && typeof this.ondiscover === 'function') {
               this.ondiscover(device);
@@ -199,12 +197,11 @@ export class SwitchBot {
               return;
             }
           });
-
           // Start scanning
-          this.noble?.startScanning(
+          this.noble.startScanning(
             this.PRIMARY_SERVICE_UUID_LIST,
             false,
-            (error: Error) => {
+            (error?: Error) => {
               if (error) {
                 reject(error);
                 return;
@@ -226,24 +223,24 @@ export class SwitchBot {
     await this.ready;
     const promise = new Promise<void>((resolve, reject) => {
       let err;
-      if (this.noble.state === 'poweredOn') {
+      if (this.noble._state === 'poweredOn') {
         resolve();
         return;
       }
-      this.noble?.once('stateChange', (state: any) => {
+      this.noble.once('stateChange', (state: typeof Noble._state) => {
         switch (state) {
           case 'unsupported':
           case 'unauthorized':
           case 'poweredOff':
             err = new Error(
-              'Failed to initialize the Noble object: ' + this.noble.state,
+              'Failed to initialize the Noble object: ' + this.noble._state,
             );
             reject(err);
             return;
           case 'resetting':
           case 'unknown':
             err = new Error(
-              'Adapter is not ready: ' + this.noble.state,
+              'Adapter is not ready: ' + this.noble._state,
             );
             reject(err);
             return;
@@ -252,7 +249,7 @@ export class SwitchBot {
             return;
           default:
             err = new Error(
-              'Unknown state: ' + this.noble.state,
+              'Unknown state: ' + this.noble._state,
             );
             reject(err);
             return;
@@ -262,7 +259,7 @@ export class SwitchBot {
     return promise;
   }
 
-  getDeviceObject(peripheral: Peripheral, id: string, model: string) {
+  getDeviceObject(peripheral: Noble.Peripheral, id: string, model: string) {
     const ad = Advertising.parse(peripheral, this.onlog);
     if (this.filterAdvertising(ad, id, model)) {
       let device;
@@ -298,7 +295,7 @@ export class SwitchBot {
             device = new WoPlugMini(peripheral, this.noble);
             break;
           case 'o':
-            //device = new SwitchbotDeviceWoSmartLock(peripheral, this.noble);
+            device = new WoSmartLock(peripheral, this.noble);
             break;
           case 'i':
             device = new WoSensorTH(peripheral, this.noble);
@@ -399,7 +396,7 @@ export class SwitchBot {
   startScan(params: Params = {}) {
     const promise = new Promise<void>((resolve, reject) => {
       // Check the parameters
-      const valid = ParameterChecker.check(
+      const valid = parameterChecker.check(
         params,
         {
           model: {
@@ -428,13 +425,16 @@ export class SwitchBot {
         false,
       );
       if (!valid) {
-        reject(new Error(ParameterChecker.error.message));
+        reject(new Error(parameterChecker.error!.message));
         return;
       }
 
       // Initialize the noble object
       this._init()
         .then(() => {
+          if (this.noble === null) {
+            return reject(new Error('noble object failed to initialize'));
+          }
           // Determine the values of the parameters
           const p = {
             model: params.model || '',
@@ -442,7 +442,7 @@ export class SwitchBot {
           };
 
           // Set a handler for the 'discover' event
-          this.noble?.on('discover', (peripheral: Peripheral) => {
+          this.noble.on('discover', (peripheral: Noble.Peripheral) => {
             const ad = Advertising.parse(peripheral, this.onlog);
             if (this.filterAdvertising(ad, p.id, p.model)) {
               if (
@@ -455,10 +455,10 @@ export class SwitchBot {
           });
 
           // Start scanning
-          this.noble?.startScanning(
+          this.noble.startScanning(
             this.PRIMARY_SERVICE_UUID_LIST,
             true,
-            (error: Error) => {
+            (error?: Error) => {
               if (error) {
                 reject(error);
               } else {
@@ -485,8 +485,12 @@ export class SwitchBot {
      * - none
      * ---------------------------------------------------------------- */
   stopScan() {
-    this.noble?.removeAllListeners('discover');
-    this.noble?.stopScanning();
+    if (this.noble === null) {
+      return;
+    }
+
+    this.noble.removeAllListeners('discover');
+    this.noble.stopScanning();
   }
 
   /* ------------------------------------------------------------------
@@ -503,7 +507,7 @@ export class SwitchBot {
   wait(msec: number) {
     return new Promise((resolve, reject) => {
       // Check the parameters
-      const valid = ParameterChecker.check(
+      const valid = parameterChecker.check(
         { msec: msec },
         {
           msec: { required: true, type: 'integer', min: 0 },
@@ -512,7 +516,7 @@ export class SwitchBot {
       );
 
       if (!valid) {
-        reject(new Error(ParameterChecker.error.message));
+        reject(new Error(parameterChecker.error!.message));
         return;
       }
       // Set a timer
