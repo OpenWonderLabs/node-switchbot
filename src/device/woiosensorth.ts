@@ -44,7 +44,6 @@ export class WoIOSensorTH extends SwitchbotDevice {
       battery: sdByte2 & 0b01111111,
     };
 
-    console.log(data);
     return data;
   }
 }
