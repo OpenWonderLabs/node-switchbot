@@ -3,7 +3,7 @@
  * adapted off the work done by [pySwitchbot](https://github.com/Danielhiversen/pySwitchbot)
  */
 import { SwitchbotDevice } from '../device.js';
-import Noble from '@abandonware/noble';
+import Noble from '@stoprocent/noble';
 import * as Crypto from 'crypto';
 
 export class WoSmartLock extends SwitchbotDevice {

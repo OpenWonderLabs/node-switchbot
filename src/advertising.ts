@@ -2,7 +2,7 @@
  *
  * advertising.ts: Switchbot BLE API registration.
  */
-import { Peripheral } from '@abandonware/noble';
+import { Peripheral } from '@stoprocent/noble';
 
 import { WoHand } from './device/wohand.js';
 import { WoCurtain } from './device/wocurtain.js';

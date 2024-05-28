@@ -2,7 +2,7 @@
  *
  * switchbot.ts: Switchbot BLE API registration.
  */
-import Noble from '@abandonware/noble';
+import Noble from '@stoprocent/noble';
 import { parameterChecker } from './parameter-checker.js';
 import { Advertising } from './advertising.js';
 import { SwitchbotDevice } from './device.js';
@@ -59,7 +59,7 @@ export class SwitchBot {
     if (params && params.noble) {
       noble = params.noble;
     } else {
-      noble = (await import('@abandonware/noble')).default;
+      noble = (await import('@stoprocent/noble')).default;
     }
 
     // Public properties

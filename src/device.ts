@@ -2,7 +2,7 @@
  *
  * device.ts: Switchbot BLE API registration.
  */
-import Noble from '@abandonware/noble';
+import Noble from '@stoprocent/noble';
 import { parameterChecker } from './parameter-checker.js';
 import { Advertising } from './advertising.js';
 

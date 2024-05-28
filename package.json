@@ -36,10 +36,10 @@
   ],
   "readmeFilename": "README.md",
   "dependencies": {
-    "@abandonware/noble": "^1.9.2-25"
+    "@stoprocent/noble": "^1.14.0"
   },
   "optionalDependencies": {
-    "@abandonware/bluetooth-hci-socket": "^0.5.3-12"
+    "@stoprocent/bluetooth-hci-socket": "^1.2.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.3.0",
