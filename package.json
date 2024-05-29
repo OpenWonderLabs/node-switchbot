@@ -36,7 +36,7 @@
   ],
   "readmeFilename": "README.md",
   "dependencies": {
-    "@stoprocent/noble": "^1.14.0"
+    "@stoprocent/noble": "^1.14.1"
   },
   "optionalDependencies": {
     "@stoprocent/bluetooth-hci-socket": "^1.2.1"
@@ -50,11 +50,11 @@
     "globals": "^15.3.0",
     "homebridge": "^1.8.2",
     "homebridge-config-ui-x": "4.56.2",
-    "nodemon": "^3.1.1",
+    "nodemon": "^3.1.2",
     "npm-check-updates": "^16.14.20",
     "rimraf": "^5.0.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5",
-    "typescript-eslint": "^8.0.0-alpha.13"
+    "typescript-eslint": "^8.0.0-alpha.20"
   }
 }
