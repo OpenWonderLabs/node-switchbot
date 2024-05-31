@@ -11,6 +11,7 @@ import { WoPresence } from './device/wopresence.js';
 import { WoContact } from './device/wocontact.js';
 import { WoSensorTH } from './device/wosensorth.js';
 import { WoIOSensorTH } from './device/woiosensorth.js';
+import { WoHub2 } from './device/wohub2.js';
 import { WoHumi } from './device/wohumi.js';
 import { WoPlugMini } from './device/woplugmini.js';
 import { WoBulb } from './device/wobulb.js';
@@ -118,6 +119,8 @@ export class Advertising {
       sd = WoHand.parseServiceData(buf, onlog);//WoHand
     } else if (model === 'T') {
       sd = WoSensorTH.parseServiceData(buf, onlog);//WoSensorTH
+    } else if (model === 'v') {
+      sd = WoHub2.parseServiceData(buf, onlog);//WoHub2
     } else if (model === 'e') {
       sd = WoHumi.parseServiceData(buf, onlog);//WoHumi
     } else if (model === 's') {
