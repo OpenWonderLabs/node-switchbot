@@ -14,6 +14,7 @@ import { WoPresence } from './device/wopresence.js';
 import { WoContact } from './device/wocontact.js';
 import { WoSensorTH } from './device/wosensorth.js';
 import { WoIOSensorTH } from './device/woiosensorth.js';
+import { WoHub2 } from './device/wohub2.js';
 import { WoHumi } from './device/wohumi.js';
 import { WoPlugMini } from './device/woplugmini.js';
 import { WoBulb } from './device/wobulb.js';
@@ -117,6 +118,7 @@ export class SwitchBot {
             enum: [
               'H',
               'T',
+              'v',
               'e',
               's',
               'd',
@@ -271,6 +273,9 @@ export class SwitchBot {
           case 'T':
             device = new WoSensorTH(peripheral, this.noble);
             break;
+          case 'v':
+            device = new WoHub2(peripheral, this.noble);
+            break;
           case 'e':
             device = new WoHumi(peripheral, this.noble);
             break;
@@ -405,6 +410,7 @@ export class SwitchBot {
             enum: [
               'H',
               'T',
+              'v',
               'e',
               's',
               'd',
