@@ -3,6 +3,7 @@
  * woplugmini.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelName } from '../types.js';
 
 /**
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/plugmini.md
@@ -33,8 +34,8 @@ export class WoPlugMini extends SwitchbotDevice {
     // TODO: voltage ???
 
     const data = {
-      model: 'g',
-      modelName: 'WoPlugMini',
+      model: SwitchBotBLEModel.PlugMiniUS,
+      modelName: SwitchBotBLEModelName.PlugMini,
       state: state,
       delay: delay,
       timer: timer,
@@ -72,8 +73,8 @@ export class WoPlugMini extends SwitchbotDevice {
     // TODO: voltage ???
 
     const data = {
-      model: 'j',
-      modelName: 'WoPlugMini',
+      model: SwitchBotBLEModel.PlugMiniJP,
+      modelName: SwitchBotBLEModelName.PlugMini,
       state: state,
       delay: delay,
       timer: timer,

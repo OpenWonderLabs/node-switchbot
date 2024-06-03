@@ -3,6 +3,7 @@
  * wohub2.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelName } from '../types.js';
 
 export class WoHub2 extends SwitchbotDevice {
   static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
@@ -25,8 +26,8 @@ export class WoHub2 extends SwitchbotDevice {
     const light_level = byte12 & 0b11111;
 
     const data = {
-      model: 'v',
-      modelName: 'WoHub2',
+      model: SwitchBotBLEModel.Hub2,
+      modelName: SwitchBotBLEModelName.Hub2,
       temperature: {
         c: temp_c,
         f: temp_f,

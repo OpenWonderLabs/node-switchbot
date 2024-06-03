@@ -21,6 +21,7 @@ import { WoBulb } from './device/wobulb.js';
 import { WoStrip } from './device/wostrip.js';
 import { WoSmartLock } from './device/wosmartlock.js';
 import { Ad } from './advertising.js';
+import { SwitchBotBLEModel } from './types.js';
 
 type Params = {
   duration?: number,
@@ -116,22 +117,22 @@ export class SwitchBot {
             required: false,
             type: 'string',
             enum: [
-              'H',
-              'T',
-              'v',
-              'e',
-              's',
-              'd',
-              'c',
-              '{',
-              'u',
-              'g',
-              'j',
-              'o',
-              'i',
-              'r',
-              'x',
-              'w',
+              SwitchBotBLEModel.Bot,
+              SwitchBotBLEModel.Curtain,
+              SwitchBotBLEModel.Curtain3,
+              SwitchBotBLEModel.Humidifier,
+              SwitchBotBLEModel.Meter,
+              SwitchBotBLEModel.MeterPlus,
+              SwitchBotBLEModel.Hub2,
+              SwitchBotBLEModel.OutdoorMeter,
+              SwitchBotBLEModel.MotionSensor,
+              SwitchBotBLEModel.ContactSensor,
+              SwitchBotBLEModel.ColorBulb,
+              SwitchBotBLEModel.StripLight,
+              SwitchBotBLEModel.PlugMiniUS,
+              SwitchBotBLEModel.PlugMiniJP,
+              SwitchBotBLEModel.Lock,
+              SwitchBotBLEModel.BlindTilt,
             ],
           },
           id: { required: false, type: 'string', min: 12, max: 17 },
@@ -267,49 +268,49 @@ export class SwitchBot {
       let device;
       if (ad && ad.serviceData && ad.serviceData.model) {
         switch (ad.serviceData.model) {
-          case 'H':
+          case SwitchBotBLEModel.Bot:
             device = new WoHand(peripheral, this.noble);
             break;
-          case 'T':
-            device = new WoSensorTH(peripheral, this.noble);
-            break;
-          case 'v':
-            device = new WoHub2(peripheral, this.noble);
-            break;
-          case 'e':
-            device = new WoHumi(peripheral, this.noble);
-            break;
-          case 's':
-            device = new WoPresence(peripheral, this.noble);
-            break;
-          case 'd':
-            device = new WoContact(peripheral, this.noble);
-            break;
-          case 'c':
-          case '{':
+          case SwitchBotBLEModel.Curtain:
+          case SwitchBotBLEModel.Curtain3:
             device = new WoCurtain(peripheral, this.noble);
             break;
-          case 'x':
-            device = new WoBlindTilt(peripheral, this.noble);
+          case SwitchBotBLEModel.Humidifier:
+            device = new WoHumi(peripheral, this.noble);
             break;
-          case 'u':
-            device = new WoBulb(peripheral, this.noble);
-            break;
-          case 'g':
-          case 'j':
-            device = new WoPlugMini(peripheral, this.noble);
-            break;
-          case 'o':
-            device = new WoSmartLock(peripheral, this.noble);
-            break;
-          case 'i':
+          case SwitchBotBLEModel.Meter:
             device = new WoSensorTH(peripheral, this.noble);
             break;
-          case 'w':
+          case SwitchBotBLEModel.MeterPlus:
+            device = new WoSensorTH(peripheral, this.noble);
+            break;
+          case SwitchBotBLEModel.Hub2:
+            device = new WoHub2(peripheral, this.noble);
+            break;
+          case SwitchBotBLEModel.OutdoorMeter:
             device = new WoIOSensorTH(peripheral, this.noble);
             break;
-          case 'r':
+          case SwitchBotBLEModel.MotionSensor:
+            device = new WoPresence(peripheral, this.noble);
+            break;
+          case SwitchBotBLEModel.ContactSensor:
+            device = new WoContact(peripheral, this.noble);
+            break;
+          case SwitchBotBLEModel.ColorBulb:
+            device = new WoBulb(peripheral, this.noble);
+            break;
+          case SwitchBotBLEModel.StripLight:
             device = new WoStrip(peripheral, this.noble);
+            break;
+          case SwitchBotBLEModel.PlugMiniUS:
+          case SwitchBotBLEModel.PlugMiniJP:
+            device = new WoPlugMini(peripheral, this.noble);
+            break;
+          case SwitchBotBLEModel.Lock:
+            device = new WoSmartLock(peripheral, this.noble);
+            break;
+          case SwitchBotBLEModel.BlindTilt:
+            device = new WoBlindTilt(peripheral, this.noble);
             break;
           default: // 'resetting', 'unknown'
             device = new SwitchbotDevice(peripheral, this.noble);
@@ -408,22 +409,22 @@ export class SwitchBot {
             required: false,
             type: 'string',
             enum: [
-              'H',
-              'T',
-              'v',
-              'e',
-              's',
-              'd',
-              'c',
-              '{',
-              'u',
-              'g',
-              'j',
-              'o',
-              'i',
-              'r',
-              'x',
-              'w',
+              SwitchBotBLEModel.Bot,
+              SwitchBotBLEModel.Curtain,
+              SwitchBotBLEModel.Curtain3,
+              SwitchBotBLEModel.Humidifier,
+              SwitchBotBLEModel.Meter,
+              SwitchBotBLEModel.MeterPlus,
+              SwitchBotBLEModel.Hub2,
+              SwitchBotBLEModel.OutdoorMeter,
+              SwitchBotBLEModel.MotionSensor,
+              SwitchBotBLEModel.ContactSensor,
+              SwitchBotBLEModel.ColorBulb,
+              SwitchBotBLEModel.StripLight,
+              SwitchBotBLEModel.PlugMiniUS,
+              SwitchBotBLEModel.PlugMiniJP,
+              SwitchBotBLEModel.Lock,
+              SwitchBotBLEModel.BlindTilt,
             ],
           },
           id: { required: false, type: 'string', min: 12, max: 17 },

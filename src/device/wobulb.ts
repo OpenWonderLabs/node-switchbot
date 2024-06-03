@@ -3,6 +3,7 @@
  * wobulb.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelName } from '../types.js';
 
 /**
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/colorbulb.md
@@ -42,8 +43,8 @@ export class WoBulb extends SwitchbotDevice {
     const loop_index = byte10 & 0b11111110;
 
     const data = {
-      model: 'u',
-      modelName: 'WoBulb',
+      model: SwitchBotBLEModel.ColorBulb,
+      modelName: SwitchBotBLEModelName.ColorBulb,
       color_temperature: color_temperature,
       power: power,
       state: state,

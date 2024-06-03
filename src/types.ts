@@ -2,6 +2,104 @@
  *
  * util.ts: @switchbot/homebridge-switchbot platform class.
  */
+export type SwitchBotBLEDevice = {
+  Bot: {
+    Model: SwitchBotModel.Bot,
+    BLEModel: SwitchBotBLEModel.Bot,
+    BLEModelName: SwitchBotBLEModelName.Bot,
+  },
+  Curtain: {
+    Model: SwitchBotModel.Curtain,
+    BLEModel: SwitchBotBLEModel.Curtain,
+    BLEModelName: SwitchBotBLEModelName.Curtain,
+  },
+  Curtain3: {
+    Model: SwitchBotModel.Curtain3,
+    BLEModel: SwitchBotBLEModel.Curtain3,
+    BLEModelName: SwitchBotBLEModelName.Curtain3,
+  },
+  Humidifier: {
+    Model: SwitchBotModel.Humidifier,
+    BLEModel: SwitchBotBLEModel.Humidifier,
+    BLEModelName: SwitchBotBLEModelName.Humidifier,
+  },
+  Meter: {
+    Model: SwitchBotModel.Meter,
+    BLEModel: SwitchBotBLEModel.Meter,
+    BLEModelName: SwitchBotBLEModelName.Meter,
+  },
+  MeterPlus: {
+    Model: SwitchBotModel.MeterPlusJP | SwitchBotModel.MeterPlusUS,
+    BLEModel: SwitchBotBLEModel.MeterPlus,
+    BLEModelName: SwitchBotBLEModelName.MeterPlus,
+  },
+  Hub2: {
+    Model: SwitchBotModel.Hub2,
+    BLEModel: SwitchBotBLEModel.Hub2,
+    BLEModelName: SwitchBotBLEModelName.Hub2,
+  },
+  OutdoorMeter: {
+    Model: SwitchBotModel.OutdoorMeter,
+    BLEModel: SwitchBotBLEModel.OutdoorMeter,
+    BLEModelName: SwitchBotBLEModelName.OutdoorMeter,
+  },
+  MotionSensor: {
+    Model: SwitchBotModel.MotionSensor,
+    BLEModel: SwitchBotBLEModel.MotionSensor,
+    BLEModelName: SwitchBotBLEModelName.MotionSensor,
+  },
+  ContactSensor: {
+    Model: SwitchBotModel.ContactSensor,
+    BLEModel: SwitchBotBLEModel.ContactSensor,
+    BLEModelName: SwitchBotBLEModelName.ContactSensor,
+  },
+  ColorBulb: {
+    Model: SwitchBotModel.ColorBulb,
+    BLEModel: SwitchBotBLEModel.ColorBulb,
+    BLEModelName: SwitchBotBLEModelName.ColorBulb,
+  },
+  StripLight: {
+    Model: SwitchBotModel.StripLight,
+    BLEModel: SwitchBotBLEModel.StripLight,
+    BLEModelName: SwitchBotBLEModelName.StripLight,
+  },
+  PlugMiniUS: {
+    Model: SwitchBotModel.PlugMiniUS,
+    BLEModel: SwitchBotBLEModel.PlugMiniUS,
+    BLEModelName: SwitchBotBLEModelName.PlugMini,
+  },
+  PlugMiniJP: {
+    Model: SwitchBotModel.PlugMiniJP,
+    BLEModel: SwitchBotBLEModel.PlugMiniJP,
+    BLEModelName: SwitchBotBLEModelName.PlugMini,
+  },
+  Lock: {
+    Model: SwitchBotModel.Lock,
+    BLEModel: SwitchBotBLEModel.Lock,
+    BLEModelName: SwitchBotBLEModelName.Lock,
+  },
+  CeilingLight: {
+    Model: SwitchBotModel.CeilingLight,
+    BLEModel: SwitchBotBLEModel.CeilingLight,
+    BLEModelName: SwitchBotBLEModelName.Unknown,
+  },
+  CeilingLightPro: {
+    Model: SwitchBotModel.CeilingLightPro,
+    BLEModel: SwitchBotBLEModel.CeilingLightPro,
+    BLEModelName: SwitchBotBLEModelName.Unknown,
+  },
+  BlindTilt: {
+    Model: SwitchBotModel.BlindTilt,
+    BLEModel: SwitchBotBLEModel.BlindTilt,
+    BLEModelName: SwitchBotBLEModelName.BlindTilt,
+  },
+  Unknown: {
+    Model: SwitchBotModel.Unknown,
+    BLEModel: SwitchBotBLEModel.Unknown,
+    BLEModelName: SwitchBotBLEModelName.Unknown,
+  }
+}
+
 export enum SwitchBotModel {
   HubMini = 'W0202200',
   HubPlus = 'SwitchBot Hub S1',
@@ -83,102 +181,4 @@ export enum SwitchBotBLEModelName {
   MotionSensor = 'WoMotion',
   BlindTilt = 'WoBlindTilt',
   Unknown = 'Unknown',
-}
-
-export type SwitchBotBLEDevice = {
-  Bot: {
-    Model: SwitchBotModel.Bot,
-    BLEModel: SwitchBotBLEModel.Bot,
-    BLEModelName: SwitchBotBLEModelName.Bot,
-  }
-  Curtain: {
-    Model: SwitchBotModel.Curtain,
-    BLEModel: SwitchBotBLEModel.Curtain,
-    BLEModelName: SwitchBotBLEModelName.Curtain,
-  }
-  Curtain3: {
-    Model: SwitchBotModel.Curtain3,
-    BLEModel: SwitchBotBLEModel.Curtain3,
-    BLEModelName: SwitchBotBLEModelName.Curtain3,
-  }
-  Humidifier: {
-    Model: SwitchBotModel.Humidifier,
-    BLEModel: SwitchBotBLEModel.Humidifier,
-    BLEModelName: SwitchBotBLEModelName.Humidifier,
-  }
-  Meter: {
-    Model: SwitchBotModel.Meter,
-    BLEModel: SwitchBotBLEModel.Meter,
-    BLEModelName: SwitchBotBLEModelName.Meter,
-  }
-  MeterPlus: {
-    Model: SwitchBotModel.MeterPlusJP | SwitchBotModel.MeterPlusUS,
-    BLEModel: SwitchBotBLEModel.MeterPlus,
-    BLEModelName: SwitchBotBLEModelName.MeterPlus,
-  }
-  Hub2: {
-    Model: SwitchBotModel.Hub2,
-    BLEModel: SwitchBotBLEModel.Hub2,
-    BLEModelName: SwitchBotBLEModelName.Hub2,
-  }
-  OutdoorMeter: {
-    Model: SwitchBotModel.OutdoorMeter,
-    BLEModel: SwitchBotBLEModel.OutdoorMeter,
-    BLEModelName: SwitchBotBLEModelName.OutdoorMeter,
-  }
-  MotionSensor: {
-    Model: SwitchBotModel.MotionSensor,
-    BLEModel: SwitchBotBLEModel.MotionSensor,
-    BLEModelName: SwitchBotBLEModelName.MotionSensor,
-  }
-  ContactSensor: {
-    Model: SwitchBotModel.ContactSensor,
-    BLEModel: SwitchBotBLEModel.ContactSensor,
-    BLEModelName: SwitchBotBLEModelName.ContactSensor,
-  }
-  ColorBulb: {
-    Model: SwitchBotModel.ColorBulb,
-    BLEModel: SwitchBotBLEModel.ColorBulb,
-    BLEModelName: SwitchBotBLEModelName.ColorBulb,
-  }
-  StripLight: {
-    Model: SwitchBotModel.StripLight,
-    BLEModel: SwitchBotBLEModel.StripLight,
-    BLEModelName: SwitchBotBLEModelName.StripLight,
-  }
-  PlugMiniUS: {
-    Model: SwitchBotModel.PlugMiniUS,
-    BLEModel: SwitchBotBLEModel.PlugMiniUS,
-    BLEModelName: SwitchBotBLEModelName.PlugMini,
-  }
-  PlugMiniJP: {
-    Model: SwitchBotModel.PlugMiniJP,
-    BLEModel: SwitchBotBLEModel.PlugMiniJP,
-    BLEModelName: SwitchBotBLEModelName.PlugMini,
-  }
-  Lock: {
-    Model: SwitchBotModel.Lock,
-    BLEModel: SwitchBotBLEModel.Lock,
-    BLEModelName: SwitchBotBLEModelName.Lock,
-  }
-  CeilingLight: {
-    Model: SwitchBotModel.CeilingLight,
-    BLEModel: SwitchBotBLEModel.CeilingLight,
-    BLEModelName: SwitchBotBLEModelName.Unknown,
-  }
-  CeilingLightPro: {
-    Model: SwitchBotModel.CeilingLightPro,
-    BLEModel: SwitchBotBLEModel.CeilingLightPro,
-    BLEModelName: SwitchBotBLEModelName.Unknown,
-  }
-  BlindTilt: {
-    Model: SwitchBotModel.BlindTilt,
-    BLEModel: SwitchBotBLEModel.BlindTilt,
-    BLEModelName: SwitchBotBLEModelName.BlindTilt,
-  }
-  Unknown: {
-    Model: SwitchBotModel.Unknown,
-    BLEModel: SwitchBotBLEModel.Unknown,
-    BLEModelName: SwitchBotBLEModelName.Unknown,
-  }
 }

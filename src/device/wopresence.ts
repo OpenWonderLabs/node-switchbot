@@ -3,6 +3,7 @@
  * wopresence.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelName } from '../types.js';
 
 export class WoPresence extends SwitchbotDevice {
   static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
@@ -29,8 +30,8 @@ export class WoPresence extends SwitchbotDevice {
     const is_light = byte5 & 0b00000010 ? true : false;
 
     const data = {
-      model: 's',
-      modelName: 'WoMotion',
+      model: SwitchBotBLEModel.MotionSensor,
+      modelName: SwitchBotBLEModelName.MotionSensor,
       tested: tested,
       movement: movement,
       battery: battery,

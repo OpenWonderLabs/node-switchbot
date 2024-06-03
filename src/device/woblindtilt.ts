@@ -3,6 +3,7 @@
  * woblindtilt.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelName } from '../types.js';
 
 export class WoBlindTilt extends SwitchbotDevice {
   static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
@@ -24,8 +25,8 @@ export class WoBlindTilt extends SwitchbotDevice {
     const lightLevel = (byte1 >> 4) & 0b00001111; // light sensor level (1-10)
 
     const data = {
-      model: 'x',
-      modelName: 'WoBlindTilt',
+      model: SwitchBotBLEModel.BlindTilt,
+      modelName: SwitchBotBLEModelName.BlindTilt,
       calibration: calibration,
       battery: battery,
       inMotion: inMotion,

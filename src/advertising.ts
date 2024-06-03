@@ -17,6 +17,7 @@ import { WoPlugMini } from './device/woplugmini.js';
 import { WoBulb } from './device/wobulb.js';
 import { WoStrip } from './device/wostrip.js';
 import { WoSmartLock } from './device/wosmartlock.js';
+import { SwitchBotBLEModel } from './types.js';
 
 export type Ad = {
   id: string;
@@ -112,48 +113,63 @@ export class Advertising {
       return null;
     }
 
-    const model = buf.slice(0, 1).toString('utf8');
+    const model = buf.subarray(0, 1).toString('utf8');
     let sd;
-
-    if (model === 'H') {
-      sd = WoHand.parseServiceData(buf, onlog);//WoHand
-    } else if (model === 'T') {
-      sd = WoSensorTH.parseServiceData(buf, onlog);//WoSensorTH
-    } else if (model === 'v') {
-      sd = WoHub2.parseServiceData(buf, onlog);//WoHub2
-    } else if (model === 'e') {
-      sd = WoHumi.parseServiceData(buf, onlog);//WoHumi
-    } else if (model === 's') {
-      sd = WoPresence.parseServiceData(buf, onlog);//WoPresence
-    } else if (model === 'd') {
-      sd = WoContact.parseServiceData(buf, onlog);//WoContact
-    } else if (model === 'c' || model === '{') {
-      sd = WoCurtain.parseServiceData(buf, onlog);// WoCurtain
-    } else if (model === 'x') {
-      sd = WoBlindTilt.parseServiceData(buf, onlog);// WoBlindTilt
-    } else if (model === 'u') {
-      sd = WoBulb.parseServiceData(manufacturerData, onlog);// WoBulb
-    } else if (model === 'g') {
-      sd = WoPlugMini.parseServiceData_US(manufacturerData, onlog);      // WoPlugMini (US)
-    } else if (model === 'j') {
-      sd = WoPlugMini.parseServiceData_JP(manufacturerData, onlog);// WoPlugMini (JP)
-    } else if (model === 'o') {
-      sd = WoSmartLock.parseServiceData(buf, manufacturerData, onlog);// WoSmartLock
-    } else if (model === 'i') {
-      sd = WoSensorTH.parseServiceData_Plus(buf, onlog);// WoMeterPlus
-    } else if (model === 'r') {
-      sd = WoStrip.parseServiceData(buf, onlog);// WoStrip
-    } else if (model === 'w') {
-      sd = WoIOSensorTH.parseServiceData(buf, manufacturerData, onlog); // Indoor/Outdoor Thermo-Hygrometer
-    } else {
-      if (onlog && typeof onlog === 'function') {
-        onlog(
-          `[parseAdvertising.${peripheral.id}] return null, model "${model}" not available!`,
-        );
-      }
-      return null;
+    switch (model) {
+      case SwitchBotBLEModel.Bot:
+        sd = WoHand.parseServiceData(buf, onlog);
+        break;
+      case SwitchBotBLEModel.Curtain:
+      case SwitchBotBLEModel.Curtain3:
+        sd = WoCurtain.parseServiceData(buf, onlog);
+        break;
+      case SwitchBotBLEModel.Humidifier:
+        sd = WoHumi.parseServiceData(buf, onlog);
+        break;
+      case SwitchBotBLEModel.Meter:
+        sd = WoSensorTH.parseServiceData(buf, onlog);
+        break;
+      case SwitchBotBLEModel.MeterPlus:
+        sd = WoSensorTH.parseServiceData_Plus(buf, onlog);
+        break;
+      case SwitchBotBLEModel.Hub2:
+        sd = WoHub2.parseServiceData(buf, onlog);
+        break;
+      case SwitchBotBLEModel.OutdoorMeter:
+        sd = WoIOSensorTH.parseServiceData(buf, manufacturerData, onlog);
+        break;
+      case SwitchBotBLEModel.MotionSensor:
+        sd = WoPresence.parseServiceData(buf, onlog);
+        break;
+      case SwitchBotBLEModel.ContactSensor:
+        sd = WoContact.parseServiceData(buf, onlog);
+        break;
+      case SwitchBotBLEModel.ColorBulb:
+        sd = WoBulb.parseServiceData(manufacturerData, onlog);
+        break;
+      case SwitchBotBLEModel.StripLight:
+        sd = WoStrip.parseServiceData(buf, onlog);
+        break;
+      case SwitchBotBLEModel.PlugMiniUS:
+        sd = WoPlugMini.parseServiceData_US(manufacturerData, onlog);
+        break;
+      case SwitchBotBLEModel.PlugMiniJP:
+        sd = WoPlugMini.parseServiceData_JP(manufacturerData, onlog);
+        break;
+      case SwitchBotBLEModel.Lock:
+        sd = WoSmartLock.parseServiceData(buf, manufacturerData, onlog);
+        break;
+      case SwitchBotBLEModel.BlindTilt:
+        sd = WoBlindTilt.parseServiceData(buf, onlog);
+        break;
+      default:
+        if (onlog && typeof onlog === 'function') {
+          onlog(
+            `[parseAdvertising.${peripheral.id}] return null, model "${model}" not available!`,
+          );
+        }
+        return null;
     }
-
     if (!sd) {
       if (onlog && typeof onlog === 'function') {
         onlog(

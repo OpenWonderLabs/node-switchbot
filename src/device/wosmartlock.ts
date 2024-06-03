@@ -3,6 +3,7 @@
  * adapted off the work done by [pySwitchbot](https://github.com/Danielhiversen/pySwitchbot)
  */
 import { SwitchbotDevice } from '../device.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelName } from '../types.js';
 import Noble from '@stoprocent/noble';
 import * as Crypto from 'crypto';
 
@@ -84,8 +85,8 @@ export class WoSmartLock extends SwitchbotDevice {
     const night_latch = manufacturerData.length > 11 && manufacturerData.readUInt8(11) & 0b00000001 ? true : false;
 
     const data = {
-      model: 'o',
-      modelName: 'WoSmartLock',
+      model: SwitchBotBLEModel.Lock,
+      modelName: SwitchBotBLEModelName.Lock,
       battery: battery,
       calibration: calibration,
       status: status,

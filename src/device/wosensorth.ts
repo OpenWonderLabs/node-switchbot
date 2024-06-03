@@ -3,6 +3,7 @@
  * wosensorth.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelName } from '../types.js';
 
 export class WoSensorTH extends SwitchbotDevice {
   static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
@@ -24,8 +25,8 @@ export class WoSensorTH extends SwitchbotDevice {
     const temp_f = Math.round(((temp_c * 9 / 5) + 32) * 10) / 10;
 
     const data = {
-      model: 'T',
-      modelName: 'WoSensorTH',
+      model: SwitchBotBLEModel.Meter,
+      modelName: SwitchBotBLEModelName.Meter,
       temperature: {
         c: temp_c,
         f: temp_f,
