@@ -3,7 +3,7 @@
  * adapted off the work done by [pySwitchbot](https://github.com/Danielhiversen/pySwitchbot)
  */
 import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelName } from '../types.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js';
 import Noble from '@stoprocent/noble';
 import * as Crypto from 'crypto';
 
@@ -17,6 +17,8 @@ export class WoSmartLock extends SwitchbotDevice {
   static COMMAND_UNLOCK = '570f4e01011080';
   static COMMAND_UNLOCK_NO_UNLATCH = '570f4e010110a0';
   static COMMAND_LOCK = '570f4e01011000';
+  static COMMAND_ENABLE_NOTIFICATIONS = '0e01001e00008101';
+  static COMMAND_DISABLE_NOTIFICATIONS = '0e00';
 
   static Result = {
     ERROR: 0x00,
@@ -87,6 +89,7 @@ export class WoSmartLock extends SwitchbotDevice {
     const data = {
       model: SwitchBotBLEModel.Lock,
       modelName: SwitchBotBLEModelName.Lock,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.Lock,
       battery: battery,
       calibration: calibration,
       status: status,

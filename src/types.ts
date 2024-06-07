@@ -184,3 +184,23 @@ export enum SwitchBotBLEModelName {
   BlindTilt = 'WoBlindTilt',
   Unknown = 'Unknown',
 }
+
+export enum SwitchBotBLEModelFriendlyName {
+  Bot = 'Bot',
+  Hub2 = 'Hub 2',
+  ColorBulb = 'Color Bulb',
+  Curtain = 'Curtain',
+  Curtain3 = 'Curtain 3',
+  Humidifier = 'Humidifier',
+  Meter = 'Meter',
+  Lock = 'Lock',
+  LockPro = 'Lock Pro',
+  PlugMini = 'Plug Mini',
+  StripLight = 'Strip Light',
+  MeterPlus = 'Meter Plus',
+  OutdoorMeter = 'Outdoor Meter',
+  ContactSensor = 'Contact Sensor',
+  MotionSensor = 'Motion Sensor',
+  BlindTilt = 'Blind Tilt',
+  Unknown = 'Unknown',
+}

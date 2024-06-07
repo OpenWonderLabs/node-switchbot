@@ -3,7 +3,7 @@
  * wostrip.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelName } from '../types.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelName, SwitchBotBLEModelFriendlyName } from '../types.js';
 
 /**
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/colorbulb.md
@@ -43,6 +43,7 @@ export class WoStrip extends SwitchbotDevice {
     const data = {
       model: SwitchBotBLEModel.StripLight,
       modelName: SwitchBotBLEModelName.StripLight,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.StripLight,
       state: state,
       brightness: brightness,
       red: red,

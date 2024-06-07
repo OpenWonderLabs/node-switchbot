@@ -3,7 +3,7 @@
  * adapted off the work done by [pySwitchbot](https://github.com/Danielhiversen/pySwitchbot)
  */
 import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelName } from '../types.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelName, SwitchBotBLEModelFriendlyName } from '../types.js';
 import Noble from '@stoprocent/noble';
 import * as Crypto from 'crypto';
 
@@ -17,6 +17,8 @@ export class WoSmartLockPro extends SwitchbotDevice {
   static COMMAND_UNLOCK = '0f4e0101000180';
   static COMMAND_UNLOCK_NO_UNLATCH = '570f4e010110a0';
   static COMMAND_LOCK = '0f4e0101000100';
+  static COMMAND_ENABLE_NOTIFICATIONS = '0e01001e00008101';
+  static COMMAND_DISABLE_NOTIFICATIONS = '0e00';
 
   static Result = {
     ERROR: 0x00,
@@ -87,6 +89,7 @@ export class WoSmartLockPro extends SwitchbotDevice {
     const data = {
       model: SwitchBotBLEModel.LockPro,
       modelName: SwitchBotBLEModelName.LockPro,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.LockPro,
       battery: battery,
       calibration: calibration,
       status: status,
@@ -206,7 +209,7 @@ export class WoSmartLockPro extends SwitchbotDevice {
     return new Promise((resolve, reject) => {
       this._operateLock(WoSmartLockPro.COMMAND_LOCK_INFO)
         .then(resBuf => {
-          const data ={
+          const data = {
             'calibration': Boolean(resBuf[1] & 0b10000000),
             'status': WoSmartLockPro.getLockStatus((resBuf[1] & 0b01110000)),
             'door_open': Boolean(resBuf[1] & 0b00000100),
@@ -220,12 +223,12 @@ export class WoSmartLockPro extends SwitchbotDevice {
     });
   }
 
-  _encrypt(str:string) {
+  _encrypt(str: string) {
     const cipher = Crypto.createCipheriv('aes-128-ctr', this._encryption_key!, this._iv);
     return Buffer.concat([cipher.update(str, 'hex'), cipher.final()]).toString('hex');
   }
 
-  _decrypt(data:Buffer) {
+  _decrypt(data: Buffer) {
     const decipher = Crypto.createDecipheriv('aes-128-ctr', this._encryption_key!, this._iv);
     return Buffer.concat([decipher.update(data), decipher.final()]);
   }

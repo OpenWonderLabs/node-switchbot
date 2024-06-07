@@ -134,7 +134,7 @@ export class Advertising {
         sd = WoSensorTH.parseServiceData_Plus(buf, onlog);
         break;
       case SwitchBotBLEModel.Hub2:
-        sd = WoHub2.parseServiceData(buf, onlog);
+        sd = WoHub2.parseServiceData(manufacturerData, onlog);
         break;
       case SwitchBotBLEModel.OutdoorMeter:
         sd = WoIOSensorTH.parseServiceData(buf, manufacturerData, onlog);

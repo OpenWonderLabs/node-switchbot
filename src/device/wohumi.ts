@@ -3,7 +3,7 @@
  * wohumi.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelName } from '../types.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js';
 
 export class WoHumi extends SwitchbotDevice {
   static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
@@ -26,6 +26,7 @@ export class WoHumi extends SwitchbotDevice {
     const data = {
       model: SwitchBotBLEModel.Humidifier,
       modelName: SwitchBotBLEModelName.Humidifier,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.Humidifier,
       onState: onState,
       autoMode: autoMode,
       percentage: autoMode ? 0 : percentage,

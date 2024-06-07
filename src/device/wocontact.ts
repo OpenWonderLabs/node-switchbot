@@ -3,7 +3,7 @@
  * wocontact.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelName } from '../types.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js';
 
 export class WoContact extends SwitchbotDevice {
   static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
@@ -33,6 +33,7 @@ export class WoContact extends SwitchbotDevice {
     const data = {
       model: SwitchBotBLEModel.ContactSensor,
       modelName: SwitchBotBLEModelName.ContactSensor,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.ContactSensor,
       movement: movement,
       tested: tested,
       battery: battery,

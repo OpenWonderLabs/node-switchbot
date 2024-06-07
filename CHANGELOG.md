@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file. This projec
 ## [2.2.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v2.2.0) (2024-XX-XX)
 
 ### What's Changed
+- Add Model Friendly Name for each deviceType
 - Add SwitchBot Hub 2 Support
+- Add bassic support for SwitchBot Lock Pro
 - Housekeeping and update dependencies
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v2.1.1...v2.2.0

@@ -3,22 +3,22 @@
  * wohub2.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelName } from '../types.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js';
 
 export class WoHub2 extends SwitchbotDevice {
-  static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
-    if (buf.length !== 16) {
+  static parseServiceData(manufacturerData: Buffer, onlog: ((message: string) => void) | undefined) {
+    if (manufacturerData.length !== 16) {
       if (onlog && typeof onlog === 'function') {
         onlog(
-          `[parseServiceDataForWoSensorTH] Buffer length ${buf.length} !== 16!`,
+          `[parseServiceDataForWoSensorTH] Buffer length ${manufacturerData.length} !== 16!`,
         );
       }
       return null;
     }
-    const byte0 = buf.readUInt8(0);
-    const byte1 = buf.readUInt8(1);
-    const byte2 = buf.readUInt8(2);
-    const byte12 = buf.readUInt8(12);
+    const byte0 = manufacturerData.readUInt8(0);
+    const byte1 = manufacturerData.readUInt8(1);
+    const byte2 = manufacturerData.readUInt8(2);
+    const byte12 = manufacturerData.readUInt8(12);
 
     const temp_sign = byte1 & 0b10000000 ? 1 : -1;
     const temp_c = temp_sign * ((byte1 & 0b01111111) + (byte0 & 0b00001111) / 10);
@@ -28,6 +28,7 @@ export class WoHub2 extends SwitchbotDevice {
     const data = {
       model: SwitchBotBLEModel.Hub2,
       modelName: SwitchBotBLEModelName.Hub2,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.Hub2,
       temperature: {
         c: temp_c,
         f: temp_f,

@@ -3,7 +3,7 @@
  * wohand.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelName } from '../types.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js';
 
 export class WoHand extends SwitchbotDevice {
   static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
@@ -25,6 +25,7 @@ export class WoHand extends SwitchbotDevice {
     const data = {
       model: SwitchBotBLEModel.Bot,
       modelName: SwitchBotBLEModelName.Bot,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.Bot,
       mode: mode,
       state: state,
       battery: battery,
