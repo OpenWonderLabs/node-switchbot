@@ -17,6 +17,7 @@ import { WoPlugMini } from './device/woplugmini.js';
 import { WoBulb } from './device/wobulb.js';
 import { WoStrip } from './device/wostrip.js';
 import { WoSmartLock } from './device/wosmartlock.js';
+import { WoSmartLockPro } from './device/wosmartlockpro.js';
 import { SwitchBotBLEModel } from './types.js';
 
 export type Ad = {
@@ -158,6 +159,9 @@ export class Advertising {
         break;
       case SwitchBotBLEModel.Lock:
         sd = WoSmartLock.parseServiceData(buf, manufacturerData, onlog);
+        break;
+      case SwitchBotBLEModel.LockPro:
+        sd = WoSmartLockPro.parseServiceData(buf, manufacturerData, onlog);
         break;
       case SwitchBotBLEModel.BlindTilt:
         sd = WoBlindTilt.parseServiceData(buf, onlog);

@@ -158,6 +158,7 @@ export enum SwitchBotBLEModel {
   PlugMiniUS = 'g',
   PlugMiniJP = 'j',
   Lock = 'o',
+  LockPro = '$',
   CeilingLight = 'q', // Currently only available in Japan.
   CeilingLightPro = 'n', // Currently only available in Japan.
   BlindTilt = 'x',
@@ -173,6 +174,7 @@ export enum SwitchBotBLEModelName {
   Humidifier = 'WoHumi',
   Meter = 'WoSensorTH',
   Lock = 'WoSmartLock',
+  LockPro = 'WoSmartLockPro',
   PlugMini = 'WoPlugMini',
   StripLight = 'WoStrip',
   MeterPlus = 'WoSensorTHPlus',

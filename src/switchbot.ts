@@ -20,6 +20,7 @@ import { WoPlugMini } from './device/woplugmini.js';
 import { WoBulb } from './device/wobulb.js';
 import { WoStrip } from './device/wostrip.js';
 import { WoSmartLock } from './device/wosmartlock.js';
+import { WoSmartLockPro } from './device/wosmartlockpro.js';
 import { Ad } from './advertising.js';
 import { SwitchBotBLEModel } from './types.js';
 
@@ -88,6 +89,7 @@ export class SwitchBot {
        *              |         |          | If "u" is specified, this method will discover only Color Bulbs.
        *              |         |          | If "g" is specified, this method will discover only Plugs.
        *              |         |          | If "o" is specified, this method will discover only Locks.
+       *              |         |          | If "$" is specified, this method will discover only Lock Pros.
        *              |         |          | If "i" is specified, this method will discover only Meter Pluses.
        *              |         |          | If "r" is specified, this method will discover only Locks.
        *   - id       | String  | Optional | If this value is set, this method will discover
@@ -132,6 +134,7 @@ export class SwitchBot {
               SwitchBotBLEModel.PlugMiniUS,
               SwitchBotBLEModel.PlugMiniJP,
               SwitchBotBLEModel.Lock,
+              SwitchBotBLEModel.LockPro,
               SwitchBotBLEModel.BlindTilt,
             ],
           },
@@ -309,6 +312,9 @@ export class SwitchBot {
           case SwitchBotBLEModel.Lock:
             device = new WoSmartLock(peripheral, this.noble);
             break;
+          case SwitchBotBLEModel.LockPro:
+            device = new WoSmartLockPro(peripheral, this.noble);
+            break;
           case SwitchBotBLEModel.BlindTilt:
             device = new WoBlindTilt(peripheral, this.noble);
             break;
@@ -381,6 +387,9 @@ export class SwitchBot {
      *              |         |          | If "o" is specified, the `onadvertisement`
      *              |         |          | event handler will be called only when advertising
      *              |         |          | packets comes from Smart Lock.
+     *              |         |          | If "$" is specified, the `onadvertisement`
+     *              |         |          | event handler will be called only when advertising
+     *              |         |          | packets comes from Smart Lock Pro.
      *              |         |          | If "i" is specified, the `onadvertisement`
      *              |         |          | event handler will be called only when advertising
      *              |         |          | packets comes from Meter Plus.
@@ -424,6 +433,7 @@ export class SwitchBot {
               SwitchBotBLEModel.PlugMiniUS,
               SwitchBotBLEModel.PlugMiniJP,
               SwitchBotBLEModel.Lock,
+              SwitchBotBLEModel.LockPro,
               SwitchBotBLEModel.BlindTilt,
             ],
           },
