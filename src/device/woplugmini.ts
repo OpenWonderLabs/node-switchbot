@@ -76,6 +76,7 @@ export class WoPlugMini extends SwitchbotDevice {
     const data = {
       model: SwitchBotBLEModel.PlugMiniJP,
       modelName: SwitchBotBLEModelName.PlugMini,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.PlugMini,
       state: state,
       delay: delay,
       timer: timer,
