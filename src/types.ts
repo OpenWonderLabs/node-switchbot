@@ -2,7 +2,7 @@
  *
  * util.ts: @switchbot/homebridge-switchbot platform class.
  */
-export type SwitchBotBLEDevice = {
+export declare type SwitchBotBLEDevice = {
   Bot: {
     Model: SwitchBotModel.Bot,
     BLEModel: SwitchBotBLEModel.Bot,
