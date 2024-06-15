@@ -15,6 +15,7 @@ import { WoHub2 } from './device/wohub2.js';
 import { WoHumi } from './device/wohumi.js';
 import { WoPlugMini } from './device/woplugmini.js';
 import { WoBulb } from './device/wobulb.js';
+import { WoCeilingLight } from './device/woceilinglight.js';
 import { WoStrip } from './device/wostrip.js';
 import { WoSmartLock } from './device/wosmartlock.js';
 import { WoSmartLockPro } from './device/wosmartlockpro.js';
@@ -147,6 +148,12 @@ export class Advertising {
         break;
       case SwitchBotBLEModel.ColorBulb:
         sd = WoBulb.parseServiceData(manufacturerData, onlog);
+        break;
+      case SwitchBotBLEModel.CeilingLight:
+        sd = WoCeilingLight.parseServiceData(manufacturerData, onlog);
+        break;
+      case SwitchBotBLEModel.CeilingLightPro:
+        sd = WoCeilingLight.parseServiceData_Pro(manufacturerData, onlog);
         break;
       case SwitchBotBLEModel.StripLight:
         sd = WoStrip.parseServiceData(buf, onlog);

@@ -18,6 +18,7 @@ import { WoHub2 } from './device/wohub2.js';
 import { WoHumi } from './device/wohumi.js';
 import { WoPlugMini } from './device/woplugmini.js';
 import { WoBulb } from './device/wobulb.js';
+import { WoCeilingLight } from './device/woceilinglight.js';
 import { WoStrip } from './device/wostrip.js';
 import { WoSmartLock } from './device/wosmartlock.js';
 import { WoSmartLockPro } from './device/wosmartlockpro.js';
@@ -130,6 +131,8 @@ export class SwitchBot {
               SwitchBotBLEModel.MotionSensor,
               SwitchBotBLEModel.ContactSensor,
               SwitchBotBLEModel.ColorBulb,
+              SwitchBotBLEModel.CeilingLight,
+              SwitchBotBLEModel.CeilingLightPro,
               SwitchBotBLEModel.StripLight,
               SwitchBotBLEModel.PlugMiniUS,
               SwitchBotBLEModel.PlugMiniJP,
@@ -302,6 +305,12 @@ export class SwitchBot {
           case SwitchBotBLEModel.ColorBulb:
             device = new WoBulb(peripheral, this.noble);
             break;
+          case SwitchBotBLEModel.CeilingLight:
+            device = new WoCeilingLight(peripheral, this.noble);
+            break;
+          case SwitchBotBLEModel.CeilingLightPro:
+            device = new WoCeilingLight(peripheral, this.noble);
+            break;
           case SwitchBotBLEModel.StripLight:
             device = new WoStrip(peripheral, this.noble);
             break;
@@ -429,6 +438,8 @@ export class SwitchBot {
               SwitchBotBLEModel.MotionSensor,
               SwitchBotBLEModel.ContactSensor,
               SwitchBotBLEModel.ColorBulb,
+              SwitchBotBLEModel.CeilingLight,
+              SwitchBotBLEModel.CeilingLightPro,
               SwitchBotBLEModel.StripLight,
               SwitchBotBLEModel.PlugMiniUS,
               SwitchBotBLEModel.PlugMiniJP,
