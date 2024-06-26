@@ -3,6 +3,7 @@
  * wocurtain.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
+import { SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js';
 
 export class WoCurtain extends SwitchbotDevice {
   static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
@@ -25,11 +26,14 @@ export class WoCurtain extends SwitchbotDevice {
     const currPosition = byte3 & 0b01111111; // current positon %
     const lightLevel = (byte4 >> 4) & 0b00001111; // light sensor level (1-10)
     const deviceChain = byte4 & 0b00000111;
-    const model = buf.slice(0, 1).toString('utf8');
+    const model = buf.subarray(0, 1).toString('utf8');
+    const modelName = model === 'c' ? SwitchBotBLEModelName.Curtain : SwitchBotBLEModelName.Curtain3;
+    const modelFriendlyName = model === 'c' ? SwitchBotBLEModelFriendlyName.Curtain : SwitchBotBLEModelFriendlyName.Curtain3;
 
     const data = {
       model: model,
-      modelName: 'WoCurtain',
+      modelName: modelName,
+      modelFriendlyName: modelFriendlyName,
       calibration: calibration,
       battery: battery,
       inMotion: inMotion,

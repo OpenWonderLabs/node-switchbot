@@ -1,6 +1,6 @@
 {
   "name": "node-switchbot",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "The node-switchbot is a Node.js module which allows you to control your Switchbot Devices through Bluetooth (BLE).",
   "homepage": "https://github.com/OpenWonderLabs/node-switchbot",
   "author": "OpenWonderLabs (https://github.com/OpenWonderLabs)",
@@ -36,25 +36,25 @@
   ],
   "readmeFilename": "README.md",
   "dependencies": {
-    "@abandonware/noble": "^1.9.2-25"
+    "@stoprocent/noble": "^1.14.1"
   },
   "optionalDependencies": {
-    "@abandonware/bluetooth-hci-socket": "^0.5.3-12"
+    "@stoprocent/bluetooth-hci-socket": "^1.2.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.3.0",
-    "@stylistic/eslint-plugin-js": "^2.1.0",
+    "@eslint/js": "^9.5.0",
+    "@stylistic/eslint-plugin": "^2.3.0",
     "@types/eslint__js": "^8.42.3",
-    "@types/node": "^20.12.12",
-    "eslint": "^9.3.0",
-    "globals": "^15.3.0",
-    "homebridge": "^1.8.2",
-    "homebridge-config-ui-x": "4.56.2",
-    "nodemon": "^3.1.1",
+    "@types/node": "^20.14.9",
+    "eslint": "^9.5.0",
+    "globals": "^15.6.0",
+    "homebridge": "^1.8.3",
+    "homebridge-config-ui-x": "4.56.4",
+    "nodemon": "^3.1.4",
     "npm-check-updates": "^16.14.20",
     "rimraf": "^5.0.7",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5",
-    "typescript-eslint": "^8.0.0-alpha.13"
+    "typescript": "^5.5.2",
+    "typescript-eslint": "^8.0.0-alpha.33"
   }
 }
