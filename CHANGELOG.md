@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
-## [2.2.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v2.2.0) (2024-XX-XX)
+## [2.2.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v2.2.0) (2024-06-25)
 
 ### What's Changed
 - Add Model Friendly Name for each deviceType
