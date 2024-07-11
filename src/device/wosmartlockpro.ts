@@ -14,11 +14,11 @@ export class WoSmartLockPro extends SwitchbotDevice {
 
   static COMMAND_GET_CK_IV = '570f2103';
   static COMMAND_LOCK_INFO = '570f4f8102';
-  static COMMAND_UNLOCK = '0f4e0101000080';
-  static COMMAND_UNLOCK_NO_UNLATCH = '0f4e01010000a0';
-  static COMMAND_LOCK = '0f4e0101000000';
-  static COMMAND_ENABLE_NOTIFICATIONS = '0e01001e00008101';
-  static COMMAND_DISABLE_NOTIFICATIONS = '0e00';
+  static COMMAND_UNLOCK = '570f4e0101000080';
+  static COMMAND_UNLOCK_NO_UNLATCH = '570f4e01010000a0';
+  static COMMAND_LOCK = '570f4e0101000000';
+  static COMMAND_ENABLE_NOTIFICATIONS = '570e01001e00008101';
+  static COMMAND_DISABLE_NOTIFICATIONS = '570e00';
 
   static Result = {
     ERROR: 0x00,
@@ -52,7 +52,7 @@ export class WoSmartLockPro extends SwitchbotDevice {
         return 'LOCKING_STOP';
       case 0b1010000:
         return 'UNLOCKING_STOP';
-      case 0b1100000: //Only EU lock type
+      case 0b01100000: //Only EU lock type
         return 'NOT_FULLY_LOCKED';
       default:
         return 'UNKNOWN';
@@ -72,19 +72,23 @@ export class WoSmartLockPro extends SwitchbotDevice {
     // adv data needs both service data and manufacturer data
     // byte var names based on documentation
     const byte2 = serviceData.readUInt8(2);
-    const byte15 = manufacturerData.readUInt8(9);
-    const byte16 = manufacturerData.readUInt8(10);
+    const byte7 = manufacturerData.readUInt8(7);
+    const byte8 = manufacturerData.readUInt8(8);
+    const byte9 = manufacturerData.readUInt8(9);
+    const byte11 = manufacturerData.readUInt8(11);
 
     const battery = byte2 & 0b01111111; // %
-    const calibration = byte15 & 0b10000000 ? true : false;
-    const status = WoSmartLockPro.getLockStatus(byte15 & 0b01110000);
-    const update_from_secondary_lock = byte15 & 0b00001000 ? true : false;
-    const door_open = byte15 & 0b00000100 ? true : false;
-    const double_lock_mode = byte16 & 0b10000000 ? true : false;
-    const unclosed_alarm = byte16 & 0b00100000 ? true : false;
-    const unlocked_alarm = byte16 & 0b00010000 ? true : false;
-    const auto_lock_paused = byte16 & 0b00000010 ? true : false;
-    const night_latch = manufacturerData.length > 11 && manufacturerData.readUInt8(11) & 0b00000001 ? true : false;
+    const calibration = byte7 & 0b10000000 ? true : false;
+    const status = WoSmartLockPro.getLockStatus((byte7 & 0b00111000) >> 3);
+    const door_open = byte8 & 0b01100000 ? true : false;
+    // Double lock mode is not supported on Lock Pro
+    const update_from_secondary_lock = false; // byte7 & 0b00001000 ? true : false;
+    const double_lock_mode = false; // byte8 & 0b10000000 ? true : false;
+    const unclosed_alarm = byte11 & 0b10000000 ? true : false;
+    const unlocked_alarm = byte11 & 0b01000000 ? true : false;
+    const auto_lock_paused = byte8 & 0b100000 ? true : false;
+    const night_latch = byte9 & 0b00000001 ? true : false;
+    // const manual = byte7 & 0b100000;
 
     const data = {
       model: SwitchBotBLEModel.LockPro,
@@ -210,11 +214,11 @@ export class WoSmartLockPro extends SwitchbotDevice {
       this._operateLock(WoSmartLockPro.COMMAND_LOCK_INFO)
         .then(resBuf => {
           const data = {
-            'calibration': Boolean(resBuf[1] & 0b10000000),
-            'status': WoSmartLockPro.getLockStatus((resBuf[1] & 0b01110000)),
-            'door_open': Boolean(resBuf[1] & 0b00000100),
-            'unclosed_alarm': Boolean(resBuf[2] & 0b00100000),
-            'unlocked_alarm': Boolean(resBuf[2] & 0b00010000),
+            'calibration': Boolean(resBuf[0] & 0b10000000),
+            'status': WoSmartLockPro.getLockStatus((resBuf[0] & 0b01110000) >> 4),
+            'door_open': Boolean(resBuf[0] & 0b00000100),
+            'unclosed_alarm': Boolean(resBuf[1] & 0b00100000),
+            'unlocked_alarm': Boolean(resBuf[1] & 0b00010000),
           };
           resolve(data);
         }).catch((error) => {
