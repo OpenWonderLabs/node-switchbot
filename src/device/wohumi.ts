@@ -22,6 +22,7 @@ export class WoHumi extends SwitchbotDevice {
     const onState = byte1 & 0b10000000 ? true : false; // 1 - on
     const autoMode = byte4 & 0b10000000 ? true : false; // 1 - auto
     const percentage = byte4 & 0b01111111; // 0-100%, 101/102/103 - Quick gear 1/2/3
+    const humidity = autoMode ? 0 : percentage === 101 ? 33 : percentage === 102 ? 66 : percentage === 103 ? 100 : percentage;
 
     const data = {
       model: SwitchBotBLEModel.Humidifier,
@@ -30,6 +31,7 @@ export class WoHumi extends SwitchbotDevice {
       onState: onState,
       autoMode: autoMode,
       percentage: autoMode ? 0 : percentage,
+      humidity: humidity,
     };
 
     return data;
