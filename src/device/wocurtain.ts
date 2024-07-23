@@ -3,32 +3,49 @@
  * wocurtain.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js';
+import { SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
 
 export class WoCurtain extends SwitchbotDevice {
-  static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
-    if (buf.length !== 5 && buf.length !== 6) {
+  static async parseServiceData(
+    serviceData: Buffer,
+    manufacturerData: Buffer,
+    onlog: ((message: string) => void) | undefined, reverse: boolean = false,
+  ): Promise<object | null> {
+    if (serviceData.length !== 5 && serviceData.length !== 6) {
       if (onlog && typeof onlog === 'function') {
-        onlog(
-          `[parseServiceDataForWoCurtain] Buffer length ${buf.length} !== 5 or 6!`,
-        );
+        onlog(`[parseServiceDataForWoCurtain] Buffer length ${serviceData.length} !== 5 or 6!`);
       }
       return null;
     }
-    const byte1 = buf.readUInt8(1);
-    const byte2 = buf.readUInt8(2);
-    const byte3 = buf.readUInt8(3);
-    const byte4 = buf.readUInt8(4);
 
-    const calibration = byte1 & 0b01000000 ? true : false; // Whether the calibration is compconsted
-    const battery = byte2 & 0b01111111; // %
-    const inMotion = byte3 & 0b10000000 ? true : false;
-    const currPosition = byte3 & 0b01111111; // current positon %
-    const lightLevel = (byte4 >> 4) & 0b00001111; // light sensor level (1-10)
-    const deviceChain = byte4 & 0b00000111;
-    const model = buf.subarray(0, 1).toString('utf8');
+    const byte1 = serviceData.readUInt8(1);
+    const byte2 = serviceData.readUInt8(2);
+
+    let deviceData: Buffer;
+    let batteryData: number | null = null;
+
+    if (manufacturerData && manufacturerData.length >= 13) { // Curtain 3
+      deviceData = manufacturerData.subarray(8, 11);
+      batteryData = manufacturerData.readUInt8(12);
+    } else if (manufacturerData && manufacturerData.length >= 11) {
+      deviceData = manufacturerData.subarray(8, 11);
+      batteryData = serviceData ? byte2 : null;
+    } else if (serviceData) {
+      deviceData = serviceData.subarray(3, 6);
+      batteryData = byte2;
+    } else {
+      return {};
+    }
+
+    const model = serviceData.subarray(0, 1).toString('utf8');
     const modelName = model === 'c' ? SwitchBotBLEModelName.Curtain : SwitchBotBLEModelName.Curtain3;
     const modelFriendlyName = model === 'c' ? SwitchBotBLEModelFriendlyName.Curtain : SwitchBotBLEModelFriendlyName.Curtain3;
+    const calibration = serviceData ? Boolean(byte1 & 0b01000000) : null; // Whether the calibration is compconsted
+    const position = Math.max(Math.min(deviceData.readUInt8(0) & 0b01111111, 100), 0); // current positon %
+    const inMotion = Boolean(deviceData.readUInt8(0) & 0b10000000);
+    const lightLevel = (deviceData.readUInt8(1) >> 4) & 0b00001111; // light sensor level (1-10)
+    const deviceChain = deviceData.readUInt8(1) & 0b00000111;
+    const battery = batteryData !== null ? batteryData & 0b01111111 : null;
 
     const data = {
       model: model,
@@ -37,7 +54,7 @@ export class WoCurtain extends SwitchbotDevice {
       calibration: calibration,
       battery: battery,
       inMotion: inMotion,
-      position: currPosition,
+      position: reverse ? 100 - position : position,
       lightLevel: lightLevel,
       deviceChain: deviceChain,
     };
@@ -56,8 +73,8 @@ export class WoCurtain extends SwitchbotDevice {
    * - Promise object
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
-  open(mode?: number) {
-    return this.runToPos(0, mode);
+  async open(mode?: number) {
+    return await this.runToPos(0, mode);
   }
 
   /* ------------------------------------------------------------------
@@ -71,8 +88,8 @@ export class WoCurtain extends SwitchbotDevice {
    * - Promise object
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
-  close(mode?: number) {
-    return this.runToPos(100, mode);
+  async close(mode?: number) {
+    return await this.runToPos(100, mode);
   }
 
   /* ------------------------------------------------------------------
@@ -86,8 +103,8 @@ export class WoCurtain extends SwitchbotDevice {
    * - Promise object
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
-  pause() {
-    return this._operateCurtain([0x57, 0x0f, 0x45, 0x01, 0x00, 0xff]);
+  async pause() {
+    return await this.operateCurtain([0x57, 0x0f, 0x45, 0x01, 0x00, 0xff]);
   }
 
   /* ------------------------------------------------------------------
@@ -102,23 +119,12 @@ export class WoCurtain extends SwitchbotDevice {
    * - Promise object
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
-  runToPos(percent: number, mode = 0xff) {
+  async runToPos(percent: number, mode = 0xff) {
     if (typeof percent !== 'number') {
-      return new Promise((resolve, reject) => {
-        reject(
-          new Error(
-            'The type of target position percentage is incorrect: ' +
-            typeof percent,
-          ),
-        );
-      });
+      throw new Error('The type of target position percentage is incorrect: ' + typeof percent);
     }
     if (typeof mode !== 'number') {
-      return new Promise((resolve, reject) => {
-        reject(
-          new Error('The type of running mode is incorrect: ' + typeof mode),
-        );
-      });
+      throw new Error('The type of running mode is incorrect: ' + typeof mode);
     }
     if (mode > 1) {
       mode = 0xff;
@@ -128,28 +134,22 @@ export class WoCurtain extends SwitchbotDevice {
     } else if (percent < 0) {
       percent = 0;
     }
-    return this._operateCurtain([0x57, 0x0f, 0x45, 0x01, 0x05, mode, percent]);
+    return await this.operateCurtain([0x57, 0x0f, 0x45, 0x01, 0x05, mode, percent]);
   }
 
-  _operateCurtain(bytes: number[]) {
-    return new Promise<void>((resolve, reject) => {
-      const req_buf = Buffer.from(bytes);
-      this._command(req_buf)
-        .then((res_buf) => {
-          const code = res_buf.readUInt8(0);
-          if (res_buf.length === 3 && code === 0x01) {
-            resolve();
-          } else {
-            reject(
-              new Error(
-                'The device returned an error: 0x' + res_buf.toString('hex'),
-              ),
-            );
-          }
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
+  async operateCurtain(bytes: number[]) {
+    const req_buf = Buffer.from(bytes);
+    await this.command(req_buf)
+      .then((res_buf) => {
+        const code = res_buf.readUInt8(0);
+        if (res_buf.length === 3 && code === 0x01) {
+          return;
+        } else {
+          throw new Error('The device returned an error: 0x' + res_buf.toString('hex'));
+        }
+      })
+      .catch ((error) => {
+        throw error;
+      });
   }
 }

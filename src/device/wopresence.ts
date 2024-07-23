@@ -3,22 +3,24 @@
  * wopresence.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js';
+import { motionSensorServiceData } from '../types/bledevicestatus.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
 
 export class WoPresence extends SwitchbotDevice {
-  static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
-    if (buf.length !== 6) {
+  static async parseServiceData(
+    serviceData: Buffer,
+    onlog: ((message: string) => void) | undefined,
+  ): Promise<motionSensorServiceData | null> {
+    if (serviceData.length !== 6) {
       if (onlog && typeof onlog === 'function') {
-        onlog(
-          `[parseServiceDataForWoPresence] Buffer length ${buf.length} !== 6!`,
-        );
+        onlog(`[parseServiceDataForWoPresence] Buffer length ${serviceData.length} !== 6!`);
       }
       return null;
     }
 
-    const byte1 = buf.readUInt8(1);
-    const byte2 = buf.readUInt8(2);
-    const byte5 = buf.readUInt8(5);
+    const byte1 = serviceData.readUInt8(1);
+    const byte2 = serviceData.readUInt8(2);
+    const byte5 = serviceData.readUInt8(5);
 
     const tested = byte1 & 0b10000000 ? true : false;
     const movement = byte1 & 0b01000000 ? true : false;
@@ -29,7 +31,7 @@ export class WoPresence extends SwitchbotDevice {
     const lightLevel = byte5 & 0b00000011;
     const is_light = byte5 & 0b00000010 ? true : false;
 
-    const data = {
+    const data: motionSensorServiceData = {
       model: SwitchBotBLEModel.MotionSensor,
       modelName: SwitchBotBLEModelName.MotionSensor,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.MotionSensor,
@@ -39,8 +41,7 @@ export class WoPresence extends SwitchbotDevice {
       led: led,
       iot: iot,
       sense_distance: sense_distance,
-      lightLevel:
-                lightLevel === 1 ? 'dark' : lightLevel === 2 ? 'bright' : 'unknown',
+      lightLevel: lightLevel === 1 ? 'dark' : lightLevel === 2 ? 'bright' : 'unknown',
       is_light: is_light,
     };
 

@@ -3,31 +3,31 @@
  * woiosensorth.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
 
 export class WoIOSensorTH extends SwitchbotDevice {
-  static parseServiceData(serviceDataBuf: Buffer, manufacturerDataBuf: Buffer, onlog: ((message: string) => void) | undefined) {
-    if (serviceDataBuf.length !== 3) {
+  static async parseServiceData(
+    serviceData: Buffer,
+    manufacturerData: Buffer,
+    onlog: ((message: string) => void) | undefined,
+  ): Promise<object | null> {
+    if (serviceData.length !== 3) {
       if (onlog && typeof onlog === 'function') {
-        onlog(
-          `[parseServiceDataForWoIOSensorTH] Service Data Buffer length ${serviceDataBuf.length} !== 3!`,
-        );
+        onlog(`[parseServiceDataForWoIOSensorTH] Service Data Buffer length ${serviceData.length} !== 3!`);
       }
       return null;
     }
-    if (manufacturerDataBuf.length !== 14) {
+    if (manufacturerData.length !== 14) {
       if (onlog && typeof onlog === 'function') {
-        onlog(
-          `[parseServiceDataForWoIOSensorTH] Manufacturer Data Buffer length ${manufacturerDataBuf.length} !== 14!`,
-        );
+        onlog(`[parseServiceDataForWoIOSensorTH] Manufacturer Data Buffer length ${manufacturerData.length} !== 14!`);
       }
       return null;
     }
-    const mdByte10 = manufacturerDataBuf.readUInt8(10);
-    const mdByte11 = manufacturerDataBuf.readUInt8(11);
-    const mdByte12 = manufacturerDataBuf.readUInt8(12);
+    const mdByte10 = manufacturerData.readUInt8(10);
+    const mdByte11 = manufacturerData.readUInt8(11);
+    const mdByte12 = manufacturerData.readUInt8(12);
 
-    const sdByte2 = serviceDataBuf.readUInt8(2);
+    const sdByte2 = serviceData.readUInt8(2);
 
     const temp_sign = mdByte11 & 0b10000000 ? 1 : -1;
     const temp_c = temp_sign * ((mdByte11 & 0b01111111) + (mdByte10 & 0b00001111) / 10);

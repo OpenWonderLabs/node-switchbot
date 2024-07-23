@@ -3,15 +3,16 @@
  * wohub2.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
 
 export class WoHub2 extends SwitchbotDevice {
-  static parseServiceData(manufacturerData: Buffer, onlog: ((message: string) => void) | undefined) {
+  static async parseServiceData(
+    manufacturerData: Buffer,
+    onlog: ((message: string) => void) | undefined,
+  ): Promise<object | null> {
     if (manufacturerData.length !== 16) {
       if (onlog && typeof onlog === 'function') {
-        onlog(
-          `[parseServiceDataForWoSensorTH] Buffer length ${manufacturerData.length} !== 16!`,
-        );
+        onlog(`[parseServiceDataForWoSensorTH] Buffer length ${manufacturerData.length} !== 16!`);
       }
       return null;
     }

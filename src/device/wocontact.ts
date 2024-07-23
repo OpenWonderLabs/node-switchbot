@@ -3,23 +3,24 @@
  * wocontact.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
 
 export class WoContact extends SwitchbotDevice {
-  static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
-    if (buf.length !== 9) {
+  static async parseServiceData(
+    serviceData: Buffer,
+    onlog: ((message: string) => void) | undefined,
+  ): Promise<object | null> {
+    if (serviceData.length !== 9) {
       if (onlog && typeof onlog === 'function') {
-        onlog(
-          `[parseServiceDataForWoContact] Buffer length ${buf.length} !== 9!`,
-        );
+        onlog(`[parseServiceDataForWoContact] Buffer length ${serviceData.length} !== 9!`);
       }
       return null;
     }
 
-    const byte1 = buf.readUInt8(1);
-    const byte2 = buf.readUInt8(2);
-    const byte3 = buf.readUInt8(3);
-    const byte8 = buf.readUInt8(8);
+    const byte1 = serviceData.readUInt8(1);
+    const byte2 = serviceData.readUInt8(2);
+    const byte3 = serviceData.readUInt8(3);
+    const byte8 = serviceData.readUInt8(8);
 
     const hallState = (byte3 >> 1) & 0b00000011;
     const tested = byte1 & 0b10000000;

@@ -19,173 +19,121 @@ import { WoCeilingLight } from './device/woceilinglight.js';
 import { WoStrip } from './device/wostrip.js';
 import { WoSmartLock } from './device/wosmartlock.js';
 import { WoSmartLockPro } from './device/wosmartlockpro.js';
-import { SwitchBotBLEModel } from './types.js';
+import { SwitchBotBLEModel } from './types/types.js';
 
 export type Ad = {
   id: string;
   address: string;
   rssi: number,
-  serviceData: Record<string, unknown>;
+  serviceData: object;
 } | null;
+
+export type AdvertisementData = {
+  serviceData: Buffer | null;
+  manufacturerData: Buffer | null;
+}
 
 export class Advertising {
 
   constructor() { }
 
-  /* ------------------------------------------------------------------
-   * parse(peripheral)
-   * - Parse advertising packets coming from switchbot devices
-   *
-   * [Arguments]
-   * - peripheral | Object  | Required | A `Peripheral` object of noble
-   *
-   * [Return value]
-   * - An object as follows:
-   *
-   * WoHand
-   * {
-   *   id: 'c12e453e2008',
-   *   address: 'c1:2e:45:3e:20:08',
-   *   rssi: -43,
-   *   serviceData: {
-   *     model: 'H',
-   *     modelName: 'WoHand',
-   *     mode: false,
-   *     state: false,
-   *     battery: 95
-   *   }
-   * }
-   *
-   * WoSensorTH
-   * {
-   *   id: 'cb4eb903c96d',
-   *   address: 'cb:4e:b9:03:c9:6d',
-   *   rssi: -54,
-   *   serviceData: {
-   *     model: 'T',
-   *     modelName: 'WoSensorTH',
-   *     temperature: { c: 26.2, f: 79.2 },
-   *     fahrenheit: false,
-   *     humidity: 45,
-   *     battery: 100
-   *   }
-   * }
-   *
-   * WoCurtain
-   * {
-   *   id: 'ec58c5d00111',
-   *   address: 'ec:58:c5:d0:01:11',
-   *   rssi: -39,
-   *   serviceData: {
-   *     model: 'c',
-   *     modelName: 'WoCurtain',
-   *     calibration: true,
-   *     battery: 91,
-   *     position: 1,
-   *     lightLevel: 1
-   *   }
-   * }
-   *
-   * If the specified `Peripheral` does not represent any switchbot
-   * device, this method will return `null`.
-   * ---------------------------------------------------------------- */
   /**
-   * Parses the advertisement data of a peripheral device.
+   * Parses the advertisement data coming from SwitchBot device.
    *
-   * @param peripheral - The peripheral device.
-   * @param onlog - The logging function.
-   * @returns The parsed data of the peripheral device.
+   * This function processes advertising packets received from SwitchBot devices
+   * and extracts relevant information based on the device type.
+   *
+   * @param peripheral - The peripheral device object from noble.
+   * @param onlog - A logging function for debugging purposes.
+   * @returns An object containing parsed data specific to the SwitchBot device type, or `null` if the device is not recognized.
    */
-  static parse(peripheral: Peripheral, onlog?: (message: string) => void) {
+  static async parse(
+    peripheral: Peripheral,
+    onlog?: (message: string) => void,
+  ): Promise<Ad> {
     const ad = peripheral.advertisement;
     if (!ad || !ad.serviceData) {
       return null;
     }
-    const serviceData = ad.serviceData[0] || ad.serviceData;
+    const adServiceData = ad.serviceData[0] || ad.serviceData;
     const manufacturerData = ad.manufacturerData;
-    const buf = serviceData.data;
+    const serviceData = adServiceData.data;
 
-    const bufIsInvalid = !buf || !Buffer.isBuffer(buf) || buf.length < 3;
-    const manufacturerDataIsInvalid =
-      !manufacturerData ||
-      !Buffer.isBuffer(manufacturerData) ||
-      manufacturerData.length < 3;
+    function validateBuffer(buffer: any): boolean {
+      return buffer && Buffer.isBuffer(buffer) && buffer.length >= 3;
+    }
 
-    if (bufIsInvalid || manufacturerDataIsInvalid) {
+    if (!validateBuffer(serviceData) || !validateBuffer(manufacturerData)) {
       return null;
     }
 
-    const model = buf.subarray(0, 1).toString('utf8');
+    const model = serviceData.subarray(0, 1).toString('utf8');
     let sd;
     switch (model) {
       case SwitchBotBLEModel.Bot:
-        sd = WoHand.parseServiceData(buf, onlog);
+        sd = await WoHand.parseServiceData(serviceData, onlog);
         break;
       case SwitchBotBLEModel.Curtain:
       case SwitchBotBLEModel.Curtain3:
-        sd = WoCurtain.parseServiceData(buf, onlog);
+        sd = await WoCurtain.parseServiceData(serviceData, manufacturerData, onlog);
         break;
       case SwitchBotBLEModel.Humidifier:
-        sd = WoHumi.parseServiceData(buf, onlog);
+        sd = await WoHumi.parseServiceData(serviceData, onlog);
         break;
       case SwitchBotBLEModel.Meter:
-        sd = WoSensorTH.parseServiceData(buf, onlog);
+        sd = await WoSensorTH.parseServiceData(serviceData, onlog);
         break;
       case SwitchBotBLEModel.MeterPlus:
-        sd = WoSensorTH.parseServiceData_Plus(buf, onlog);
+        sd = await WoSensorTH.parseServiceData_Plus(serviceData, onlog);
         break;
       case SwitchBotBLEModel.Hub2:
-        sd = WoHub2.parseServiceData(manufacturerData, onlog);
+        sd = await WoHub2.parseServiceData(manufacturerData, onlog);
         break;
       case SwitchBotBLEModel.OutdoorMeter:
-        sd = WoIOSensorTH.parseServiceData(buf, manufacturerData, onlog);
+        sd = await WoIOSensorTH.parseServiceData(serviceData, manufacturerData, onlog);
         break;
       case SwitchBotBLEModel.MotionSensor:
-        sd = WoPresence.parseServiceData(buf, onlog);
+        sd = await WoPresence.parseServiceData(serviceData, onlog);
         break;
       case SwitchBotBLEModel.ContactSensor:
-        sd = WoContact.parseServiceData(buf, onlog);
+        sd = await WoContact.parseServiceData(serviceData, onlog);
         break;
       case SwitchBotBLEModel.ColorBulb:
-        sd = WoBulb.parseServiceData(manufacturerData, onlog);
+        sd = await WoBulb.parseServiceData(serviceData, manufacturerData, onlog);
         break;
       case SwitchBotBLEModel.CeilingLight:
-        sd = WoCeilingLight.parseServiceData(manufacturerData, onlog);
+        sd = await WoCeilingLight.parseServiceData(manufacturerData, onlog);
         break;
       case SwitchBotBLEModel.CeilingLightPro:
-        sd = WoCeilingLight.parseServiceData_Pro(manufacturerData, onlog);
+        sd = await WoCeilingLight.parseServiceData_Pro(manufacturerData, onlog);
         break;
       case SwitchBotBLEModel.StripLight:
-        sd = WoStrip.parseServiceData(buf, onlog);
+        sd = await WoStrip.parseServiceData(serviceData, onlog);
         break;
       case SwitchBotBLEModel.PlugMiniUS:
-        sd = WoPlugMini.parseServiceData_US(manufacturerData, onlog);
+        sd = await WoPlugMini.parseServiceData_US(manufacturerData, onlog);
         break;
       case SwitchBotBLEModel.PlugMiniJP:
-        sd = WoPlugMini.parseServiceData_JP(manufacturerData, onlog);
+        sd = await WoPlugMini.parseServiceData_JP(manufacturerData, onlog);
         break;
       case SwitchBotBLEModel.Lock:
-        sd = WoSmartLock.parseServiceData(buf, manufacturerData, onlog);
+        sd = await WoSmartLock.parseServiceData(serviceData, manufacturerData, onlog);
         break;
       case SwitchBotBLEModel.LockPro:
-        sd = WoSmartLockPro.parseServiceData(buf, manufacturerData, onlog);
+        sd = await WoSmartLockPro.parseServiceData(serviceData, manufacturerData, onlog);
         break;
       case SwitchBotBLEModel.BlindTilt:
-        sd = WoBlindTilt.parseServiceData(buf, onlog);
+        sd = await WoBlindTilt.parseServiceData(serviceData, manufacturerData, onlog);
         break;
       default:
         if (onlog && typeof onlog === 'function') {
-          onlog(
-            `[parseAdvertising.${peripheral.id}] return null, model "${model}" not available!`,
-          );
+          onlog(`[parseAdvertising.${peripheral.id}] return null, model "${model}" not available!`);
         }
         return null;
     }
     if (!sd) {
       if (onlog && typeof onlog === 'function') {
-        onlog(
-          `[parseAdvertising.${peripheral.id}.${model}] return null, parsed serviceData empty!`,
-        );
+        onlog(`[parseAdvertising.${peripheral.id}.${model}] return null, parsed serviceData empty!`);
       }
       return null;
     }
@@ -195,9 +143,9 @@ export class Advertising {
         .toString('hex')
         .slice(4, 16);
       if (str !== '') {
-        address = str.substr(0, 2);
+        address = str.substring(0, 2);
         for (let i = 2; i < str.length; i += 2) {
-          address = address + ':' + str.substr(i, 2);
+          address = address + ':' + str.substring(i, i + 2);
         }
       }
     } else {
@@ -211,11 +159,7 @@ export class Advertising {
     };
 
     if (onlog && typeof onlog === 'function') {
-      onlog(
-        `[parseAdvertising.${peripheral.id}.${model}] return ${JSON.stringify(
-          data,
-        )}`,
-      );
+      onlog(`[parseAdvertising.${peripheral.id}.${model}] return ${JSON.stringify(data)}`);
     }
     return data;
   }

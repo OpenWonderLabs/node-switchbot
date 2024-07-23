@@ -3,20 +3,21 @@
  * wohumi.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
 
 export class WoHumi extends SwitchbotDevice {
-  static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
-    if (buf.length !== 8) {
+  static async parseServiceData(
+    serviceData: Buffer,
+    onlog: ((message: string) => void) | undefined,
+  ): Promise<object | null> {
+    if (serviceData.length !== 8) {
       if (onlog && typeof onlog === 'function') {
-        onlog(
-          `[parseServiceDataForWoHumi] Buffer length ${buf.length} !== 8!`,
-        );
+        onlog(`[parseServiceDataForWoHumi] Buffer length ${serviceData.length} !== 8!`);
       }
       return null;
     }
-    const byte1 = buf.readUInt8(1);
-    const byte4 = buf.readUInt8(4);
+    const byte1 = serviceData.readUInt8(1);
+    const byte4 = serviceData.readUInt8(4);
 
 
     const onState = byte1 & 0b10000000 ? true : false; // 1 - on
@@ -48,8 +49,8 @@ export class WoHumi extends SwitchbotDevice {
    * - Promise object
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
-  press() {
-    return this._operateBot([0x57, 0x01, 0x00]);
+  async press() {
+    return await this.operateHumi([0x57, 0x01, 0x00]);
   }
 
   /* ------------------------------------------------------------------
@@ -63,8 +64,8 @@ export class WoHumi extends SwitchbotDevice {
    * - Promise object
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
-  turnOn() {
-    return this._operateBot([0x57, 0x01, 0x01]);
+  async turnOn() {
+    return await this.operateHumi([0x57, 0x01, 0x01]);
   }
 
   /* ------------------------------------------------------------------
@@ -78,8 +79,8 @@ export class WoHumi extends SwitchbotDevice {
    * - Promise object
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
-  turnOff() {
-    return this._operateBot([0x57, 0x01, 0x02]);
+  async turnOff() {
+    return await this.operateHumi([0x57, 0x01, 0x02]);
   }
 
   /* ------------------------------------------------------------------
@@ -93,8 +94,8 @@ export class WoHumi extends SwitchbotDevice {
    * - Promise object
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
-  down() {
-    return this._operateBot([0x57, 0x01, 0x03]);
+  async down() {
+    return await this.operateHumi([0x57, 0x01, 0x03]);
   }
 
   /* ------------------------------------------------------------------
@@ -108,29 +109,23 @@ export class WoHumi extends SwitchbotDevice {
    * - Promise object
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
-  up() {
-    return this._operateBot([0x57, 0x01, 0x04]);
+  async up() {
+    return await this.operateHumi([0x57, 0x01, 0x04]);
   }
 
-  _operateBot(bytes: number[]) {
-    return new Promise<void>((resolve, reject) => {
-      const req_buf = Buffer.from(bytes);
-      this._command(req_buf)
-        .then((res_buf) => {
-          const code = res_buf.readUInt8(0);
-          if (res_buf.length === 3 && (code === 0x01 || code === 0x05)) {
-            resolve();
-          } else {
-            reject(
-              new Error(
-                'The device returned an error: 0x' + res_buf.toString('hex'),
-              ),
-            );
-          }
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
+  async operateHumi(bytes: number[]) {
+    const req_buf = Buffer.from(bytes);
+    await this.command(req_buf)
+      .then((res_buf) => {
+        const code = res_buf.readUInt8(0);
+        if (res_buf.length === 3 && (code === 0x01 || code === 0x05)) {
+          return;
+        } else {
+          throw new Error('The device returned an error: 0x' + res_buf.toString('hex'));
+        }
+      })
+      .catch((error) => {
+        throw error;
+      });
   }
 }

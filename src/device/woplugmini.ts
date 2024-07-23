@@ -3,18 +3,19 @@
  * woplugmini.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
 
 /**
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/plugmini.md
  */
 export class WoPlugMini extends SwitchbotDevice {
-  static parseServiceData_US(manufacturerData: Buffer, onlog: ((message: string) => void) | undefined) {
+  static async parseServiceData_US(
+    manufacturerData: Buffer,
+    onlog: ((message: string) => void) | undefined,
+  ): Promise<object | null> {
     if (manufacturerData.length !== 14) {
       if (onlog && typeof onlog === 'function') {
-        onlog(
-          `[parseServiceDataForWoPlugMiniUS] Buffer length ${manufacturerData.length} should be 14`,
-        );
+        onlog(`[parseServiceDataForWoPlugMiniUS] Buffer length ${manufacturerData.length} should be 14`);
       }
       return null;
     }
@@ -49,12 +50,13 @@ export class WoPlugMini extends SwitchbotDevice {
     return data;
   }
 
-  static parseServiceData_JP(manufacturerData: Buffer, onlog: ((message: string) => void) | undefined) {
+  static async parseServiceData_JP(
+    manufacturerData: Buffer,
+    onlog: ((message: string) => void) | undefined,
+  ): Promise<object | null> {
     if (manufacturerData.length !== 14) {
       if (onlog && typeof onlog === 'function') {
-        onlog(
-          `[parseServiceDataForWoPlugMiniJP] Buffer length ${manufacturerData.length} should be 14`,
-        );
+        onlog(`[parseServiceDataForWoPlugMiniJP] Buffer length ${manufacturerData.length} should be 14`);
       }
       return null;
     }
@@ -90,74 +92,60 @@ export class WoPlugMini extends SwitchbotDevice {
   }
 
   /**
-   * @returns {Promise<boolean>} resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
+   * @returns resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
    */
-  readState() {
-    return this._operateBot([0x57, 0x0f, 0x51, 0x01]);
+  async readState() {
+    return await this.operatePlug([0x57, 0x0f, 0x51, 0x01]);
   }
 
   /**
    * @private
    */
-  _setState(reqByteArray: number[]) {
+  async setState(reqByteArray: number[]) {
     const base = [0x57, 0x0f, 0x50, 0x01];
-    return this._operateBot([...base, ...reqByteArray]);
+    return await this.operatePlug([...base, ...reqByteArray]);
   }
 
   /**
-   * @returns {Promise<boolean>} resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
+   * @returns resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
    */
-  turnOn() {
-    return this._setState([0x01, 0x80]);
+  async turnOn() {
+    return await this.setState([0x01, 0x80]);
   }
 
   /**
-   * @returns {Promise<boolean>} resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
+   * @returns resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
    */
-  turnOff() {
-    return this._setState([0x01, 0x00]);
+  async turnOff() {
+    return await this.setState([0x01, 0x00]);
   }
 
   /**
-   * @returns {Promise<boolean>} resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
+   * @returns resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
    */
-  toggle() {
-    return this._setState([0x02, 0x80]);
+  async toggle() {
+    return await this.setState([0x02, 0x80]);
   }
 
-  /**
-   * @private
-   */
-  _operateBot(bytes: number[]) {
+  async operatePlug(bytes: number[]) {
     const req_buf = Buffer.from(bytes);
-    return new Promise((resolve, reject) => {
-      this._command(req_buf)
-        .then((res_bytes) => {
-          const res_buf = Buffer.from(res_bytes);
-          if (res_buf.length === 2) {
-            const code = res_buf.readUInt8(1);
-            if (code === 0x00 || code === 0x80) {
-              const is_on = code === 0x80;
-              resolve(is_on);
-            } else {
-              reject(
-                new Error(
-                  'The device returned an error: 0x' + res_buf.toString('hex'),
-                ),
-              );
-            }
+    await this.command(req_buf)
+      .then((res_bytes) => {
+        const res_buf = Buffer.from(res_bytes);
+        if (res_buf.length === 2) {
+          const code = res_buf.readUInt8(1);
+          if (code === 0x00 || code === 0x80) {
+            const is_on = code === 0x80;
+            return is_on;
           } else {
-            reject(
-              new Error(
-                'Expecting a 2-byte response, got instead: 0x' +
-                  res_buf.toString('hex'),
-              ),
-            );
+            throw new Error('The device returned an error: 0x' + res_buf.toString('hex'));
           }
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
+        } else {
+          throw new Error('Expecting a 2-byte response, got instead: 0x' + res_buf.toString('hex'));
+        }
+      })
+      .catch((error) => {
+        throw error;
+      });
   }
 }

@@ -3,31 +3,33 @@
  * wosensorth.ts: Switchbot BLE API registration.
  */
 import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js';
+import { meterPlusServiceData, meterServiceData } from '../types/bledevicestatus.js';
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
 
 export class WoSensorTH extends SwitchbotDevice {
-  static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
-    if (buf.length !== 6) {
+  static async parseServiceData(
+    serviceData: Buffer,
+    onlog: ((message: string) => void) | undefined,
+  ): Promise<meterServiceData | null> {
+    if (serviceData.length !== 6) {
       if (onlog && typeof onlog === 'function') {
-        onlog(
-          `[parseServiceDataForWoSensorTH] Buffer length ${buf.length} !== 6!`,
-        );
+        onlog(`[parseServiceDataForWoSensorTH] Buffer length ${serviceData.length} !== 6!`);
       }
       return null;
     }
-    const byte2 = buf.readUInt8(2);
-    const byte3 = buf.readUInt8(3);
-    const byte4 = buf.readUInt8(4);
-    const byte5 = buf.readUInt8(5);
+    const byte2 = serviceData.readUInt8(2);
+    const byte3 = serviceData.readUInt8(3);
+    const byte4 = serviceData.readUInt8(4);
+    const byte5 = serviceData.readUInt8(5);
 
     const temp_sign = byte4 & 0b10000000 ? 1 : -1;
     const temp_c = temp_sign * ((byte4 & 0b01111111) + (byte3 & 0b00001111) / 10);
     const temp_f = Math.round(((temp_c * 9 / 5) + 32) * 10) / 10;
 
-    const data = {
+    const data: meterServiceData = {
       model: SwitchBotBLEModel.Meter,
       modelName: SwitchBotBLEModelName.Meter,
-      modelFriendlyName: 'Meter',
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.Meter,
       temperature: {
         c: temp_c,
         f: temp_f,
@@ -40,28 +42,29 @@ export class WoSensorTH extends SwitchbotDevice {
     return data;
   }
 
-  static parseServiceData_Plus(buf: Buffer, onlog: ((message: string) => void) | undefined) {
-    if (buf.length !== 6) {
+  static async parseServiceData_Plus(
+    serviceData: Buffer,
+    onlog: ((message: string) => void) | undefined,
+  ): Promise<meterPlusServiceData | null> {
+    if (serviceData.length !== 6) {
       if (onlog && typeof onlog === 'function') {
-        onlog(
-          `[parseServiceDataForWoSensorTHPlus] Buffer length ${buf.length} !== 6!`,
-        );
+        onlog(`[parseServiceDataForWoSensorTHPlus] Buffer length ${serviceData.length} !== 6!`);
       }
       return null;
     }
-    const byte2 = buf.readUInt8(2);
-    const byte3 = buf.readUInt8(3);
-    const byte4 = buf.readUInt8(4);
-    const byte5 = buf.readUInt8(5);
+    const byte2 = serviceData.readUInt8(2);
+    const byte3 = serviceData.readUInt8(3);
+    const byte4 = serviceData.readUInt8(4);
+    const byte5 = serviceData.readUInt8(5);
 
     const temp_sign = byte4 & 0b10000000 ? 1 : -1;
     const temp_c = temp_sign * ((byte4 & 0b01111111) + (byte3 & 0b00001111) / 10);
     const temp_f = Math.round(((temp_c * 9 / 5) + 32) * 10) / 10;
 
-    const data = {
+    const data: meterPlusServiceData = {
       model: SwitchBotBLEModel.MeterPlus,
-      modelName: SwitchBotBLEModelName.Meter,
-      modelfriendlyName: SwitchBotBLEModelFriendlyName.Meter,
+      modelName: SwitchBotBLEModelName.MeterPlus,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterPlus,
       temperature: {
         c: temp_c,
         f: temp_f,

@@ -1,7 +1,12 @@
 /* Copyright(C) 2017-2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
- * util.ts: @switchbot/homebridge-switchbot platform class.
+ * types.ts: @switchbot/homebridge-switchbot platform class.
  */
+import type Noble from '@stoprocent/noble';
+
+
+export type MacAddress = string;
+
 export declare type SwitchBotBLEDevice = {
   Bot: {
     Model: SwitchBotModel.Bot,
@@ -232,4 +237,12 @@ export enum SwitchBotBLEModelFriendlyName {
   CeilingLight = 'Ceiling Light',
   CeilingLightPro = 'Ceiling Light Pro',
   Unknown = 'Unknown',
+}
+
+export type Params = {
+  duration?: number,
+  model?: string,
+  id?: string,
+  quick?: false,
+  noble?: typeof Noble,
 }
