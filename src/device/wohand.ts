@@ -2,8 +2,10 @@
  *
  * wohand.ts: Switchbot BLE API registration.
  */
-import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js';
+import { Buffer } from 'node:buffer'
+
+import { SwitchbotDevice } from '../device.js'
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js'
 
 export class WoHand extends SwitchbotDevice {
   static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
@@ -11,26 +13,26 @@ export class WoHand extends SwitchbotDevice {
       if (onlog && typeof onlog === 'function') {
         onlog(
           `[parseServiceData] Buffer length ${buf.length} !== 3!`,
-        );
+        )
       }
-      return null;
+      return null
     }
-    const byte1 = buf.readUInt8(1);
-    const byte2 = buf.readUInt8(2);
+    const byte1 = buf.readUInt8(1)
+    const byte2 = buf.readUInt8(2)
 
-    const mode = byte1 & 0b10000000 ? true : false; // Whether the light switch Add-on is used or not. 0 = press, 1 = switch
-    const state = byte1 & 0b01000000 ? false : true; // Whether the switch status is ON or OFF. 0 = on, 1 = off
-    const battery = byte2 & 0b01111111; // %
+    const mode = !!(byte1 & 0b10000000) // Whether the light switch Add-on is used or not. 0 = press, 1 = switch
+    const state = !(byte1 & 0b01000000) // Whether the switch status is ON or OFF. 0 = on, 1 = off
+    const battery = byte2 & 0b01111111 // %
 
     const data = {
       model: SwitchBotBLEModel.Bot,
       modelName: SwitchBotBLEModelName.Bot,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.Bot,
-      mode: mode,
-      state: state,
-      battery: battery,
-    };
-    return data;
+      mode,
+      state,
+      battery,
+    }
+    return data
   }
 
   /* ------------------------------------------------------------------
@@ -45,7 +47,7 @@ export class WoHand extends SwitchbotDevice {
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
   press() {
-    return this._operateBot([0x57, 0x01, 0x00]);
+    return this._operateBot([0x57, 0x01, 0x00])
   }
 
   /* ------------------------------------------------------------------
@@ -60,7 +62,7 @@ export class WoHand extends SwitchbotDevice {
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
   turnOn() {
-    return this._operateBot([0x57, 0x01, 0x01]);
+    return this._operateBot([0x57, 0x01, 0x01])
   }
 
   /* ------------------------------------------------------------------
@@ -75,7 +77,7 @@ export class WoHand extends SwitchbotDevice {
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
   turnOff() {
-    return this._operateBot([0x57, 0x01, 0x02]);
+    return this._operateBot([0x57, 0x01, 0x02])
   }
 
   /* ------------------------------------------------------------------
@@ -90,7 +92,7 @@ export class WoHand extends SwitchbotDevice {
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
   down() {
-    return this._operateBot([0x57, 0x01, 0x03]);
+    return this._operateBot([0x57, 0x01, 0x03])
   }
 
   /* ------------------------------------------------------------------
@@ -105,28 +107,28 @@ export class WoHand extends SwitchbotDevice {
    *   Nothing will be passed to the `resolve()`.
    * ---------------------------------------------------------------- */
   up() {
-    return this._operateBot([0x57, 0x01, 0x04]);
+    return this._operateBot([0x57, 0x01, 0x04])
   }
 
   _operateBot(bytes: number[]) {
     return new Promise<void>((resolve, reject) => {
-      const req_buf = Buffer.from(bytes);
+      const req_buf = Buffer.from(bytes)
       this._command(req_buf)
         .then((res_buf) => {
-          const code = res_buf.readUInt8(0);
+          const code = res_buf.readUInt8(0)
           if (res_buf.length === 3 && (code === 0x01 || code === 0x05)) {
-            resolve();
+            resolve()
           } else {
             reject(
               new Error(
-                'The device returned an error: 0x' + res_buf.toString('hex'),
+                `The device returned an error: 0x${res_buf.toString('hex')}`,
               ),
-            );
+            )
           }
         })
         .catch((error) => {
-          reject(error);
-        });
-    });
+          reject(error)
+        })
+    })
   }
 }
