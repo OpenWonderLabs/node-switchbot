@@ -65,8 +65,9 @@ export class Advertising {
    *   serviceData: {
    *     model: 'T',
    *     modelName: 'WoSensorTH',
-   *     temperature: { c: 26.2, f: 79.2 },
-   *     fahrenheit: false,
+   *     celsius: 26.2,
+   *     fahrenheit: 79.2,
+   *     fahrenheit_mode: false,
    *     humidity: 45,
    *     battery: 100
    *   }

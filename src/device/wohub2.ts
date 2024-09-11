@@ -31,6 +31,10 @@ export class WoHub2 extends SwitchbotDevice {
       model: SwitchBotBLEModel.Hub2,
       modelName: SwitchBotBLEModelName.Hub2,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.Hub2,
+      /**
+       * @deprecated The `temperature` object is deprecated and will be removed in future versions.
+       * Use the `celsius` and `fahrenheit` properties directly instead.
+       */
       temperature: {
         c: temp_c,
         f: temp_f,

@@ -39,6 +39,10 @@ export class WoIOSensorTH extends SwitchbotDevice {
       model: SwitchBotBLEModel.OutdoorMeter,
       modelName: SwitchBotBLEModelName.OutdoorMeter,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.OutdoorMeter,
+      /**
+       * @deprecated The `temperature` object is deprecated and will be removed in future versions.
+       * Use the `celsius` and `fahrenheit` properties directly instead.
+       */
       temperature: {
         c: temp_c,
         f: temp_f,
