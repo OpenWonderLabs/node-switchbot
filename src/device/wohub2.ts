@@ -35,7 +35,9 @@ export class WoHub2 extends SwitchbotDevice {
         c: temp_c,
         f: temp_f,
       },
-      fahrenheit: !!(byte2 & 0b10000000),
+      celsius: temp_c,
+      fahrenheit: temp_f,
+      fahrenheit_mode: !!(byte2 & 0b10000000),
       humidity: byte2 & 0b01111111,
       lightLevel: light_level,
     }
