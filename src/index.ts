@@ -2,5 +2,5 @@
  *
  * index.ts: Switchbot BLE API registration.
  */
-export * from './switchbot.js';
-export * from './types.js';
+export * from './switchbot.js'
+export * from './types.js'

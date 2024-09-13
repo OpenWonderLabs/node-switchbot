@@ -1,27 +1,14 @@
 {
-  "version": "2.3.0",
   "name": "node-switchbot",
+  "type": "module",
+  "version": "2.4.0",
   "description": "The node-switchbot is a Node.js module which allows you to control your Switchbot Devices through Bluetooth (BLE).",
-  "homepage": "https://github.com/OpenWonderLabs/node-switchbot",
   "author": "OpenWonderLabs (https://github.com/OpenWonderLabs)",
   "license": "MIT",
+  "homepage": "https://github.com/OpenWonderLabs/node-switchbot",
   "repository": {
     "type": "git",
     "url": "https://github.com/OpenWonderLabs/node-switchbot.git"
-  },
-  "main": "dist/index.js",
-  "type": "module",
-  "scripts": {
-    "check": "npm install && npm outdated",
-    "update": "ncu -u && npm update && npm install",
-    "lint": "eslint src/**/*.ts",
-    "build": "rimraf ./dist && tsc",
-    "prepublishOnly": "npm run lint && npm run build",
-    "postpublish": "npm run clean",
-    "clean": "rimraf ./dist",
-    "test": "npm run lint",
-    "docs": "typedoc",
-    "lint-docs": "typedoc --emit none --treatWarningsAsErrors"
   },
   "keywords": [
     "switchbot",
@@ -36,26 +23,50 @@
     "Bluetooth smart",
     "Bluetooth"
   ],
+  "main": "dist/index.js",
+  "scripts": {
+    "check": "npm install && npm outdated",
+    "update": "ncu -u && npm update && npm install",
+    "lint": "eslint src/**/*.ts",
+    "fix": "eslint src/**/*.ts --fix",
+    "watch": "npm run build && npm link && nodemon",
+    "plugin-ui": "rsync ./src/homebridge-ui/public/index.html ./dist/homebridge-ui/public/",
+    "build": "npm run clean && tsc",
+    "prepublishOnly": "npm run lint && npm run build",
+    "postpublish": "npm run clean",
+    "clean": "shx rm -rf ./dist",
+    "test": "npm run lint",
+    "docs": "typedoc",
+    "lint-docs": "typedoc --emit none --treatWarningsAsErrors"
+  },
   "readmeFilename": "README.md",
-  "dependencies": {
+  "optionalDependencies": {
+    "@stoprocent/bluetooth-hci-socket": "^1.2.1",
     "@stoprocent/noble": "^1.14.1"
   },
-  "optionalDependencies": {
-    "@stoprocent/bluetooth-hci-socket": "^1.2.1"
-  },
   "devDependencies": {
-    "@eslint/js": "^9.7.0",
-    "@stylistic/eslint-plugin": "^2.3.0",
-    "@types/eslint__js": "^8.42.3",
-    "@types/node": "^20.14.11",
-    "eslint": "^9.7.0",
-    "globals": "^15.8.0",
+    "@antfu/eslint-config": "^3.6.0",
+    "@types/aes-js": "^3.1.4",
+    "@types/debug": "^4.1.12",
+    "@types/fs-extra": "^11.0.4",
+    "@types/jest": "^29.5.13",
+    "@types/mdast": "^4.0.4",
+    "@types/node": "^22.5.4",
+    "@types/semver": "^7.5.8",
+    "@types/source-map-support": "^0.5.10",
+    "@vitest/coverage-v8": "^2.1.0",
+    "eslint": "^9.10.0",
+    "eslint-plugin-format": "^0.1.2",
+    "homebridge": "^1.8.4",
+    "homebridge-config-ui-x": "4.58.0",
+    "jest": "^29.7.0",
     "nodemon": "^3.1.4",
-    "npm-check-updates": "^16.14.20",
-    "rimraf": "^6.0.1",
+    "npm-check-updates": "^17.1.1",
+    "shx": "^0.3.4",
     "ts-node": "^10.9.2",
-    "typedoc": "^0.26.5",
-    "typescript": "^5.5.3",
-    "typescript-eslint": "^8.0.0-alpha.44"
+    "typedoc": "^0.26.7",
+    "typescript": "^5.6.2",
+    "typescript-axios-wb": "^1.0.3",
+    "vitest": "^2.1.0"
   }
 }

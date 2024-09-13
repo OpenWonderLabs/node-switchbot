@@ -2,45 +2,48 @@
  *
  * switchbot.ts: Switchbot BLE API registration.
  */
-import Noble from '@stoprocent/noble';
-import { parameterChecker } from './parameter-checker.js';
-import { Advertising } from './advertising.js';
-import { SwitchbotDevice } from './device.js';
+import type Noble from '@stoprocent/noble'
 
-import { WoHand } from './device/wohand.js';
-import { WoCurtain } from './device/wocurtain.js';
-import { WoBlindTilt } from './device/woblindtilt.js';
-import { WoPresence } from './device/wopresence.js';
-import { WoContact } from './device/wocontact.js';
-import { WoSensorTH } from './device/wosensorth.js';
-import { WoIOSensorTH } from './device/woiosensorth.js';
-import { WoHub2 } from './device/wohub2.js';
-import { WoHumi } from './device/wohumi.js';
-import { WoPlugMini } from './device/woplugmini.js';
-import { WoBulb } from './device/wobulb.js';
-import { WoCeilingLight } from './device/woceilinglight.js';
-import { WoStrip } from './device/wostrip.js';
-import { WoSmartLock } from './device/wosmartlock.js';
-import { WoSmartLockPro } from './device/wosmartlockpro.js';
-import { Ad } from './advertising.js';
-import { SwitchBotBLEModel } from './types.js';
+import type { Ad } from './advertising.js'
 
-type Params = {
-  duration?: number,
-  model?: string,
-  id?: string,
-  quick?: false,
-  noble?: typeof Noble,
+import { Buffer } from 'node:buffer'
+
+import { Advertising } from './advertising.js'
+import { SwitchbotDevice } from './device.js'
+import { WoBlindTilt } from './device/woblindtilt.js'
+import { WoBulb } from './device/wobulb.js'
+import { WoCeilingLight } from './device/woceilinglight.js'
+import { WoContact } from './device/wocontact.js'
+import { WoCurtain } from './device/wocurtain.js'
+import { WoHand } from './device/wohand.js'
+import { WoHub2 } from './device/wohub2.js'
+import { WoHumi } from './device/wohumi.js'
+import { WoIOSensorTH } from './device/woiosensorth.js'
+import { WoPlugMini } from './device/woplugmini.js'
+import { WoPresence } from './device/wopresence.js'
+import { WoSensorTH } from './device/wosensorth.js'
+import { WoSmartLock } from './device/wosmartlock.js'
+import { WoSmartLockPro } from './device/wosmartlockpro.js'
+import { WoStrip } from './device/wostrip.js'
+import { parameterChecker } from './parameter-checker.js'
+import { SwitchBotBLEModel } from './types.js'
+
+interface Params {
+  duration?: number
+  model?: string
+  id?: string
+  quick?: false
+  noble?: typeof Noble
 }
 
 export class SwitchBot {
-  private ready: Promise<void>;
-  noble!: typeof Noble;
-  ondiscover?: (device: SwitchbotDevice) => void;
-  onadvertisement?: (ad: Ad) => void;
-  onlog: ((message: string) => void) | undefined;
-  DEFAULT_DISCOVERY_DURATION = 5000;
-  PRIMARY_SERVICE_UUID_LIST = [];
+  private ready: Promise<void>
+  noble!: typeof Noble
+  ondiscover?: (device: SwitchbotDevice) => void
+  onadvertisement?: (ad: Ad) => void
+  onlog: ((message: string) => void) | undefined
+  DEFAULT_DISCOVERY_DURATION = 5000
+  PRIMARY_SERVICE_UUID_LIST = []
   /* ------------------------------------------------------------------
                * Constructor
                *
@@ -52,22 +55,21 @@ export class SwitchBot {
                *           |         |          | module automatically creates it.
                * ---------------------------------------------------------------- */
 
-
   constructor(params?: Params) {
-    this.ready = this.init(params);
+    this.ready = this.init(params)
   }
 
   // Check parameters
   async init(params?: Params) {
-    let noble: typeof Noble;
+    let noble: typeof Noble
     if (params && params.noble) {
-      noble = params.noble;
+      noble = params.noble
     } else {
-      noble = (await import('@stoprocent/noble')).default;
+      noble = (await import('@stoprocent/noble')).default
     }
 
     // Public properties
-    this.noble = noble;
+    this.noble = noble
   }
 
   /* ------------------------------------------------------------------
@@ -113,7 +115,7 @@ export class SwitchBot {
     const promise = new Promise((resolve, reject) => {
       // Check the parameters
       const valid = parameterChecker.check(
-        params,
+        params as Record<string, unknown>,
         {
           duration: { required: false, type: 'integer', min: 1, max: 60000 },
           model: {
@@ -145,15 +147,15 @@ export class SwitchBot {
           quick: { required: false, type: 'boolean' },
         },
         false,
-      );
+      )
 
       if (!valid) {
-        reject(new Error(parameterChecker.error!.message));
-        return;
+        reject(new Error(parameterChecker.error!.message))
+        return
       }
 
       if (!params) {
-        params = {};
+        params = {}
       }
 
       // Determine the values of the parameters
@@ -161,80 +163,79 @@ export class SwitchBot {
         duration: params.duration || this.DEFAULT_DISCOVERY_DURATION,
         model: params.model || '',
         id: params.id || '',
-        quick: params.quick ? true : false,
-      };
+        quick: !!params.quick,
+      }
 
       // Initialize the noble object
       this._init()
         .then(() => {
           if (this.noble === null) {
-            return reject(new Error('noble failed to initialize'));
+            return reject(new Error('noble failed to initialize'))
           }
-          const peripherals: Record<string, SwitchbotDevice> = {};
-          let timer: NodeJS.Timeout = setTimeout(() => { }, 0);
+          const peripherals: Record<string, SwitchbotDevice> = {}
+          let timer: NodeJS.Timeout = setTimeout(() => { }, 0)
           const finishDiscovery = () => {
             if (timer) {
-              clearTimeout(timer);
+              clearTimeout(timer)
             }
 
-            this.noble.removeAllListeners('discover');
-            this.noble.stopScanning();
+            this.noble.removeAllListeners('discover')
+            this.noble.stopScanning()
 
-            const device_list: SwitchbotDevice[] = [];
+            const device_list: SwitchbotDevice[] = []
             for (const addr in peripherals) {
-              device_list.push(peripherals[addr]);
+              device_list.push(peripherals[addr])
             }
 
-            resolve(device_list);
-          };
+            resolve(device_list)
+          }
 
           // Set a handler for the 'discover' event
           this.noble.on('discover', (peripheral: Noble.Peripheral) => {
-            const device = this.getDeviceObject(peripheral, p.id, p.model);
+            const device = this.getDeviceObject(peripheral, p.id, p.model)
             if (!device) {
-              return;
+              return
             }
-            const id = device.id;
-            peripherals[id!] = device;
+            const id = device.id
+            peripherals[id!] = device
 
             if (this.ondiscover && typeof this.ondiscover === 'function') {
-              this.ondiscover(device);
+              this.ondiscover(device)
             }
 
             if (p.quick) {
-              finishDiscovery();
-              return;
+              finishDiscovery()
             }
-          });
+          })
           // Start scanning
           this.noble.startScanning(
             this.PRIMARY_SERVICE_UUID_LIST,
             false,
             (error?: Error) => {
               if (error) {
-                reject(error);
-                return;
+                reject(error)
+                return
               }
               timer = setTimeout(() => {
-                finishDiscovery();
-              }, p.duration);
+                finishDiscovery()
+              }, p.duration)
             },
-          );
+          )
         })
         .catch((error) => {
-          reject(error);
-        });
-    });
-    return promise;
+          reject(error)
+        })
+    })
+    return promise
   }
 
   async _init() {
-    await this.ready;
+    await this.ready
     const promise = new Promise<void>((resolve, reject) => {
-      let err;
+      let err
       if (this.noble._state === 'poweredOn') {
-        resolve();
-        return;
+        resolve()
+        return
       }
       this.noble.once('stateChange', (state: typeof Noble._state) => {
         switch (state) {
@@ -242,118 +243,117 @@ export class SwitchBot {
           case 'unauthorized':
           case 'poweredOff':
             err = new Error(
-              'Failed to initialize the Noble object: ' + this.noble._state,
-            );
-            reject(err);
-            return;
+              `Failed to initialize the Noble object: ${this.noble._state}`,
+            )
+            reject(err)
+            return
           case 'resetting':
           case 'unknown':
             err = new Error(
-              'Adapter is not ready: ' + this.noble._state,
-            );
-            reject(err);
-            return;
+              `Adapter is not ready: ${this.noble._state}`,
+            )
+            reject(err)
+            return
           case 'poweredOn':
-            resolve();
-            return;
+            resolve()
+            return
           default:
             err = new Error(
-              'Unknown state: ' + this.noble._state,
-            );
-            reject(err);
-            return;
+              `Unknown state: ${this.noble._state}`,
+            )
+            reject(err)
         }
-      });
-    });
-    return promise;
+      })
+    })
+    return promise
   }
 
   getDeviceObject(peripheral: Noble.Peripheral, id: string, model: string) {
-    const ad = Advertising.parse(peripheral, this.onlog);
+    const ad = Advertising.parse(peripheral, this.onlog)
     if (this.filterAdvertising(ad, id, model)) {
-      let device;
+      let device
       if (ad && ad.serviceData && ad.serviceData.model) {
         switch (ad.serviceData.model) {
           case SwitchBotBLEModel.Bot:
-            device = new WoHand(peripheral, this.noble);
-            break;
+            device = new WoHand(peripheral, this.noble)
+            break
           case SwitchBotBLEModel.Curtain:
           case SwitchBotBLEModel.Curtain3:
-            device = new WoCurtain(peripheral, this.noble);
-            break;
+            device = new WoCurtain(peripheral, this.noble)
+            break
           case SwitchBotBLEModel.Humidifier:
-            device = new WoHumi(peripheral, this.noble);
-            break;
+            device = new WoHumi(peripheral, this.noble)
+            break
           case SwitchBotBLEModel.Meter:
-            device = new WoSensorTH(peripheral, this.noble);
-            break;
+            device = new WoSensorTH(peripheral, this.noble)
+            break
           case SwitchBotBLEModel.MeterPlus:
-            device = new WoSensorTH(peripheral, this.noble);
-            break;
+            device = new WoSensorTH(peripheral, this.noble)
+            break
           case SwitchBotBLEModel.Hub2:
-            device = new WoHub2(peripheral, this.noble);
-            break;
+            device = new WoHub2(peripheral, this.noble)
+            break
           case SwitchBotBLEModel.OutdoorMeter:
-            device = new WoIOSensorTH(peripheral, this.noble);
-            break;
+            device = new WoIOSensorTH(peripheral, this.noble)
+            break
           case SwitchBotBLEModel.MotionSensor:
-            device = new WoPresence(peripheral, this.noble);
-            break;
+            device = new WoPresence(peripheral, this.noble)
+            break
           case SwitchBotBLEModel.ContactSensor:
-            device = new WoContact(peripheral, this.noble);
-            break;
+            device = new WoContact(peripheral, this.noble)
+            break
           case SwitchBotBLEModel.ColorBulb:
-            device = new WoBulb(peripheral, this.noble);
-            break;
+            device = new WoBulb(peripheral, this.noble)
+            break
           case SwitchBotBLEModel.CeilingLight:
-            device = new WoCeilingLight(peripheral, this.noble);
-            break;
+            device = new WoCeilingLight(peripheral, this.noble)
+            break
           case SwitchBotBLEModel.CeilingLightPro:
-            device = new WoCeilingLight(peripheral, this.noble);
-            break;
+            device = new WoCeilingLight(peripheral, this.noble)
+            break
           case SwitchBotBLEModel.StripLight:
-            device = new WoStrip(peripheral, this.noble);
-            break;
+            device = new WoStrip(peripheral, this.noble)
+            break
           case SwitchBotBLEModel.PlugMiniUS:
           case SwitchBotBLEModel.PlugMiniJP:
-            device = new WoPlugMini(peripheral, this.noble);
-            break;
+            device = new WoPlugMini(peripheral, this.noble)
+            break
           case SwitchBotBLEModel.Lock:
-            device = new WoSmartLock(peripheral, this.noble);
-            break;
+            device = new WoSmartLock(peripheral, this.noble)
+            break
           case SwitchBotBLEModel.LockPro:
-            device = new WoSmartLockPro(peripheral, this.noble);
-            break;
+            device = new WoSmartLockPro(peripheral, this.noble)
+            break
           case SwitchBotBLEModel.BlindTilt:
-            device = new WoBlindTilt(peripheral, this.noble);
-            break;
+            device = new WoBlindTilt(peripheral, this.noble)
+            break
           default: // 'resetting', 'unknown'
-            device = new SwitchbotDevice(peripheral, this.noble);
+            device = new SwitchbotDevice(peripheral, this.noble)
         }
       }
-      return device;
+      return device
     } else {
-      return null;
+      return null
     }
   }
 
   filterAdvertising(ad: Ad, id: string, model: string) {
     if (!ad) {
-      return false;
+      return false
     }
     if (id) {
-      id = id.toLowerCase().replace(/:/g, '');
-      const ad_id = ad.address.toLowerCase().replace(/[^a-z0-9]/g, '');
+      id = id.toLowerCase().replace(/:/g, '')
+      const ad_id = ad.address.toLowerCase().replace(/[^a-z0-9]/g, '')
       if (ad_id !== id) {
-        return false;
+        return false
       }
     }
     if (model) {
       if (ad.serviceData.model !== model) {
-        return false;
+        return false
       }
     }
-    return true;
+    return true
   }
 
   /* ------------------------------------------------------------------
@@ -421,7 +421,7 @@ export class SwitchBot {
     const promise = new Promise<void>((resolve, reject) => {
       // Check the parameters
       const valid = parameterChecker.check(
-        params,
+        params as Record<string, unknown>,
         {
           model: {
             required: false,
@@ -451,36 +451,36 @@ export class SwitchBot {
           id: { required: false, type: 'string', min: 12, max: 17 },
         },
         false,
-      );
+      )
       if (!valid) {
-        reject(new Error(parameterChecker.error!.message));
-        return;
+        reject(new Error(parameterChecker.error!.message))
+        return
       }
 
       // Initialize the noble object
       this._init()
         .then(() => {
           if (this.noble === null) {
-            return reject(new Error('noble object failed to initialize'));
+            return reject(new Error('noble object failed to initialize'))
           }
           // Determine the values of the parameters
           const p = {
             model: params.model || '',
             id: params.id || '',
-          };
+          }
 
           // Set a handler for the 'discover' event
           this.noble.on('discover', (peripheral: Noble.Peripheral) => {
-            const ad = Advertising.parse(peripheral, this.onlog);
+            const ad = Advertising.parse(peripheral, this.onlog)
             if (this.filterAdvertising(ad, p.id, p.model)) {
               if (
-                this.onadvertisement &&
-                typeof this.onadvertisement === 'function'
+                this.onadvertisement
+                && typeof this.onadvertisement === 'function'
               ) {
-                this.onadvertisement(ad);
+                this.onadvertisement(ad)
               }
             }
-          });
+          })
 
           // Start scanning
           this.noble.startScanning(
@@ -488,18 +488,18 @@ export class SwitchBot {
             true,
             (error?: Error) => {
               if (error) {
-                reject(error);
+                reject(error)
               } else {
-                resolve();
+                resolve()
               }
             },
-          );
+          )
         })
         .catch((error) => {
-          reject(error);
-        });
-    });
-    return promise;
+          reject(error)
+        })
+    })
+    return promise
   }
 
   /* ------------------------------------------------------------------
@@ -514,11 +514,11 @@ export class SwitchBot {
      * ---------------------------------------------------------------- */
   stopScan() {
     if (this.noble === null) {
-      return;
+      return
     }
 
-    this.noble.removeAllListeners('discover');
-    this.noble.stopScanning();
+    this.noble.removeAllListeners('discover')
+    this.noble.stopScanning()
   }
 
   /* ------------------------------------------------------------------
@@ -536,21 +536,21 @@ export class SwitchBot {
     return new Promise((resolve, reject) => {
       // Check the parameters
       const valid = parameterChecker.check(
-        { msec: msec },
+        { msec },
         {
           msec: { required: true, type: 'integer', min: 0 },
         },
         true, // Add the required argument
-      );
+      )
 
       if (!valid) {
-        reject(new Error(parameterChecker.error!.message));
-        return;
+        reject(new Error(parameterChecker.error!.message))
+        return
       }
       // Set a timer
-      setTimeout(resolve, msec);
-    });
+      setTimeout(resolve, msec)
+    })
   }
 }
 
-export { SwitchbotDevice };
+export { SwitchbotDevice }
