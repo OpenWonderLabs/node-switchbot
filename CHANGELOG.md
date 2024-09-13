@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
-## [2.4.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v2.4.0) (2024-09-11)
+## [2.4.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v2.4.0) (2024-09-13)
 
 ### What's Changed
 - Added `celcius` and `fahrenheit` as based values sent for Sensors
