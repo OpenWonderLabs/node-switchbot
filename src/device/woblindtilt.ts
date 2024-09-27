@@ -4,6 +4,7 @@
  */
 import { SwitchbotDevice } from '../device.js';
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
+import { Buffer } from 'node:buffer'
 
 export class WoBlindTilt extends SwitchbotDevice {
   /**
@@ -25,18 +26,19 @@ export class WoBlindTilt extends SwitchbotDevice {
       if (onlog && typeof onlog === 'function') {
         onlog(`[parseServiceDataForWoBlindTilt] Buffer length ${manufacturerData.length} !== 5 or 6!`);
       }
-      return null;
+      return null
     }
 
+    //const byte1 = serviceData.readUInt8(1)
     const byte2 = serviceData.readUInt8(2);
     const byte6 = manufacturerData.subarray(6);
 
-    const tilt = Math.max(Math.min(byte6.readUInt8(2) & 0b01111111, 100), 0); // current tilt % (100 - _tilt) if reverse else _tilt,
-    const inMotion = byte6.readUInt8(2) & 0b10000000 ? true : false;
-    const lightLevel = (byte6.readUInt8(1) >> 4) & 0b00001111; // light sensor level (1-10)
-    const calibration = byte6.readUInt8(1) & 0b00000001 ? true : false; // Whether the calibration is completed
-    const sequenceNumber = byte6.readUInt8(0);
 
+    const tilt = Math.max(Math.min(byte6.readUInt8(2) & 0b01111111, 100), 0); // current tilt % (100 - _tilt) if reverse else _tilt,
+    const inMotion = !!(byte2 & 0b10000000)
+    const lightLevel = (byte6.readUInt8(1) >> 4) & 0b00001111; // light sensor level (1-10)
+    const calibration = !!(byte6.readUInt8(1) & 0b00000001) ? true : false; // Whether the calibration is completed
+    const sequenceNumber = byte6.readUInt8(0);
     const battery = serviceData.length > 2 ? byte2 & 0b01111111 : null;
 
     const data = {
@@ -49,9 +51,9 @@ export class WoBlindTilt extends SwitchbotDevice {
       tilt: reverse ? (100 - tilt) : tilt,
       lightLevel: lightLevel,
       sequenceNumber: sequenceNumber,
-    };
+    }
 
-    return data;
+    return data
   }
 
   /**
@@ -62,7 +64,7 @@ export class WoBlindTilt extends SwitchbotDevice {
    * @returns {Promise<void>} - A promise that resolves when the operation is complete. Nothing will be passed to the `resolve()`.
    */
   async open() {
-    return await this._operateBlindTilt([0x57, 0x0f, 0x45, 0x01, 0x05, 0xff, 0x32]);
+    return await this.operateBlindTilt([0x57, 0x0f, 0x45, 0x01, 0x05, 0xff, 0x32]);
   }
 
   /**
@@ -73,7 +75,7 @@ export class WoBlindTilt extends SwitchbotDevice {
    * @returns {Promise<void>} - A promise that resolves when the operation is complete. Nothing will be passed to the `resolve()`.
    */
   async closeUp() {
-    return await this._operateBlindTilt([0x57, 0x0f, 0x45, 0x01, 0x05, 0xff, 0x64]);
+    return await this.operateBlindTilt([0x57, 0x0f, 0x45, 0x01, 0x05, 0xff, 0x64]);
   }
 
   /**
@@ -84,7 +86,7 @@ export class WoBlindTilt extends SwitchbotDevice {
    * @returns {Promise<void>} - A promise that resolves when the operation is complete. Nothing will be passed to the `resolve()`.
    */
   async closeDown() {
-    return await this._operateBlindTilt([0x57, 0x0f, 0x45, 0x01, 0x05, 0xff, 0x00]);
+    return await this.operateBlindTilt([0x57, 0x0f, 0x45, 0x01, 0x05, 0xff, 0x00]);
   }
 
   /**
@@ -177,7 +179,7 @@ export class WoBlindTilt extends SwitchbotDevice {
    * No value is passed to the `resolve()` function.
    */
   async pause(): Promise<void> {
-    await this._operateBlindTilt([0x57, 0x0f, 0x45, 0x01, 0x00, 0xff]);
+    await this.operateBlindTilt([0x57, 0x0f, 0x45, 0x01, 0x00, 0xff]);
   }
 
   /**
@@ -194,21 +196,21 @@ export class WoBlindTilt extends SwitchbotDevice {
       throw new Error('The type of target position percentage is incorrect: ' + typeof percent);
     }
     if (mode === null) {
-      mode = 0xff;
+      mode = 0xFF
     } else {
       if (typeof mode !== 'number') {
         throw new Error('The type of running mode is incorrect: ' + typeof mode);
       }
       if (mode > 1) {
-        mode = 0xff;
+        mode = 0xFF
       }
     }
     if (percent > 100) {
-      percent = 100;
+      percent = 100
     } else if (percent < 0) {
-      percent = 0;
+      percent = 0
     }
-    await this._operateBlindTilt([0x57, 0x0f, 0x45, 0x01, 0x05, mode, percent]);
+    await this.operateBlindTilt([0x57, 0x0f, 0x45, 0x01, 0x05, mode, percent]);
   }
 
   /**
@@ -224,9 +226,9 @@ export class WoBlindTilt extends SwitchbotDevice {
  *
  * @throws {Error} Throws an error if the device returns an error code or if the command fails.
  */
-  async _operateBlindTilt(bytes: number[]): Promise<void> {
+  async operateBlindTilt(bytes: number[]): Promise<void> {
     const req_buf = Buffer.from(bytes);
-    this._command(req_buf).then((res_buf) => {
+    this.command(req_buf).then((res_buf) => {
       const code = res_buf.readUInt8(0);
       if (res_buf.length === 3 && code === 0x01) {
         return;

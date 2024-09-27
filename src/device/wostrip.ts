@@ -5,6 +5,8 @@
 import { SwitchbotDevice } from '../device.js';
 import { stripLightServiceData } from '../types/bledevicestatus.js';
 import { SwitchBotBLEModel, SwitchBotBLEModelName, SwitchBotBLEModelFriendlyName } from '../types/types.js';
+import { Buffer } from 'node:buffer'
+ 
 
 /**
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/colorbulb.md
@@ -18,11 +20,11 @@ export class WoStrip extends SwitchbotDevice {
       if (onlog && typeof onlog === 'function') {
         onlog(`[parseServiceDataForWoStrip] Buffer length ${serviceData.length} !== 18!`);
       }
-      return null;
+      return null
     }
 
-    //const byte1 = serviceData.readUInt8(1);//power and light status
-    //const byte2 = serviceData.readUInt8(2);//bulb brightness
+    const byte1 = serviceData.readUInt8(1);//power and light status
+    const byte2 = serviceData.readUInt8(2);//bulb brightness 
     const byte3 = serviceData.readUInt8(3);//bulb R
     const byte4 = serviceData.readUInt8(4);//bulb G
     const byte5 = serviceData.readUInt8(5);//bulb B
@@ -31,8 +33,8 @@ export class WoStrip extends SwitchbotDevice {
     const byte9 = serviceData.readUInt8(9);
     const byte10 = serviceData.readUInt8(10);
 
-    const power = byte7 & 0b10000000 ? true : false;
-    const state = byte7 & 0b10000000 ? true : false;
+    const power = !!(byte7 & 0b10000000)
+    const state = !!(byte7 & 0b10000000)
     const brightness = byte7 & 0b01111111;
     const red = byte3;
     const green = byte4;
@@ -60,7 +62,7 @@ export class WoStrip extends SwitchbotDevice {
       loop_index: loop_index,
     };
 
-    return data;
+    return data
   }
 
   /**
@@ -100,9 +102,9 @@ export class WoStrip extends SwitchbotDevice {
       throw new Error('The type of target brightness percentage is incorrect: ' + typeof brightness);
     }
     if (brightness > 100) {
-      brightness = 100;
+      brightness = 100
     } else if (brightness < 0) {
-      brightness = 0;
+      brightness = 0
     }
     return await this.setState([0x02, 0x14]);
   }
@@ -133,24 +135,24 @@ export class WoStrip extends SwitchbotDevice {
       throw new Error('The type of target blue is incorrect: ' + typeof blue);
     }
     if (brightness > 100) {
-      brightness = 100;
+      brightness = 100
     } else if (brightness < 0) {
-      brightness = 0;
+      brightness = 0
     }
     if (red > 255) {
-      red = 255;
+      red = 255
     } else if (red < 0) {
-      red = 0;
+      red = 0
     }
     if (green > 255) {
-      green = 255;
+      green = 255
     } else if (green < 0) {
-      green = 0;
+      green = 0
     }
     if (blue > 255) {
-      blue = 255;
+      blue = 255
     } else if (blue < 0) {
-      blue = 0;
+      blue = 0
     }
     return await this.setState([0x02, 0x12, brightness, red, green, blue]);
   }

@@ -1,85 +1,50 @@
-import globals from 'globals';
-import pluginJs from '@eslint/js';
-import tseslint from 'typescript-eslint';
+import antfu from '@antfu/eslint-config'
 
-
-export default [
-  { languageOptions: { globals: globals.browser } },
-  pluginJs.configs.recommended,
-  ...tseslint.configs.recommended,
+export default antfu(
   {
-    ignores: ['.dist/*'],
-  },
-  {
+    ignores: ['dist', 'docs'],
+    jsx: false,
+    typescript: true,
+    formatters: {
+      markdown: true,
+    },
     rules: {
-      'quotes': [
-        'warn',
-        'single',
-      ],
-      'indent': [
-        'warn',
-        2,
-        {
-          'SwitchCase': 1,
-        },
-      ],
-      'linebreak-style': [
-        'warn',
-        'unix',
-      ],
-      'semi': [
-        'warn',
-        'always',
-      ],
-      'comma-dangle': [
-        'warn',
-        'always-multiline',
-      ],
-      'dot-notation': 'off',
-      'eqeqeq': 'warn',
-      'curly': [
-        'warn',
-        'all',
-      ],
-      'brace-style': [
-        'warn',
-      ],
-      'prefer-arrow-callback': [
-        'warn',
-      ],
-      'max-len': [
-        'warn',
-        150,
-      ],
-      'no-console': [
-        'warn',
-      ], // use the provided Homebridge log method instead
-      'no-non-null-assertion': [
-        'off',
-      ],
-      'comma-spacing': [
+      'curly': ['error', 'multi-line'],
+      'import/extensions': ['error', 'ignorePackages'],
+      'import/order': 0,
+      'jsdoc/check-alignment': 'error',
+      'jsdoc/check-line-alignment': 'error',
+      'perfectionist/sort-exports': 'error',
+      'perfectionist/sort-imports': [
         'error',
-      ],
-      'no-multi-spaces': [
-        'warn',
         {
-          'ignoreEOLComments': true,
+          groups: [
+            'builtin-type',
+            'external-type',
+            'internal-type',
+            ['parent-type', 'sibling-type', 'index-type'],
+            'builtin',
+            'external',
+            'internal',
+            ['parent', 'sibling', 'index'],
+            'object',
+            'unknown',
+          ],
+          order: 'asc',
+          type: 'natural',
         },
       ],
-      'no-trailing-spaces': [
-        'warn',
-      ],
-      'lines-between-class-members': [
-        'warn',
-        'always',
-        {
-          'exceptAfterSingleLine': true,
-        },
-      ],
-      '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/no-non-null-assertion': 'off',
-      '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
+      'perfectionist/sort-named-exports': 'error',
+      'perfectionist/sort-named-imports': 'error',
+      'sort-imports': 0,
+      'style/brace-style': ['error', '1tbs', { allowSingleLine: true }],
+      'style/quote-props': ['error', 'consistent-as-needed'],
+      'test/no-only-tests': 'error',
+      'unicorn/no-useless-spread': 'error',
+      'unused-imports/no-unused-vars': ['error', { caughtErrors: 'none' }],
+      'no-new': 0, // Disable the no-new rule
+      'new-cap': 0, // Disable the new-cap rule
+      'no-undef': 0, // Disable the no-undef rule
     },
   },
-];
+)

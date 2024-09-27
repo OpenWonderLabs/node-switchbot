@@ -2,7 +2,7 @@
  *
  * advertising.ts: Switchbot BLE API registration.
  */
-import { Peripheral } from '@stoprocent/noble';
+import type { Peripheral } from '@stoprocent/noble'
 
 import { WoHand } from './device/wohand.js';
 import { WoCurtain } from './device/wocurtain.js';
@@ -21,12 +21,14 @@ import { WoSmartLock } from './device/wosmartlock.js';
 import { WoSmartLockPro } from './device/wosmartlockpro.js';
 import { SwitchBotBLEModel } from './types/types.js';
 
+import { Buffer } from 'node:buffer'
+
 export type Ad = {
-  id: string;
-  address: string;
-  rssi: number,
-  serviceData: object;
-} | null;
+  id: string
+  address: string
+  rssi: number
+  serviceData: Record<string, unknown>
+} | null
 
 export type AdvertisementData = {
   serviceData: Buffer | null;
@@ -34,7 +36,6 @@ export type AdvertisementData = {
 }
 
 export class Advertising {
-
   constructor() { }
 
   /**
@@ -53,7 +54,7 @@ export class Advertising {
   ): Promise<Ad> {
     const ad = peripheral.advertisement;
     if (!ad || !ad.serviceData) {
-      return null;
+      return null
     }
     const adServiceData = ad.serviceData[0] || ad.serviceData;
     const manufacturerData = ad.manufacturerData;
@@ -129,19 +130,19 @@ export class Advertising {
         if (onlog && typeof onlog === 'function') {
           onlog(`[parseAdvertising.${peripheral.id}] return null, model "${model}" not available!`);
         }
-        return null;
+        return null
     }
     if (!sd) {
       if (onlog && typeof onlog === 'function') {
         onlog(`[parseAdvertising.${peripheral.id}.${model}] return null, parsed serviceData empty!`);
       }
-      return null;
+      return null
     }
-    let address = peripheral.address || '';
+    let address = peripheral.address || ''
     if (address === '') {
       const str = peripheral.advertisement.manufacturerData
         .toString('hex')
-        .slice(4, 16);
+        .slice(4, 16)
       if (str !== '') {
         address = str.substring(0, 2);
         for (let i = 2; i < str.length; i += 2) {
@@ -149,18 +150,18 @@ export class Advertising {
         }
       }
     } else {
-      address = address.replace(/-/g, ':');
+      address = address.replace(/-/g, ':')
     }
     const data = {
       id: peripheral.id,
-      address: address,
+      address,
       rssi: peripheral.rssi,
-      serviceData: sd,
-    };
+      serviceData: sd as Record<string, unknown>,
+    }
 
     if (onlog && typeof onlog === 'function') {
       onlog(`[parseAdvertising.${peripheral.id}.${model}] return ${JSON.stringify(data)}`);
     }
-    return data;
+    return data
   }
 }

@@ -6,57 +6,61 @@ import { SwitchbotDevice } from '../device.js';
 import { lockProServiceData } from '../types/bledevicestatus.js';
 import { SwitchBotBLEModel, SwitchBotBLEModelName, SwitchBotBLEModelFriendlyName } from '../types/types.js';
 import Noble from '@stoprocent/noble';
-import * as Crypto from 'crypto';
+import { Buffer } from 'node:buffer'
+import * as Crypto from 'node:crypto'
+
+
+
 
 export class WoSmartLockPro extends SwitchbotDevice {
-  _iv: Buffer | null = null;
-  _key_id: string;
-  _encryption_key: Buffer | null;
+  _iv: Buffer | null = null
+  _key_id: string
+  _encryption_key: Buffer | null
 
-  static COMMAND_GET_CK_IV = '570f2103';
-  static COMMAND_LOCK_INFO = '570f4f8102';
-  static COMMAND_UNLOCK = '570f4e0101000080';
-  static COMMAND_UNLOCK_NO_UNLATCH = '570f4e01010000a0';
-  static COMMAND_LOCK = '570f4e0101000000';
-  static COMMAND_ENABLE_NOTIFICATIONS = '570e01001e00008101';
-  static COMMAND_DISABLE_NOTIFICATIONS = '570e00';
+  static COMMAND_GET_CK_IV = '570f2103'
+  static COMMAND_LOCK_INFO = '570f4f8102'
+  static COMMAND_UNLOCK = '570f4e0101000080'
+  static COMMAND_UNLOCK_NO_UNLATCH = '570f4e01010000a0'
+  static COMMAND_LOCK = '570f4e0101000000'
+  static COMMAND_ENABLE_NOTIFICATIONS = '570e01001e00008101'
+  static COMMAND_DISABLE_NOTIFICATIONS = '570e00'
 
   static Result = {
     ERROR: 0x00,
     SUCCESS: 0x01,
     SUCCESS_LOW_BATTERY: 0x06,
-  };
+  }
 
   static validateResponse(res: Buffer) {
     if (res.length >= 3) {
       switch (res.readUInt8(0)) {
         case WoSmartLockPro.Result.SUCCESS:
-          return WoSmartLockPro.Result.SUCCESS;
+          return WoSmartLockPro.Result.SUCCESS
         case WoSmartLockPro.Result.SUCCESS_LOW_BATTERY:
-          return WoSmartLockPro.Result.SUCCESS_LOW_BATTERY;
+          return WoSmartLockPro.Result.SUCCESS_LOW_BATTERY
       }
     }
-    return WoSmartLockPro.Result.ERROR;
+    return WoSmartLockPro.Result.ERROR
   }
 
   static getLockStatus(code: number) {
     switch (code) {
       case 0b0000000:
-        return 'LOCKED';
+        return 'LOCKED'
       case 0b0010000:
-        return 'UNLOCKED';
+        return 'UNLOCKED'
       case 0b0100000:
-        return 'LOCKING';
+        return 'LOCKING'
       case 0b0110000:
-        return 'UNLOCKING';
+        return 'UNLOCKING'
       case 0b1000000:
-        return 'LOCKING_STOP';
+        return 'LOCKING_STOP'
       case 0b1010000:
-        return 'UNLOCKING_STOP';
-      case 0b01100000: //Only EU lock type
-        return 'NOT_FULLY_LOCKED';
+        return 'UNLOCKING_STOP'
+      case 0b01100000: // Only EU lock type
+        return 'NOT_FULLY_LOCKED'
       default:
-        return 'UNKNOWN';
+        return 'UNKNOWN'
     }
   }
 
@@ -69,28 +73,28 @@ export class WoSmartLockPro extends SwitchbotDevice {
       if (onlog && typeof onlog === 'function') {
         onlog(`[parseServiceDataForWoSmartLockPro] Buffer length ${manufacturerData.length} is too short!`);
       }
-      return null;
+      return null
     }
 
     // adv data needs both service data and manufacturer data
     // byte var names based on documentation
-    const byte2 = serviceData.readUInt8(2);
-    const byte7 = manufacturerData.readUInt8(7);
-    const byte8 = manufacturerData.readUInt8(8);
-    const byte9 = manufacturerData.readUInt8(9);
-    const byte11 = manufacturerData.readUInt8(11);
+    const byte2 = serviceData.readUInt8(2)
+    const byte7 = manufacturerData.readUInt8(7)
+    const byte8 = manufacturerData.readUInt8(8)
+    const byte9 = manufacturerData.readUInt8(9)
+    const byte11 = manufacturerData.readUInt8(11)
 
-    const battery = byte2 & 0b01111111; // %
-    const calibration = byte7 & 0b10000000 ? true : false;
-    const status = WoSmartLockPro.getLockStatus((byte7 & 0b00111000) >> 3);
-    const door_open = (byte8 & 0b01100000 ? true : false).toString();
+    const battery = byte2 & 0b01111111 // %
+    const calibration = !!(byte7 & 0b10000000)
+    const status = WoSmartLockPro.getLockStatus((byte7 & 0b00111000) >> 3)
+    const door_open = !!(byte8 & 0b01100000)
     // Double lock mode is not supported on Lock Pro
-    const update_from_secondary_lock = false; // byte7 & 0b00001000 ? true : false;
-    const double_lock_mode = false; // byte8 & 0b10000000 ? true : false;
-    const unclosed_alarm = byte11 & 0b10000000 ? true : false;
-    const unlocked_alarm = byte11 & 0b01000000 ? true : false;
-    const auto_lock_paused = byte8 & 0b100000 ? true : false;
-    const night_latch = byte9 & 0b00010000 ? true : false;
+    const update_from_secondary_lock = false // !!(byte7 & 0b00001000)
+    const double_lock_mode = false; // !!(byte8 & 0b10000000)
+    const unclosed_alarm = !!(byte11 & 0b10000000)
+    const unlocked_alarm = !!(byte11 & 0b01000000)
+    const auto_lock_paused = !!(byte8 & 0b100000)
+    const night_latch = !!(byte9 & 0b00000001)
     // const manual = byte7 & 0b100000;
 
     const data: lockProServiceData = {
@@ -99,24 +103,24 @@ export class WoSmartLockPro extends SwitchbotDevice {
       modelFriendlyName: SwitchBotBLEModelFriendlyName.LockPro,
       battery: battery,
       calibration: calibration,
-      status: status,
+      status : status,
       update_from_secondary_lock: update_from_secondary_lock,
-      door_open: door_open,
+      door_open: door_open.toString(),
       double_lock_mode: double_lock_mode,
       unclosed_alarm: unclosed_alarm,
       unlocked_alarm: unlocked_alarm,
       auto_lock_paused: auto_lock_paused,
       night_latch: night_latch,
-    };
+    }
 
-    return data;
+    return data
   }
 
   constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
-    super(peripheral, noble);
-    this._iv = null;
-    this._key_id = '';
-    this._encryption_key = null;
+    super(peripheral, noble)
+    this._iv = null
+    this._key_id = ''
+    this._encryption_key = null
   }
 
   /* ------------------------------------------------------------------
@@ -260,7 +264,7 @@ export class WoSmartLockPro extends SwitchbotDevice {
         throw new Error('Failed to retrieve IV from the device.');
       }
     }
-    return this._iv;
+    return this._iv
   }
 
   async encryptedCommand(key: string) {
@@ -302,4 +306,3 @@ export class WoSmartLockPro extends SwitchbotDevice {
       });
   }
 }
-

@@ -4,6 +4,7 @@
  */
 import { SwitchbotDevice } from '../device.js';
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
+import { Buffer } from 'node:buffer'
 
 export class WoHumi extends SwitchbotDevice {
   static async parseServiceData(
@@ -14,28 +15,27 @@ export class WoHumi extends SwitchbotDevice {
       if (onlog && typeof onlog === 'function') {
         onlog(`[parseServiceDataForWoHumi] Buffer length ${serviceData.length} !== 8!`);
       }
-      return null;
+      return null
     }
     const byte1 = serviceData.readUInt8(1);
     const byte4 = serviceData.readUInt8(4);
 
-
-    const onState = byte1 & 0b10000000 ? true : false; // 1 - on
-    const autoMode = byte4 & 0b10000000 ? true : false; // 1 - auto
-    const percentage = byte4 & 0b01111111; // 0-100%, 101/102/103 - Quick gear 1/2/3
-    const humidity = autoMode ? 0 : percentage === 101 ? 33 : percentage === 102 ? 66 : percentage === 103 ? 100 : percentage;
+    const onState = !!(byte1 & 0b10000000) // 1 - on
+    const autoMode = !!(byte4 & 0b10000000) // 1 - auto
+    const percentage = byte4 & 0b01111111 // 0-100%, 101/102/103 - Quick gear 1/2/3
+    const humidity = autoMode ? 0 : percentage === 101 ? 33 : percentage === 102 ? 66 : percentage === 103 ? 100 : percentage
 
     const data = {
       model: SwitchBotBLEModel.Humidifier,
       modelName: SwitchBotBLEModelName.Humidifier,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.Humidifier,
-      onState: onState,
-      autoMode: autoMode,
+      onState,
+      autoMode,
       percentage: autoMode ? 0 : percentage,
-      humidity: humidity,
-    };
+      humidity,
+    }
 
-    return data;
+    return data
   }
 
   /* ------------------------------------------------------------------

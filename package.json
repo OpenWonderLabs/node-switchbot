@@ -1,10 +1,11 @@
 {
-  "version": "2.3.0",
   "name": "node-switchbot",
+  "type": "module",
+  "version": "2.4.0",
   "description": "The node-switchbot is a Node.js module which allows you to control your Switchbot Devices through Bluetooth (BLE).",
-  "homepage": "https://github.com/OpenWonderLabs/node-switchbot",
   "author": "OpenWonderLabs (https://github.com/OpenWonderLabs)",
   "license": "MIT",
+  "homepage": "https://github.com/OpenWonderLabs/node-switchbot",
   "repository": {
     "type": "git",
     "url": "https://github.com/OpenWonderLabs/node-switchbot.git"
@@ -16,18 +17,18 @@
     "node": "^18 || ^20 || ^22"
   },
   "main": "dist/index.js",
-  "type": "module",
   "scripts": {
     "check": "npm install && npm outdated",
     "update": "ncu -u && npm update && npm install",
     "lint": "eslint src/**/*.ts",
+    "fix": "eslint src/**/*.ts --fix",
     "watch": "npm run build && npm link && nodemon",
     "build": "npm run clean && tsc",
     "prepublishOnly": "npm run lint && npm run build",
     "postpublish": "npm run clean",
-    "test": "npm run lint && jest --forceExit --detectOpenHandles",
-    "test-coverage": "jest --coverage --forceExit --detectOpenHandles",
     "clean": "shx rm -rf ./dist",
+    "test-coverage": "jest --coverage --forceExit --detectOpenHandles",
+    "test": "npm run lint",
     "docs": "typedoc",
     "lint-docs": "typedoc --emit none --treatWarningsAsErrors"
   },
@@ -46,29 +47,34 @@
   ],
   "readmeFilename": "README.md",
   "dependencies": {
-    "@stoprocent/noble": "^1.14.1",
     "async-mutex": "^0.5.0"
   },
   "optionalDependencies": {
-    "@stoprocent/bluetooth-hci-socket": "^1.2.1"
+    "@stoprocent/bluetooth-hci-socket": "^1.2.1",
+    "@stoprocent/noble": "^1.14.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.8.0",
-    "@stylistic/eslint-plugin": "^2.6.1",
-    "@types/eslint__js": "^8.42.3",
-    "@types/jest": "^29.5.12",
-    "@types/node": "^22.1.0",
-    "eslint": "^9.8.0",
-    "eslint-plugin-jest": "^28.7.0",
-    "globals": "^15.9.0",
+    "@antfu/eslint-config": "^3.6.0",
+    "@types/aes-js": "^3.1.4",
+    "@types/debug": "^4.1.12",
+    "@types/fs-extra": "^11.0.4",
+    "@types/jest": "^29.5.13",
+    "@types/mdast": "^4.0.4",
+    "@types/node": "^22.5.4",
+    "@types/semver": "^7.5.8",
+    "@types/source-map-support": "^0.5.10",
+    "@vitest/coverage-v8": "^2.1.0",
+    "eslint": "^9.10.0",
+    "eslint-plugin-format": "^0.1.2",
+    "homebridge": "^1.8.4",
+    "homebridge-config-ui-x": "4.58.0",
     "jest": "^29.7.0",
     "nodemon": "^3.1.4",
-    "npm-check-updates": "^17.0.3",
+    "npm-check-updates": "^17.1.1",
     "shx": "^0.3.4",
-    "ts-jest": "^29.2.4",
     "ts-node": "^10.9.2",
-    "typedoc": "^0.26.5",
-    "typescript": "^5.5.4",
-    "typescript-eslint": "^8.0.1"
+    "typedoc": "^0.26.7",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.0"
   }
 }

@@ -179,6 +179,9 @@ The sample codes above will output the result as follows:
     "battery": 100
   }
 }
+```
+
+```json
 {
   "id": "cb4eb903c96d",
   "address": "cb:4e:b9:03:c9:6d",
@@ -195,6 +198,9 @@ The sample codes above will output the result as follows:
     "battery": 100
   }
 }
+```
+
+```json
 {
   "id": "ec58c5d00111",
   "address": "ec:58:c5:d0:01:11",
@@ -257,7 +263,8 @@ import { SwitchBot } from 'node-switchbot';
 You can get an `SwitchBot` constructor from the code above. Then you have to create a `SwitchBot` object from the `SwitchBot` constructor as follows:
 
 ```typescript
-const switchbot = new SwitchBot();
+const switchbot = new SwitchBot()
+switchbot.startScan()
 ```
 
 The `SwitchBot` constructor takes an argument optionally. It must be a hash object containing the properties as follows:
@@ -347,10 +354,10 @@ The discovery process was finished.
 
 The `startScan()` method starts to scan advertising packets coming from devices. This method takes an argument which is a hash object containing the parameters as follows:
 
-| Property | Type   | Required | Description                                                                                                                                                                                                      |
-| :------- | :----- | :------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Property | Type   | Required | Description                                                                                                                                                                                                                                                                                                       |
+| :------- | :----- | :------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `model`  | String | Optional | `"H"`, `"T"`, `"c"`, `"g"` or `"j"`. If `"H"` is specified, this method will discover only Bots. If `"T"` is specified, this method will discover only Meters. If `"c"` is specified, this method will discover only Curtains. If `"g"` or `"j"` is specified, this method will discover only (US/JP) Plug Minis. |
-| `id`     | String | Optional | If this value is set, this method will discover only a device whose ID is as same as this value. The ID is identical to the MAC address. This value is case-insensitive, and colons are ignored.                 |
+| `id`     | String | Optional | If this value is set, this method will discover only a device whose ID is as same as this value. The ID is identical to the MAC address. This value is case-insensitive, and colons are ignored.                                                                                                                  |
 
 Whenever a packet is received, the callback function set to the [`onadvertisement`](#Switchbot-onadvertisement-event-handler) property of the [`Switchbot`](#Switchbot-object) object will be called. When a packet is received, a hash object representing the packet will be passed to the callback function.
 
@@ -385,8 +392,9 @@ The code snippet above will output the result as follows:
   serviceData: {
     model: 'T',
     modelName: 'WoSensorTH',
-    temperature: { c: 25.8, f: 78.4 },
-    fahrenheit: false,
+    celsius: 25.8,
+    fahrenheit: 78.4,
+    fahrenheit_mode: false,
     humidity: 43,
     battery: 100
   }
@@ -855,6 +863,7 @@ switchbot
 ```
 
 ---
+
 ## `WoPlugMini` object
 
 The `WoPlugMini ` object represents a PlugMini, which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
@@ -882,6 +891,7 @@ If no connection is established with the device, this method automatically estab
 ---
 
 ---
+
 ## `WoSmartLock` object
 
 The `WoSmartLock ` object represents a SmartLock, which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
@@ -894,10 +904,10 @@ The `setKey()` method initialises the key information required for encrypted com
 
 This must be set before any control commands are sent to the device. To obtain the key information you will need to use an external tool - see [`pySwitchbot`](https://github.com/Danielhiversen/pySwitchbot/tree/master?tab=readme-ov-file#obtaining-locks-encryption-key) project for an example script.
 
-| Property         | Type    | Description                                                                                                                            |
-| :--------------- | :------ | :------------------------------------------------------------------------------------------------------------------------------------- |
-| `keyId`          | String  | unique2 character ID for the key. (e.g., `"ff"`) returned from the SwitchBot api for your device                                       |
-| `encryptionKey`  | String  | the unique encryption key returned from the SwitchBot api for your device                                                              |
+| Property        | Type   | Description                                                                                      |
+| :-------------- | :----- | :----------------------------------------------------------------------------------------------- |
+| `keyId`         | String | unique2 character ID for the key. (e.g., `"ff"`) returned from the SwitchBot api for your device |
+| `encryptionKey` | String | the unique encryption key returned from the SwitchBot api for your device                        |
 
 ### `lock()` method
 
@@ -922,7 +932,6 @@ If no connection is established with the device, this method automatically estab
 The `info()` method retreieves state information from the SmartLock, This method returns a `Promise` object. An `object` value indicating with the state infor, is passed to the `resolve()` method of the Promise.
 
 If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
 
 ## Advertisement data
 
@@ -1136,16 +1145,16 @@ Example of the advertisement data:
 
 Structure of the `serviceData`:
 
-| Property      | Type    | Description                                                                         |
-| :------------ | :------ | :---------------------------------------------------------------------------------- |
-| `model`       | String  | This value is always `"j"` or `"g"`, which means "PlugMini" (JP or US).             |
-| `modelName`   | String  | This value is always `"WoPlugMini"`, which means "PlugMini".                        |
-| `state   `    | Boolean | This value indicates whether the plug mini is turned on (`true`) or not (`false`).  |
-| `delay`       | Boolean | Indicates whether a delay is present.                                               |
-| `timer`       | Boolean | Indicates whether a timer is present.                                               |
-| `syncUtcTime` | boolean | Indicates whether the UTC time has been synchronized.                               |
-| `overload`    | boolean | Indicates whether the Plug Mini is overloaded, more than 15A current overload.      |
-| `currentPower`| Float   | Current power consumption in Watts.                                                 |
+| Property       | Type    | Description                                                                        |
+| :------------- | :------ | :--------------------------------------------------------------------------------- |
+| `model`        | String  | This value is always `"j"` or `"g"`, which means "PlugMini" (JP or US).            |
+| `modelName`    | String  | This value is always `"WoPlugMini"`, which means "PlugMini".                       |
+| `state   `     | Boolean | This value indicates whether the plug mini is turned on (`true`) or not (`false`). |
+| `delay`        | Boolean | Indicates whether a delay is present.                                              |
+| `timer`        | Boolean | Indicates whether a timer is present.                                              |
+| `syncUtcTime`  | boolean | Indicates whether the UTC time has been synchronized.                              |
+| `overload`     | boolean | Indicates whether the Plug Mini is overloaded, more than 15A current overload.     |
+| `currentPower` | Float   | Current power consumption in Watts.                                                |
 
 ---
 
@@ -1155,8 +1164,8 @@ Example of the advertisement data:
 
 ```json
 {
-  "id: 'd30864110b8c',
-  "address": 'd3:08:64:11:0b:8c',
+  "id": "d30864110b8c",
+  "address": "d3:08:64:11:0b:8c",
   "rssi": -52,
   "serviceData": {
     "model": "o",
@@ -1172,29 +1181,27 @@ Example of the advertisement data:
     "auto_lock_paused": false
   }
 }
-
 ```
 
 Structure of the `serviceData`:
 
-| Property                      | Type    | Description                                                                         |
-| :---------------------------- | :------ | :---------------------------------------------------------------------------------- |
-| `model`                       | String  | This value is `"o"`, which means "Lock (WoSmartLock)".                              |
-| `modelName`                   | String  | This value is always `"WoSmartLock"`, which means "Lock".                           |
-| `battery`                     | Integer | This value indicates the battery level (`1-100`, `%`).                              |
-| `calibration`                 | Boolean | This value indicates the calibration status (`true` or `false`).                    |
-| `status`                      | String  | This value indicates the current locked state. Possible values:                     |
-|                               |         | `"LOCKED"`, `"UNLOCKED"`, `"LOCKING"`, `"UNLOCKING"`                                |
-|                               |         | `"LOCKING_STOP"`, `"UNLOCKING_STOP"` (stuck when locking or unlocking respectively) |
-|                               |         | `"NOT_FULLY_LOCKED"` (eu model only), `"UNKNOWN"` (fallback: must be some error)    |
-| `update_from_secondary_lock`  | Boolean |  ??                                                                                 |
-| `door_open`                   | Boolean |  door open status - whether the door is not detecting the sensor magnet             |
-| `double_lock_mode`            | Boolean |  dual lock mode enabled status - two locks working simultaneously                   |
-| `unclosed_alarm`              | Boolean |  enabled status for door ajar alarm function                                        |
-| `unlocked_alarm`              | Boolean |  whether the alarm function is enabled for door left unlocked                       |
-| `auto_lock_paused`            | Boolean |  auto lock mode paused                                                              |
-| `night_latch`                 | Boolean |  night latch mode enabled (eu firmware only)                                        |
-
+| Property                     | Type    | Description                                                                         |
+| :--------------------------- | :------ | :---------------------------------------------------------------------------------- |
+| `model`                      | String  | This value is `"o"`, which means "Lock (WoSmartLock)".                              |
+| `modelName`                  | String  | This value is always `"WoSmartLock"`, which means "Lock".                           |
+| `battery`                    | Integer | This value indicates the battery level (`1-100`, `%`).                              |
+| `calibration`                | Boolean | This value indicates the calibration status (`true` or `false`).                    |
+| `status`                     | String  | This value indicates the current locked state. Possible values:                     |
+|                              |         | `"LOCKED"`, `"UNLOCKED"`, `"LOCKING"`, `"UNLOCKING"`                                |
+|                              |         | `"LOCKING_STOP"`, `"UNLOCKING_STOP"` (stuck when locking or unlocking respectively) |
+|                              |         | `"NOT_FULLY_LOCKED"` (eu model only), `"UNKNOWN"` (fallback: must be some error)    |
+| `update_from_secondary_lock` | Boolean | ??                                                                                  |
+| `door_open`                  | Boolean | door open status - whether the door is not detecting the sensor magnet              |
+| `double_lock_mode`           | Boolean | dual lock mode enabled status - two locks working simultaneously                    |
+| `unclosed_alarm`             | Boolean | enabled status for door ajar alarm function                                         |
+| `unlocked_alarm`             | Boolean | whether the alarm function is enabled for door left unlocked                        |
+| `auto_lock_paused`           | Boolean | auto lock mode paused                                                               |
+| `night_latch`                | Boolean | night latch mode enabled (eu firmware only)                                         |
 
 ## References
 

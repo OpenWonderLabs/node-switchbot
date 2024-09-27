@@ -6,58 +6,59 @@ import { SwitchbotDevice } from '../device.js';
 import { lockServiceData } from '../types/bledevicestatus.js';
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
 import Noble from '@stoprocent/noble';
-import * as Crypto from 'crypto';
 import { WoSmartLockPro } from './wosmartlockpro.js';
+import { Buffer } from 'node:buffer'
+import * as Crypto from 'node:crypto'
 
 export class WoSmartLock extends SwitchbotDevice {
-  _iv: Buffer | null;
-  _key_id: string;
-  encryption_key: Buffer | null;
+  iv: Buffer | null
+  key_id: string
+  encryption_key: Buffer | null
 
-  static COMMAND_GET_CK_IV = '570f2103';
-  static COMMAND_LOCK_INFO = '570f4f8101';
-  static COMMAND_UNLOCK = '570f4e01011080';
-  static COMMAND_UNLOCK_NO_UNLATCH = '570f4e010110a0';
-  static COMMAND_LOCK = '570f4e01011000';
-  static COMMAND_ENABLE_NOTIFICATIONS = '570e01001e00008101';
-  static COMMAND_DISABLE_NOTIFICATIONS = '570e00';
+  static COMMAND_GET_CKiv = '570f2103'
+  static COMMAND_LOCK_INFO = '570f4f8101'
+  static COMMAND_UNLOCK = '570f4e01011080'
+  static COMMAND_UNLOCK_NO_UNLATCH = '570f4e010110a0'
+  static COMMAND_LOCK = '570f4e01011000'
+  static COMMAND_ENABLE_NOTIFICATIONS = '570e01001e00008101'
+  static COMMAND_DISABLE_NOTIFICATIONS = '570e00'
 
   static Result = {
     ERROR: 0x00,
     SUCCESS: 0x01,
     SUCCESS_LOW_BATTERY: 0x06,
-  };
+  }
 
   static async validateResponse(res: Buffer) {
     if (res.length >= 3) {
       switch (res.readUInt8(0)) {
         case WoSmartLock.Result.SUCCESS:
-          return WoSmartLock.Result.SUCCESS;
+          return WoSmartLock.Result.SUCCESS
         case WoSmartLock.Result.SUCCESS_LOW_BATTERY:
-          return WoSmartLock.Result.SUCCESS_LOW_BATTERY;
+          return WoSmartLock.Result.SUCCESS_LOW_BATTERY
       }
     }
-    return WoSmartLock.Result.ERROR;
+    return WoSmartLock.Result.ERROR
   }
 
   static getLockStatus(code: number): string {
     switch (code) {
       case 0b0000000:
-        return 'LOCKED';
+        return 'LOCKED'
       case 0b0010000:
-        return 'UNLOCKED';
+        return 'UNLOCKED'
       case 0b0100000:
-        return 'LOCKING';
+        return 'LOCKING'
       case 0b0110000:
-        return 'UNLOCKING';
+        return 'UNLOCKING'
       case 0b1000000:
-        return 'LOCKING_STOP';
+        return 'LOCKING_STOP'
       case 0b1010000:
-        return 'UNLOCKING_STOP';
-      case 0b1100000: //Only EU lock type
-        return 'NOT_FULLY_LOCKED';
+        return 'UNLOCKING_STOP'
+      case 0b1100000: // Only EU lock type
+        return 'NOT_FULLY_LOCKED'
       default:
-        return 'UNKNOWN';
+        return 'UNKNOWN'
     }
   }
 
@@ -70,25 +71,25 @@ export class WoSmartLock extends SwitchbotDevice {
       if (onlog && typeof onlog === 'function') {
         onlog(`[parseServiceDataForWoSmartLock] Buffer length ${manufacturerData.length} is too short!`);
       }
-      return null;
+      return null
     }
 
     // adv data needs both service data and manufacturer data
     // byte var names based on documentation
-    const byte2 = serviceData.readUInt8(2);
-    const byte15 = manufacturerData.readUInt8(9);
-    const byte16 = manufacturerData.readUInt8(10);
+    const byte2 = serviceData.readUInt8(2)
+    const byte15 = manufacturerData.readUInt8(9)
+    const byte16 = manufacturerData.readUInt8(10)
 
     const battery = byte2 & 0b01111111; // %
-    const calibration = byte15 & 0b10000000 ? true : false;
-    const status = WoSmartLock.getLockStatus(byte15 & 0b01110000);
-    const update_from_secondary_lock = byte15 & 0b00001000 ? true : false;
-    const door_open = (byte15 & 0b00000100) ? 'true' : 'false';
-    const double_lock_mode = byte16 & 0b10000000 ? true : false;
-    const unclosed_alarm = byte16 & 0b00100000 ? true : false;
-    const unlocked_alarm = byte16 & 0b00010000 ? true : false;
-    const auto_lock_paused = byte16 & 0b00000010 ? true : false;
-    const night_latch = manufacturerData.length > 11 && manufacturerData.readUInt8(11) & 0b00000001 ? true : false;
+    const calibration = !!(byte15 & 0b10000000)
+    const status = WoSmartLock.getLockStatus(byte15 & 0b01110000)
+    const update_from_secondary_lock = !!(byte15 & 0b00001000)
+    const door_open = !!(byte15 & 0b00000100)
+    const double_lock_mode = !!(byte16 & 0b10000000)
+    const unclosed_alarm = !!(byte16 & 0b00100000)
+    const unlocked_alarm = !!(byte16 & 0b00010000)
+    const auto_lock_paused = !!(byte16 & 0b00000010)
+    const night_latch = !!(manufacturerData.length > 11 && manufacturerData.readUInt8(11) & 0b00000001)
 
     const data: lockServiceData = {
       model: SwitchBotBLEModel.Lock,
@@ -104,15 +105,15 @@ export class WoSmartLock extends SwitchbotDevice {
       unlocked_alarm: unlocked_alarm,
       auto_lock_paused: auto_lock_paused,
       night_latch: night_latch,
-    };
+    }
 
-    return data;
+    return data
   }
 
   constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
     super(peripheral, noble);
-    this._iv = null;
-    this._key_id = '';
+    this.iv = null;
+    this.key_id = '';
     this.encryption_key = null;
   }
 
@@ -127,8 +128,8 @@ export class WoSmartLock extends SwitchbotDevice {
    * - void
    * ---------------------------------------------------------------- */
   async setKey(keyId: string, encryptionKey: string) {
-    this._iv = null;
-    this._key_id = keyId;
+    this.iv = null;
+    this.key_id = keyId;
     this.encryption_key = Buffer.from(encryptionKey, 'hex');
   }
 
@@ -237,33 +238,33 @@ export class WoSmartLock extends SwitchbotDevice {
   }
 
   async encrypt(str:string) {
-    const cipher = Crypto.createCipheriv('aes-128-ctr', this.encryption_key!, this._iv);
+    const cipher = Crypto.createCipheriv('aes-128-ctr', this.encryption_key!, this.iv);
     return Buffer.concat([cipher.update(str, 'hex'), cipher.final()]).toString('hex');
   }
 
   async decrypt(data:Buffer) {
-    const decipher = Crypto.createDecipheriv('aes-128-ctr', this.encryption_key!, this._iv);
+    const decipher = Crypto.createDecipheriv('aes-128-ctr', this.encryption_key!, this.iv);
     return Buffer.concat([decipher.update(data), decipher.final()]);
   }
 
   async getIv(): Promise<Buffer> {
-    if (this._iv === null) {
-      const res = await this.operateLock(WoSmartLock.COMMAND_GET_CK_IV + this._key_id, false);
+    if (this.iv === null) {
+      const res = await this.operateLock(WoSmartLock.COMMAND_GET_CKiv + this.key_id, false);
       if (res) {
-        this._iv = res.subarray(4);
+        this.iv = res.subarray(4);
       } else {
         // Handle the case when 'res' is undefined
-        // For example, you can throw an error or set a default value for 'this._iv'
+        // For example, you can throw an error or set a default value for 'this.iv'
         throw new Error('Failed to retrieve IV from the device.');
       }
     }
-    return this._iv;
+    return this.iv
   }
 
   async encryptedCommand(key: string) {
     const iv = await this.getIv();
     const req = Buffer.from(
-      key.substring(0, 2) + this._key_id + Buffer.from(iv.subarray(0, 2)).toString('hex') + this.encrypt(key.substring(2))
+      key.substring(0, 2) + this.key_id + Buffer.from(iv.subarray(0, 2)).toString('hex') + this.encrypt(key.substring(2))
       , 'hex');
 
     const bytes: unknown = await this.command(req);
@@ -298,4 +299,3 @@ export class WoSmartLock extends SwitchbotDevice {
       });
   }
 }
-

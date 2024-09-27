@@ -4,6 +4,8 @@
  */
 import { SwitchbotDevice } from '../device.js';
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
+import { Buffer } from 'node:buffer'
+
 
 export class WoHand extends SwitchbotDevice {
   static async parseServiceData(
@@ -14,24 +16,24 @@ export class WoHand extends SwitchbotDevice {
       if (onlog && typeof onlog === 'function') {
         onlog(`[parseServiceData] Buffer length ${serviceData.length} !== 3!`);
       }
-      return null;
+      return null
     }
     const byte1 = serviceData.readUInt8(1);
     const byte2 = serviceData.readUInt8(2);
 
-    const mode = byte1 & 0b10000000 ? true : false; // Whether the light switch Add-on is used or not. 0 = press, 1 = switch
-    const state = byte1 & 0b01000000 ? false : true; // Whether the switch status is ON or OFF. 0 = on, 1 = off
-    const battery = byte2 & 0b01111111; // %
+    const mode = !!(byte1 & 0b10000000) // Whether the light switch Add-on is used or not. 0 = press, 1 = switch
+    const state = !(byte1 & 0b01000000) // Whether the switch status is ON or OFF. 0 = on, 1 = off
+    const battery = byte2 & 0b01111111 // %
 
     const data = {
       model: SwitchBotBLEModel.Bot,
       modelName: SwitchBotBLEModelName.Bot,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.Bot,
-      mode: mode,
-      state: state,
-      battery: battery,
-    };
-    return data;
+      mode,
+      state,
+      battery,
+    }
+    return data
   }
 
   /* ------------------------------------------------------------------

@@ -4,6 +4,7 @@
  */
 import { SwitchbotDevice } from '../device.js';
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
+import type { Buffer } from 'node:buffer'
 
 export class WoContact extends SwitchbotDevice {
   static async parseServiceData(
@@ -14,7 +15,7 @@ export class WoContact extends SwitchbotDevice {
       if (onlog && typeof onlog === 'function') {
         onlog(`[parseServiceDataForWoContact] Buffer length ${serviceData.length} !== 9!`);
       }
-      return null;
+      return null
     }
 
     const byte1 = serviceData.readUInt8(1);
@@ -22,14 +23,14 @@ export class WoContact extends SwitchbotDevice {
     const byte3 = serviceData.readUInt8(3);
     const byte8 = serviceData.readUInt8(8);
 
-    const hallState = (byte3 >> 1) & 0b00000011;
-    const tested = byte1 & 0b10000000;
-    const movement = byte1 & 0b01000000 ? true : false; // 1 - Movement detected
-    const battery = byte2 & 0b01111111; // %
-    const contact_open = (byte3 & 0b00000010) === 0b00000010;
-    const contact_timeout = (byte3 & 0b00000100) === 0b00000100;
-    const lightLevel = byte3 & 0b00000001;
-    const button_count = byte8 & 0b00001111;
+    const hallState = (byte3 >> 1) & 0b00000011
+    const tested = byte1 & 0b10000000
+    const movement = !!(byte1 & 0b01000000) // 1 - Movement detected
+    const battery = byte2 & 0b01111111 // %
+    const contact_open = (byte3 & 0b00000010) === 0b00000010
+    const contact_timeout = (byte3 & 0b00000100) === 0b00000100
+    const lightLevel = byte3 & 0b00000001
+    const button_count = byte8 & 0b00001111
 
     const data = {
       model: SwitchBotBLEModel.ContactSensor,
@@ -42,14 +43,9 @@ export class WoContact extends SwitchbotDevice {
       contact_timeout: contact_timeout,
       lightLevel: lightLevel === 0 ? 'dark' : 'bright',
       button_count: button_count,
-      doorState:
-        hallState === 0
-          ? 'close'
-          : hallState === 1
-            ? 'open'
-            : 'timeout no closed',
-    };
+      doorState: hallState === 0 ? 'close' : hallState === 1 ? 'open' : 'timeout no closed',
+    }
 
-    return data;
+    return data
   }
 }

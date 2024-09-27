@@ -115,7 +115,7 @@ export type lockServiceData = serviceData & {
   calibration: boolean;
   status: string;
   update_from_secondary_lock: boolean;
-  door_open: string;
+  door_open: boolean;
   double_lock_mode: boolean;
   unclosed_alarm: boolean;
   unlocked_alarm: boolean;
@@ -131,7 +131,7 @@ export type lockProServiceData = serviceData & {
   calibration: boolean;
   status: string;
   update_from_secondary_lock: boolean;
-  door_open: string;
+  door_open: boolean;
   double_lock_mode: boolean;
   unclosed_alarm: boolean;
   unlocked_alarm: boolean;
@@ -144,7 +144,9 @@ export type meterServiceData = serviceData & {
   modelName: SwitchBotBLEModelName.Meter,
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Meter,
   temperature: temperature;
-  fahrenheit: boolean;
+  celcius: number;
+  fahrenheit: number;
+  fahrenheit_mode: boolean;
   humidity: number;
   battery: number;
 };
@@ -154,7 +156,9 @@ export type meterPlusServiceData = serviceData & {
   modelName: SwitchBotBLEModelName.MeterPlus,
   modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterPlus,
   temperature: temperature;
-  fahrenheit: boolean;
+  celcius: number;
+  fahrenheit: number;
+  fahrenheit_mode: boolean;
   humidity: number;
   battery: number;
 };
@@ -164,7 +168,9 @@ export type outdoorMeterServiceData = serviceData & {
   modelName: SwitchBotBLEModelName.OutdoorMeter,
   modelFriendlyName: SwitchBotBLEModelFriendlyName.OutdoorMeter,
   temperature: temperature;
-  fahrenheit: boolean;
+  celcius: number;
+  fahrenheit: number;
+  fahrenheit_mode: boolean;
   humidity: number;
   battery: number;
 };
@@ -261,7 +267,9 @@ export type hub2ServiceData = serviceData & {
   modelName: SwitchBotBLEModelName.Hub2,
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Hub2,
   temperature: temperature;
-  fahrenheit: boolean;
+  celcius: number;
+  fahrenheit: number;
+  fahrenheit_mode: boolean;
   humidity: number;
   lightLevel: number;
 };

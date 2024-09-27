@@ -11,11 +11,14 @@ import {
 } from './settings.js';
 import { SwitchBotBLEModel, SwitchBotBLEModelName } from './types/types.js';
 
+import { Buffer } from 'node:buffer'
+
+
 type Chars = {
-  write: Noble.Characteristic | null,
-  notify: Noble.Characteristic | null,
-  device: Noble.Characteristic | null,
-} | null;
+  write: Noble.Characteristic | null
+  notify: Noble.Characteristic | null
+  device: Noble.Characteristic | null
+} | null
 
 export class SwitchbotDevice {
   _noble: typeof Noble;
@@ -50,6 +53,8 @@ export class SwitchbotDevice {
     this._model = ad ? ad.serviceData.model : null;
     this._modelName = ad ? ad.serviceData.modelName : null;
 
+    this._explicitly = false
+    this._connected = false
 
     this._explicitly = false;
     this._connected = false;
@@ -74,14 +79,14 @@ export class SwitchbotDevice {
   }
 
   get modelName(): string {
-    return this._modelName;
+    return this._modelName
   }
 
   get connectionState(): string {
     if (!this._connected && this._peripheral.state === 'disconnecting') {
-      return 'disconnected';
+      return 'disconnected'
     } else {
-      return this._peripheral.state;
+      return this._peripheral.state
     }
   }
 
@@ -448,16 +453,16 @@ export class SwitchbotDevice {
     return new Promise<void>((resolve, reject) => {
       // Check the parameters
       const valid = parameterChecker.check(
-        { name: name },
+        { name },
         {
           name: { required: true, type: 'string', minBytes: 1, maxBytes: 100 },
         },
         true, // Add the required argument
-      );
+      )
 
       if (!valid) {
-        reject(new Error(parameterChecker.error!.message));
-        return;
+        reject(new Error(parameterChecker.error!.message))
+        return
       }
 
       const buf = Buffer.from(name, 'utf8');
@@ -570,8 +575,8 @@ export class SwitchbotDevice {
 
       this.onnotify_internal = (buf: Buffer | PromiseLike<Buffer>) => {
         if (timer) {
-          clearTimeout(timer);
-          timer = undefined;
+          clearTimeout(timer)
+          timer = undefined
         }
         this.onnotify_internal = () => { };
         return buf;
