@@ -1,10 +1,11 @@
+import type { Buffer } from 'node:buffer'
+
 /* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
  * wohub2.ts: Switchbot BLE API registration.
  */
-import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
-import type { Buffer } from 'node:buffer'
+import { SwitchbotDevice } from '../device.js'
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
 export class WoHub2 extends SwitchbotDevice {
   static async parseServiceData(
@@ -13,7 +14,7 @@ export class WoHub2 extends SwitchbotDevice {
   ): Promise<object | null> {
     if (manufacturerData.length !== 16) {
       if (onlog && typeof onlog === 'function') {
-        onlog(`[parseServiceDataForWoSensorTH] Buffer length ${manufacturerData.length} !== 16!`);
+        onlog(`[parseServiceDataForWoSensorTH] Buffer length ${manufacturerData.length} !== 16!`)
       }
       return null
     }

@@ -1,10 +1,11 @@
+import { Buffer } from 'node:buffer'
+
 /* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
  * woceilinglight.ts: Switchbot BLE API registration.
  */
-import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
-import { Buffer } from 'node:buffer'
+import { SwitchbotDevice } from '../device.js'
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
 /**
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/colorbulb.md
@@ -16,7 +17,7 @@ export class WoCeilingLight extends SwitchbotDevice {
   ): Promise<object | null> {
     if (manufacturerData.length !== 13) {
       if (onlog && typeof onlog === 'function') {
-        onlog(`[parseServiceDataForWoCeilingLight] Buffer length ${manufacturerData.length} !== 13!`);
+        onlog(`[parseServiceDataForWoCeilingLight] Buffer length ${manufacturerData.length} !== 13!`)
       }
       return null
     }
@@ -48,18 +49,18 @@ export class WoCeilingLight extends SwitchbotDevice {
       model: SwitchBotBLEModel.CeilingLight,
       modelName: SwitchBotBLEModelName.CeilingLight,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.CeilingLight,
-      color_temperature: color_temperature,
-      power: power,
-      state: state,
-      red: red,
-      green: green,
-      blue: blue,
-      brightness: brightness,
-      delay: delay,
-      preset: preset,
-      color_mode: color_mode,
-      speed: speed,
-      loop_index: loop_index,
+      color_temperature,
+      power,
+      state,
+      red,
+      green,
+      blue,
+      brightness,
+      delay,
+      preset,
+      color_mode,
+      speed,
+      loop_index,
     }
 
     return data
@@ -67,8 +68,8 @@ export class WoCeilingLight extends SwitchbotDevice {
 
   static async parseServiceData_Pro(
     manufacturerData: Buffer,
-    onlog: ((message: string) => void) | undefined)
-    : Promise<object | null> {
+    onlog: ((message: string) => void) | undefined,
+  ): Promise<object | null> {
     if (manufacturerData.length !== 13) {
       if (onlog && typeof onlog === 'function') {
         onlog(
@@ -105,18 +106,18 @@ export class WoCeilingLight extends SwitchbotDevice {
       model: SwitchBotBLEModel.CeilingLightPro,
       modelName: SwitchBotBLEModelName.CeilingLightPro,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.CeilingLightPro,
-      color_temperature: color_temperature,
-      power: power,
-      state: state,
-      red: red,
-      green: green,
-      blue: blue,
-      brightness: brightness,
-      delay: delay,
-      preset: preset,
-      color_mode: color_mode,
-      speed: speed,
-      loop_index: loop_index,
+      color_temperature,
+      power,
+      state,
+      red,
+      green,
+      blue,
+      brightness,
+      delay,
+      preset,
+      color_mode,
+      speed,
+      loop_index,
     }
 
     return data
@@ -126,29 +127,29 @@ export class WoCeilingLight extends SwitchbotDevice {
    * @returns resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
    */
   async readState() {
-    return await this.operateBot([0x57, 0x0f, 0x48, 0x01]);
+    return await this.operateBot([0x57, 0x0F, 0x48, 0x01])
   }
 
   /**
    *
    */
   async setState(reqByteArray: number[]) {
-    const base = [0x57, 0x0f, 0x47, 0x01];
-    return await this.operateBot(base.concat(reqByteArray));
+    const base = [0x57, 0x0F, 0x47, 0x01]
+    return await this.operateBot(base.concat(reqByteArray))
   }
 
   /**
    * @returns resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
    */
   async turnOn() {
-    return await this.setState([0x01, 0x01]);
+    return await this.setState([0x01, 0x01])
   }
 
   /**
    * @returns resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
    */
   async turnOff() {
-    return await this.setState([0x01, 0x02]);
+    return await this.setState([0x01, 0x02])
   }
 
   /**
@@ -156,14 +157,14 @@ export class WoCeilingLight extends SwitchbotDevice {
    */
   async setBrightness(brightness: number) {
     if (typeof brightness !== 'number') {
-      throw new Error('The type of target brightness percentage is incorrect: ' + typeof brightness);
+      throw new TypeError(`The type of target brightness percentage is incorrect: ${typeof brightness}`)
     }
     if (brightness > 100) {
       brightness = 100
     } else if (brightness < 0) {
       brightness = 0
     }
-    return await this.setState([0x02, 0x14]);
+    return await this.setState([0x02, 0x14])
   }
 
   /**
@@ -171,14 +172,14 @@ export class WoCeilingLight extends SwitchbotDevice {
    */
   async setColorTemperature(color_temperature: number) {
     if (typeof color_temperature !== 'number') {
-      throw new Error('The type of target color_temperature percentage is incorrect: ' + typeof color_temperature);
+      throw new TypeError(`The type of target color_temperature percentage is incorrect: ${typeof color_temperature}`)
     }
     if (color_temperature > 100) {
       color_temperature = 100
     } else if (color_temperature < 0) {
       color_temperature = 0
     }
-    return await this.setState([0x02, 0x17, color_temperature]);
+    return await this.setState([0x02, 0x17, color_temperature])
   }
 
   /**
@@ -189,16 +190,16 @@ export class WoCeilingLight extends SwitchbotDevice {
    */
   async setRGB(brightness: number, red: number, green: number, blue: number) {
     if (typeof brightness !== 'number') {
-      throw new Error('The type of target brightness percentage is incorrect: ' + typeof brightness);
+      throw new TypeError(`The type of target brightness percentage is incorrect: ${typeof brightness}`)
     }
     if (typeof red !== 'number') {
-      throw new Error('The type of target red is incorrect: ' + typeof red);
+      throw new TypeError(`The type of target red is incorrect: ${typeof red}`)
     }
     if (typeof green !== 'number') {
-      throw new Error('The type of target green is incorrect: ' + typeof green);
+      throw new TypeError(`The type of target green is incorrect: ${typeof green}`)
     }
     if (typeof blue !== 'number') {
-      throw new Error('The type of target blue is incorrect: ' + typeof blue);
+      throw new TypeError(`The type of target blue is incorrect: ${typeof blue}`)
     }
     if (brightness > 100) {
       brightness = 100
@@ -220,30 +221,31 @@ export class WoCeilingLight extends SwitchbotDevice {
     } else if (blue < 0) {
       blue = 0
     }
-    return await this.setState([0x02, 0x12, brightness, red, green, blue]);
+    return await this.setState([0x02, 0x12, brightness, red, green, blue])
   }
 
   /**
    * @param bytes
    */
   async operateBot(bytes: number[]): Promise<void> {
-    const req_buf = Buffer.from(bytes);
+    const req_buf = Buffer.from(bytes)
     await this.command(req_buf)
       .then((res_bytes) => {
-        const res_buf = Buffer.from(res_bytes);
+        const res_buf = Buffer.from(res_bytes)
         if (res_buf.length === 2) {
-          const code = res_buf.readUInt8(1);
+          const code = res_buf.readUInt8(1)
           if (code === 0x00 || code === 0x80) {
-            const is_on = code === 0x80;
-            return is_on;
+            const is_on = code === 0x80
+            return is_on
           } else {
-            throw new Error('The device returned an error: 0x' + res_buf.toString('hex'));
+            throw new Error(`The device returned an error: 0x${res_buf.toString('hex')}`)
           }
         } else {
-          throw new Error('Expecting a 2-byte response, got instead: 0x' + res_buf.toString('hex'));
+          throw new Error(`Expecting a 2-byte response, got instead: 0x${res_buf.toString('hex')}`)
         }
-      }).catch((error) => {
-        throw error;
-      });
+      })
+      .catch((error) => {
+        throw error
+      })
   }
 }

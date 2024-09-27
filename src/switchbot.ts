@@ -4,29 +4,30 @@
  */
 import type Noble from '@stoprocent/noble'
 
-import { WoHand } from './device/wohand.js';
-import { WoCurtain } from './device/wocurtain.js';
-import { WoBlindTilt } from './device/woblindtilt.js';
-import { WoPresence } from './device/wopresence.js';
-import { WoContact } from './device/wocontact.js';
-import { WoSensorTH } from './device/wosensorth.js';
-import { WoIOSensorTH } from './device/woiosensorth.js';
-import { WoHub2 } from './device/wohub2.js';
-import { WoHumi } from './device/wohumi.js';
-import { WoPlugMini } from './device/woplugmini.js';
-import { WoBulb } from './device/wobulb.js';
-import { WoCeilingLight } from './device/woceilinglight.js';
-import { WoStrip } from './device/wostrip.js';
-import { WoSmartLock } from './device/wosmartlock.js';
-import { WoSmartLockPro } from './device/wosmartlockpro.js';
-import { Ad } from './advertising.js';
-import { SwitchBotBLEModel, Params } from './types/types.js';
+import type { Ad } from './advertising.js'
+import type { Params } from './types/types.js'
 
 import { Buffer } from 'node:buffer'
 
 import { Advertising } from './advertising.js'
 import { SwitchbotDevice } from './device.js'
+import { WoBlindTilt } from './device/woblindtilt.js'
+import { WoBulb } from './device/wobulb.js'
+import { WoCeilingLight } from './device/woceilinglight.js'
+import { WoContact } from './device/wocontact.js'
+import { WoCurtain } from './device/wocurtain.js'
+import { WoHand } from './device/wohand.js'
+import { WoHub2 } from './device/wohub2.js'
+import { WoHumi } from './device/wohumi.js'
+import { WoIOSensorTH } from './device/woiosensorth.js'
+import { WoPlugMini } from './device/woplugmini.js'
+import { WoPresence } from './device/wopresence.js'
+import { WoSensorTH } from './device/wosensorth.js'
+import { WoSmartLock } from './device/wosmartlock.js'
+import { WoSmartLockPro } from './device/wosmartlockpro.js'
+import { WoStrip } from './device/wostrip.js'
 import { parameterChecker } from './parameter-checker.js'
+import { SwitchBotBLEModel } from './types/types.js'
 
 export class SwitchBot {
   private ready: Promise<void>
@@ -69,23 +70,23 @@ export class SwitchBot {
    * This async operation looks for devices by model or ID within a set duration.
    *
    * @param params An optional object with properties:
-   *  - duration: Discovery time in milliseconds (1 to 60000, default 5000).
-   *  - model: String specifying device type to discover, with each character representing a model:
-   *    - "H": Bots
-   *    - "T": Meters
-   *    - "e": Humidifiers
-   *    - "s": Motion Sensors
-   *    - "d": Contact Sensors
-   *    - "c": Curtains
-   *    - "{": Curtain 3
-   *    - "u": Color Bulbs
-   *    - "g": Plugs
-   *    - "o": Locks
-   *    - "$": Lock Pros
-   *    - "i": Meter Pluses
-   *    - "r": Locks (Duplicate, possibly an error)
-   *  - id: Optional device ID (MAC address) to discover, case-insensitive, ignores colons.
-   *  - quick: If true, stops discovery upon first match, not waiting full duration. Defaults to false.
+   * - duration: Discovery time in milliseconds (1 to 60000, default 5000).
+   * - model: String specifying device type to discover, with each character representing a model:
+   * - "H": Bots
+   * - "T": Meters
+   * - "e": Humidifiers
+   * - "s": Motion Sensors
+   * - "d": Contact Sensors
+   * - "c": Curtains
+   * - "{": Curtain 3
+   * - "u": Color Bulbs
+   * - "g": Plugs
+   * - "o": Locks
+   * - "$": Lock Pros
+   * - "i": Meter Pluses
+   * - "r": Locks (Duplicate, possibly an error)
+   * - id: Optional device ID (MAC address) to discover, case-insensitive, ignores colons.
+   * - quick: If true, stops discovery upon first match, not waiting full duration. Defaults to false.
    *
    * @returns Promise resolving to an array of `SwitchbotDevice` objects for discovered devices.
    *
@@ -151,13 +152,15 @@ export class SwitchBot {
           }
 
           // Set a handler for the 'discover' event
-          this.noble.on('discover', (peripheral: Noble.Peripheral) => {
-            const device = this.getDeviceObject(peripheral, p.id, p.model)
+          this.noble.on('discover', async (peripheral: Noble.Peripheral) => {
+            const device = await this.getDeviceObject(peripheral, p.id, p.model)
             if (!device) {
               return
             }
             const id = device.id
-            peripherals[id!] = device
+            if (device) {
+              peripherals[id!] = device
+            }
 
             if (this.ondiscover && typeof this.ondiscover === 'function') {
               this.ondiscover(device)
@@ -228,8 +231,8 @@ export class SwitchBot {
     return promise
   }
 
-  getDeviceObject(peripheral: Noble.Peripheral, id: string, model: string) {
-    const ad = Advertising.parse(peripheral, this.onlog)
+  async getDeviceObject(peripheral: Noble.Peripheral, id: string, model: string) {
+    const ad: Ad = await Advertising.parse(peripheral, this.onlog)
     if (this.filterAdvertising(ad, id, model)) {
       let device
       if (ad && ad.serviceData && ad.serviceData.model) {
@@ -430,8 +433,8 @@ export class SwitchBot {
           }
 
           // Set a handler for the 'discover' event
-          this.noble.on('discover', (peripheral: Noble.Peripheral) => {
-            const ad = Advertising.parse(peripheral, this.onlog)
+          this.noble.on('discover', async (peripheral: Noble.Peripheral) => {
+            const ad = await Advertising.parse(peripheral, this.onlog)
             if (this.filterAdvertising(ad, p.id, p.model)) {
               if (
                 this.onadvertisement
@@ -456,19 +459,10 @@ export class SwitchBot {
           )
         })
         .catch((error) => {
-          reject(error)
+          throw new Error(error)
         })
     })
     return promise
-  }
-
-    if (this.noble === null) {
-      return
-    }
-      });
-
-    this.noble.removeAllListeners('discover')
-    this.noble.stopScanning()
   }
 
   /* ------------------------------------------------------------------

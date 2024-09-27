@@ -1,10 +1,11 @@
+import type { Buffer } from 'node:buffer'
+
 /* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
  * woiosensorth.ts: Switchbot BLE API registration.
  */
-import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
-import type { Buffer } from 'node:buffer'
+import { SwitchbotDevice } from '../device.js'
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
 export class WoIOSensorTH extends SwitchbotDevice {
   static async parseServiceData(
@@ -14,13 +15,13 @@ export class WoIOSensorTH extends SwitchbotDevice {
   ): Promise<object | null> {
     if (serviceData.length !== 3) {
       if (onlog && typeof onlog === 'function') {
-        onlog(`[parseServiceDataForWoIOSensorTH] Service Data Buffer length ${serviceData.length} !== 3!`);
+        onlog(`[parseServiceDataForWoIOSensorTH] Service Data Buffer length ${serviceData.length} !== 3!`)
       }
       return null
     }
     if (manufacturerData.length !== 14) {
       if (onlog && typeof onlog === 'function') {
-        onlog(`[parseServiceDataForWoIOSensorTH] Manufacturer Data Buffer length ${manufacturerData.length} !== 14!`);
+        onlog(`[parseServiceDataForWoIOSensorTH] Manufacturer Data Buffer length ${manufacturerData.length} !== 14!`)
       }
       return null
     }

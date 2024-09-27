@@ -1,14 +1,17 @@
+import type Noble from '@stoprocent/noble'
+
+import type { lockServiceData } from '../types/bledevicestatus.js'
+
+import { Buffer } from 'node:buffer'
+import * as Crypto from 'node:crypto'
+
 /*
  * wosmartlock.ts: Switchbot BLE API registration.
  * adapted off the work done by [pySwitchbot](https://github.com/Danielhiversen/pySwitchbot)
  */
-import { SwitchbotDevice } from '../device.js';
-import { lockServiceData } from '../types/bledevicestatus.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
-import Noble from '@stoprocent/noble';
-import { WoSmartLockPro } from './wosmartlockpro.js';
-import { Buffer } from 'node:buffer'
-import * as Crypto from 'node:crypto'
+import { SwitchbotDevice } from '../device.js'
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
+import { WoSmartLockPro } from './wosmartlockpro.js'
 
 export class WoSmartLock extends SwitchbotDevice {
   iv: Buffer | null
@@ -69,7 +72,7 @@ export class WoSmartLock extends SwitchbotDevice {
   ): Promise<lockServiceData | null> {
     if (manufacturerData.length < 11) {
       if (onlog && typeof onlog === 'function') {
-        onlog(`[parseServiceDataForWoSmartLock] Buffer length ${manufacturerData.length} is too short!`);
+        onlog(`[parseServiceDataForWoSmartLock] Buffer length ${manufacturerData.length} is too short!`)
       }
       return null
     }
@@ -80,7 +83,7 @@ export class WoSmartLock extends SwitchbotDevice {
     const byte15 = manufacturerData.readUInt8(9)
     const byte16 = manufacturerData.readUInt8(10)
 
-    const battery = byte2 & 0b01111111; // %
+    const battery = byte2 & 0b01111111 // %
     const calibration = !!(byte15 & 0b10000000)
     const status = WoSmartLock.getLockStatus(byte15 & 0b01110000)
     const update_from_secondary_lock = !!(byte15 & 0b00001000)
@@ -95,26 +98,26 @@ export class WoSmartLock extends SwitchbotDevice {
       model: SwitchBotBLEModel.Lock,
       modelName: SwitchBotBLEModelName.Lock,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.Lock,
-      battery: battery,
-      calibration: calibration,
-      status: status,
-      update_from_secondary_lock: update_from_secondary_lock,
-      door_open: door_open,
-      double_lock_mode: double_lock_mode,
-      unclosed_alarm: unclosed_alarm,
-      unlocked_alarm: unlocked_alarm,
-      auto_lock_paused: auto_lock_paused,
-      night_latch: night_latch,
+      battery,
+      calibration,
+      status,
+      update_from_secondary_lock,
+      door_open,
+      double_lock_mode,
+      unclosed_alarm,
+      unlocked_alarm,
+      auto_lock_paused,
+      night_latch,
     }
 
     return data
   }
 
   constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
-    super(peripheral, noble);
-    this.iv = null;
-    this.key_id = '';
-    this.encryption_key = null;
+    super(peripheral, noble)
+    this.iv = null
+    this.key_id = ''
+    this.encryption_key = null
   }
 
   /* ------------------------------------------------------------------
@@ -128,9 +131,9 @@ export class WoSmartLock extends SwitchbotDevice {
    * - void
    * ---------------------------------------------------------------- */
   async setKey(keyId: string, encryptionKey: string) {
-    this.iv = null;
-    this.key_id = keyId;
-    this.encryption_key = Buffer.from(encryptionKey, 'hex');
+    this.iv = null
+    this.key_id = keyId
+    this.encryption_key = Buffer.from(encryptionKey, 'hex')
   }
 
   /* ------------------------------------------------------------------
@@ -148,13 +151,14 @@ export class WoSmartLock extends SwitchbotDevice {
     await this.operateLock(WoSmartLock.COMMAND_UNLOCK)
       .then((resBuf) => {
         if (resBuf) {
-          return WoSmartLock.validateResponse(resBuf);
+          return WoSmartLock.validateResponse(resBuf)
         } else {
-          return WoSmartLockPro.Result.ERROR;
+          return WoSmartLockPro.Result.ERROR
         }
-      }).catch((error) => {
-        return error;
-      });
+      })
+      .catch((error) => {
+        return error
+      })
   }
 
   /* ------------------------------------------------------------------
@@ -172,13 +176,14 @@ export class WoSmartLock extends SwitchbotDevice {
     await this.operateLock(WoSmartLock.COMMAND_UNLOCK_NO_UNLATCH)
       .then((resBuf) => {
         if (resBuf) {
-          return WoSmartLock.validateResponse(resBuf);
+          return WoSmartLock.validateResponse(resBuf)
         } else {
-          throw new Error('Failed to retrieve response buffer from the device.');
+          throw new Error('Failed to retrieve response buffer from the device.')
         }
-      }).catch((error) => {
-        return error;
-      });
+      })
+      .catch((error) => {
+        return error
+      })
   }
 
   /* ------------------------------------------------------------------
@@ -196,13 +201,14 @@ export class WoSmartLock extends SwitchbotDevice {
     await this.operateLock(WoSmartLock.COMMAND_LOCK)
       .then((resBuf) => {
         if (resBuf) {
-          return WoSmartLock.validateResponse(resBuf);
+          return WoSmartLock.validateResponse(resBuf)
         } else {
-          throw new Error('Failed to retrieve response buffer from the device.');
+          throw new Error('Failed to retrieve response buffer from the device.')
         }
-      }).catch((error) => {
-        return error;
-      });
+      })
+      .catch((error) => {
+        return error
+      })
   }
 
   /* ------------------------------------------------------------------
@@ -221,81 +227,81 @@ export class WoSmartLock extends SwitchbotDevice {
       .then((resBuf) => {
         if (resBuf) {
           const data = {
-            'calibration': Boolean(resBuf[1] & 0b10000000),
-            'status': WoSmartLock.getLockStatus((resBuf[1] & 0b01110000)),
-            'door_open': Boolean(resBuf[1] & 0b00000100),
-            'unclosed_alarm': Boolean(resBuf[2] & 0b00100000),
-            'unlocked_alarm': Boolean(resBuf[2] & 0b00010000),
-          };
-          return data;
+            calibration: Boolean(resBuf[1] & 0b10000000),
+            status: WoSmartLock.getLockStatus((resBuf[1] & 0b01110000)),
+            door_open: Boolean(resBuf[1] & 0b00000100),
+            unclosed_alarm: Boolean(resBuf[2] & 0b00100000),
+            unlocked_alarm: Boolean(resBuf[2] & 0b00010000),
+          }
+          return data
         } else {
-          throw new Error('Failed to retrieve response buffer from the device.');
+          throw new Error('Failed to retrieve response buffer from the device.')
         }
       })
       .catch((error) => {
-        return error;
-      });
+        return error
+      })
   }
 
-  async encrypt(str:string) {
-    const cipher = Crypto.createCipheriv('aes-128-ctr', this.encryption_key!, this.iv);
-    return Buffer.concat([cipher.update(str, 'hex'), cipher.final()]).toString('hex');
+  async encrypt(str: string) {
+    const cipher = Crypto.createCipheriv('aes-128-ctr', this.encryption_key!, this.iv)
+    return Buffer.concat([cipher.update(str, 'hex'), cipher.final()]).toString('hex')
   }
 
-  async decrypt(data:Buffer) {
-    const decipher = Crypto.createDecipheriv('aes-128-ctr', this.encryption_key!, this.iv);
-    return Buffer.concat([decipher.update(data), decipher.final()]);
+  async decrypt(data: Buffer) {
+    const decipher = Crypto.createDecipheriv('aes-128-ctr', this.encryption_key!, this.iv)
+    return Buffer.concat([decipher.update(data), decipher.final()])
   }
 
   async getIv(): Promise<Buffer> {
     if (this.iv === null) {
-      const res = await this.operateLock(WoSmartLock.COMMAND_GET_CKiv + this.key_id, false);
+      const res = await this.operateLock(WoSmartLock.COMMAND_GET_CKiv + this.key_id, false)
       if (res) {
-        this.iv = res.subarray(4);
+        this.iv = res.subarray(4)
       } else {
         // Handle the case when 'res' is undefined
         // For example, you can throw an error or set a default value for 'this.iv'
-        throw new Error('Failed to retrieve IV from the device.');
+        throw new Error('Failed to retrieve IV from the device.')
       }
     }
     return this.iv
   }
 
   async encryptedCommand(key: string) {
-    const iv = await this.getIv();
+    const iv = await this.getIv()
     const req = Buffer.from(
       key.substring(0, 2) + this.key_id + Buffer.from(iv.subarray(0, 2)).toString('hex') + this.encrypt(key.substring(2))
-      , 'hex');
+      , 'hex',
+    )
 
-    const bytes: unknown = await this.command(req);
-    const buf = Buffer.from(bytes as Uint8Array);
-    const code = WoSmartLock.validateResponse(buf);
+    const bytes: unknown = await this.command(req)
+    const buf = Buffer.from(bytes as Uint8Array)
+    const code = WoSmartLock.validateResponse(buf)
 
     if (await code !== WoSmartLock.Result.ERROR) {
-      return Buffer.concat([buf.subarray(0, 1), await this.decrypt(buf.subarray(4))]);
+      return Buffer.concat([buf.subarray(0, 1), await this.decrypt(buf.subarray(4))])
     } else {
-      throw new Error('The device returned an error: 0x' + buf.toString('hex'));
+      throw new Error(`The device returned an error: 0x${buf.toString('hex')}`)
     }
   }
 
   async operateLock(key: string, encrypt: boolean = true) {
-    //encrypted command
+    // encrypted command
     if (encrypt) {
-      return await this.encryptedCommand(key);
+      return await this.encryptedCommand(key)
     }
 
-    const req = Buffer.from(key.substring(0, 2) + '000000' + key.substring(2), 'hex');
-    await this.command(req).then(async bytes => {
-      const buf = Buffer.from(bytes as Uint8Array);
-      const code = WoSmartLock.validateResponse(buf);
+    const req = Buffer.from(`${key.substring(0, 2)}000000${key.substring(2)}`, 'hex')
+    await this.command(req).then(async (bytes) => {
+      const buf = Buffer.from(bytes as Uint8Array)
+      const code = WoSmartLock.validateResponse(buf)
       if (await code === WoSmartLock.Result.ERROR) {
-        return new Error('The device returned an error: 0x' + buf.toString('hex'));
+        return new Error(`The device returned an error: 0x${buf.toString('hex')}`)
       } else {
-        return buf;
+        return buf
       }
+    }).catch((error) => {
+      return error
     })
-      .catch(error => {
-        return error;
-      });
   }
 }

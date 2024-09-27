@@ -1,16 +1,16 @@
+import type Noble from '@stoprocent/noble'
+
+import type { lockProServiceData } from '../types/bledevicestatus.js'
+
+import { Buffer } from 'node:buffer'
+import * as Crypto from 'node:crypto'
+
 /*
  * wosmartlock.ts: Switchbot BLE API registration.
  * adapted off the work done by [pySwitchbot](https://github.com/Danielhiversen/pySwitchbot)
  */
-import { SwitchbotDevice } from '../device.js';
-import { lockProServiceData } from '../types/bledevicestatus.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelName, SwitchBotBLEModelFriendlyName } from '../types/types.js';
-import Noble from '@stoprocent/noble';
-import { Buffer } from 'node:buffer'
-import * as Crypto from 'node:crypto'
-
-
-
+import { SwitchbotDevice } from '../device.js'
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
 export class WoSmartLockPro extends SwitchbotDevice {
   _iv: Buffer | null = null
@@ -71,7 +71,7 @@ export class WoSmartLockPro extends SwitchbotDevice {
   ): Promise<lockProServiceData | null> {
     if (manufacturerData.length < 11) {
       if (onlog && typeof onlog === 'function') {
-        onlog(`[parseServiceDataForWoSmartLockPro] Buffer length ${manufacturerData.length} is too short!`);
+        onlog(`[parseServiceDataForWoSmartLockPro] Buffer length ${manufacturerData.length} is too short!`)
       }
       return null
     }
@@ -90,7 +90,7 @@ export class WoSmartLockPro extends SwitchbotDevice {
     const door_open = !!(byte8 & 0b01100000)
     // Double lock mode is not supported on Lock Pro
     const update_from_secondary_lock = false // !!(byte7 & 0b00001000)
-    const double_lock_mode = false; // !!(byte8 & 0b10000000)
+    const double_lock_mode = false // !!(byte8 & 0b10000000)
     const unclosed_alarm = !!(byte11 & 0b10000000)
     const unlocked_alarm = !!(byte11 & 0b01000000)
     const auto_lock_paused = !!(byte8 & 0b100000)
@@ -101,16 +101,16 @@ export class WoSmartLockPro extends SwitchbotDevice {
       model: SwitchBotBLEModel.LockPro,
       modelName: SwitchBotBLEModelName.LockPro,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.LockPro,
-      battery: battery,
-      calibration: calibration,
-      status : status,
-      update_from_secondary_lock: update_from_secondary_lock,
-      door_open: door_open.toString(),
-      double_lock_mode: double_lock_mode,
-      unclosed_alarm: unclosed_alarm,
-      unlocked_alarm: unlocked_alarm,
-      auto_lock_paused: auto_lock_paused,
-      night_latch: night_latch,
+      battery,
+      calibration,
+      status,
+      update_from_secondary_lock,
+      door_open,
+      double_lock_mode,
+      unclosed_alarm,
+      unlocked_alarm,
+      auto_lock_paused,
+      night_latch,
     }
 
     return data
@@ -134,9 +134,9 @@ export class WoSmartLockPro extends SwitchbotDevice {
    * - void
    * ---------------------------------------------------------------- */
   async setKey(keyId: string, encryptionKey: string) {
-    this._iv = null;
-    this._key_id = keyId;
-    this._encryption_key = Buffer.from(encryptionKey, 'hex');
+    this._iv = null
+    this._key_id = keyId
+    this._encryption_key = Buffer.from(encryptionKey, 'hex')
   }
 
   /* ------------------------------------------------------------------
@@ -154,14 +154,14 @@ export class WoSmartLockPro extends SwitchbotDevice {
     await this.operateLockPro(WoSmartLockPro.COMMAND_UNLOCK)
       .then((resBuf) => {
         if (resBuf) {
-          return WoSmartLockPro.validateResponse(resBuf);
+          return WoSmartLockPro.validateResponse(resBuf)
         } else {
-          return WoSmartLockPro.Result.ERROR;
+          return WoSmartLockPro.Result.ERROR
         }
       })
       .catch((error) => {
-        throw error;
-      });
+        throw error
+      })
   }
 
   /* ------------------------------------------------------------------
@@ -179,13 +179,14 @@ export class WoSmartLockPro extends SwitchbotDevice {
     await this.operateLockPro(WoSmartLockPro.COMMAND_UNLOCK_NO_UNLATCH)
       .then((resBuf) => {
         if (resBuf) {
-          return WoSmartLockPro.validateResponse(resBuf);
+          return WoSmartLockPro.validateResponse(resBuf)
         } else {
-          return WoSmartLockPro.Result.ERROR;
+          return WoSmartLockPro.Result.ERROR
         }
-      }).catch((error) => {
-        throw error;
-      });
+      })
+      .catch((error) => {
+        throw error
+      })
   }
 
   /* ------------------------------------------------------------------
@@ -203,14 +204,14 @@ export class WoSmartLockPro extends SwitchbotDevice {
     this.operateLockPro(WoSmartLockPro.COMMAND_LOCK)
       .then((resBuf) => {
         if (resBuf) {
-          return WoSmartLockPro.validateResponse(resBuf);
+          return WoSmartLockPro.validateResponse(resBuf)
         } else {
-          return WoSmartLockPro.Result.ERROR;
+          return WoSmartLockPro.Result.ERROR
         }
       })
       .catch((error) => {
-        throw error;
-      });
+        throw error
+      })
   }
 
   /* ------------------------------------------------------------------
@@ -229,80 +230,81 @@ export class WoSmartLockPro extends SwitchbotDevice {
       .then((resBuf) => {
         if (resBuf) {
           const data = {
-            'calibration': Boolean(resBuf[0] & 0b10000000),
-            'status': WoSmartLockPro.getLockStatus((resBuf[0] & 0b01110000) >> 4),
-            'door_open': Boolean(resBuf[0] & 0b00000100),
-            'unclosed_alarm': Boolean(resBuf[1] & 0b00100000),
-            'unlocked_alarm': Boolean(resBuf[1] & 0b00010000),
-          };
-          return data;
+            calibration: Boolean(resBuf[0] & 0b10000000),
+            status: WoSmartLockPro.getLockStatus((resBuf[0] & 0b01110000) >> 4),
+            door_open: Boolean(resBuf[0] & 0b00000100),
+            unclosed_alarm: Boolean(resBuf[1] & 0b00100000),
+            unlocked_alarm: Boolean(resBuf[1] & 0b00010000),
+          }
+          return data
         } else {
-          return null;
+          return null
         }
       })
       .catch((error) => {
-        throw error;
-      });
+        throw error
+      })
   }
 
   async encrypt(str: string) {
-    const cipher = Crypto.createCipheriv('aes-128-ctr', this._encryption_key!, this._iv);
-    return Buffer.concat([cipher.update(str, 'hex'), cipher.final()]).toString('hex');
+    const cipher = Crypto.createCipheriv('aes-128-ctr', this._encryption_key!, this._iv)
+    return Buffer.concat([cipher.update(str, 'hex'), cipher.final()]).toString('hex')
   }
 
   async decrypt(data: Buffer) {
-    const decipher = Crypto.createDecipheriv('aes-128-ctr', this._encryption_key!, this._iv);
-    return Buffer.concat([decipher.update(data), decipher.final()]);
+    const decipher = Crypto.createDecipheriv('aes-128-ctr', this._encryption_key!, this._iv)
+    return Buffer.concat([decipher.update(data), decipher.final()])
   }
 
   async getIv(): Promise<Buffer> {
     if (this._iv === null) {
-      const res = await this.operateLockPro(WoSmartLockPro.COMMAND_GET_CK_IV + this._key_id, false);
+      const res = await this.operateLockPro(WoSmartLockPro.COMMAND_GET_CK_IV + this._key_id, false)
       if (res) {
-        this._iv = res.subarray(4);
+        this._iv = res.subarray(4)
       } else {
-        throw new Error('Failed to retrieve IV from the device.');
+        throw new Error('Failed to retrieve IV from the device.')
       }
     }
     return this._iv
   }
 
   async encryptedCommand(key: string) {
-    const iv = await this.getIv();
+    const iv = await this.getIv()
     const req = Buffer.from(
       key.substring(0, 2) + this._key_id + Buffer.from(iv.subarray(0, 2)).toString('hex') + await this.encrypt(key.substring(2))
-      , 'hex');
+      , 'hex',
+    )
 
-    const bytes: unknown = await this.command(req);
-    const buf = Buffer.from(bytes as Uint8Array);
-    const code = WoSmartLockPro.validateResponse(buf);
+    const bytes: unknown = await this.command(req)
+    const buf = Buffer.from(bytes as Uint8Array)
+    const code = WoSmartLockPro.validateResponse(buf)
 
     if (code !== WoSmartLockPro.Result.ERROR) {
-      return Buffer.concat([buf.subarray(0, 1), await this.decrypt(buf.subarray(4))]);
+      return Buffer.concat([buf.subarray(0, 1), await this.decrypt(buf.subarray(4))])
     } else {
-      throw new Error('The device returned an error: 0x' + buf.toString('hex'));
+      throw new Error(`The device returned an error: 0x${buf.toString('hex')}`)
     }
   }
 
   async operateLockPro(key: string, encrypt: boolean = true) {
-    //encrypted command
+    // encrypted command
     if (encrypt) {
-      return this.encryptedCommand(key);
+      return this.encryptedCommand(key)
     }
-    const req = Buffer.from(key.substring(0, 2) + '000000' + key.substring(2), 'hex');
+    const req = Buffer.from(`${key.substring(0, 2)}000000${key.substring(2)}`, 'hex')
     await this.command(req)
-      .then(bytes => {
-        const buf = Buffer.from(bytes as Uint8Array);
-        const code = WoSmartLockPro.validateResponse(buf);
+      .then((bytes) => {
+        const buf = Buffer.from(bytes as Uint8Array)
+        const code = WoSmartLockPro.validateResponse(buf)
 
         if (code === WoSmartLockPro.Result.ERROR) {
-          throw new Error('The device returned an error: 0x' + buf.toString('hex'));
+          throw new Error(`The device returned an error: 0x${buf.toString('hex')}`)
         } else {
-          return buf;
+          return buf
         }
       })
-      .catch(error => {
-        throw error;
-      });
+      .catch((error) => {
+        throw error
+      })
   }
 }

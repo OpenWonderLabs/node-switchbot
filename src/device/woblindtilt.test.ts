@@ -1,32 +1,33 @@
-import { beforeEach, describe, it } from 'node:test';
-import { WoBlindTilt } from './woblindtilt.js';
-import noble, { type Peripheral } from '@stoprocent/noble';
+import * as Noble from '@stoprocent/noble'
+import { beforeEach, describe, it } from 'vitest'
 
-describe('WoBlindTilt', () => {
-  let woBlindTilt: WoBlindTilt;
+import { WoBlindTilt } from './woblindtilt.js'
+
+describe('woBlindTilt', () => {
+  let woBlindTilt: WoBlindTilt
 
   beforeEach(() => {
-    const peripheral = {}; // Replace with the actual peripheral object
-    woBlindTilt = new WoBlindTilt(peripheral as Peripheral, noble); // Replace 'noble' with the actual Noble object
-  });
+    const peripheral = {} // Replace with the actual peripheral object
+    woBlindTilt = new WoBlindTilt(peripheral as Noble.Peripheral, Noble) // Replace 'noble' with the actual Noble object
+  })
 
   describe('pause', () => {
     it('should pause the blind tilt operation', async () => {
       // Mock the _operateBlindTilt method
-      const operateBlindTiltMock = jest.spyOn(woBlindTilt, '_operateBlindTilt')
-        .mockResolvedValueOnce(undefined);
+      const operateBlindTiltMock = jest.spyOn(woBlindTilt, 'operateBlindTilt')
+        .mockResolvedValueOnce(undefined)
 
-      await woBlindTilt.pause();
+      await woBlindTilt.pause()
 
-      expect(operateBlindTiltMock).toHaveBeenCalledWith([0x57, 0x0f, 0x45, 0x01, 0x00, 0xff]);
-    });
+      expect(operateBlindTiltMock).toHaveBeenCalledWith([0x57, 0x0F, 0x45, 0x01, 0x00, 0xFF])
+    })
 
     it('should handle errors correctly', async () => {
       // Mock the _operateBlindTilt method to throw an error
-      jest.spyOn(woBlindTilt, '_operateBlindTilt')
-        .mockRejectedValueOnce(new Error('Operation failed'));
+      jest.spyOn(woBlindTilt, 'operateBlindTilt')
+        .mockRejectedValueOnce(new Error('Operation failed') as never)
 
-      await expect(woBlindTilt.pause()).rejects.toThrow('Operation failed');
-    });
-  });
-});
+      await expect(woBlindTilt.pause()).rejects.toThrow('Operation failed')
+    })
+  })
+})

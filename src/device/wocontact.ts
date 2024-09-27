@@ -1,10 +1,11 @@
+import type { Buffer } from 'node:buffer'
+
 /* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
  * wocontact.ts: Switchbot BLE API registration.
  */
-import { SwitchbotDevice } from '../device.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
-import type { Buffer } from 'node:buffer'
+import { SwitchbotDevice } from '../device.js'
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
 export class WoContact extends SwitchbotDevice {
   static async parseServiceData(
@@ -13,15 +14,15 @@ export class WoContact extends SwitchbotDevice {
   ): Promise<object | null> {
     if (serviceData.length !== 9) {
       if (onlog && typeof onlog === 'function') {
-        onlog(`[parseServiceDataForWoContact] Buffer length ${serviceData.length} !== 9!`);
+        onlog(`[parseServiceDataForWoContact] Buffer length ${serviceData.length} !== 9!`)
       }
       return null
     }
 
-    const byte1 = serviceData.readUInt8(1);
-    const byte2 = serviceData.readUInt8(2);
-    const byte3 = serviceData.readUInt8(3);
-    const byte8 = serviceData.readUInt8(8);
+    const byte1 = serviceData.readUInt8(1)
+    const byte2 = serviceData.readUInt8(2)
+    const byte3 = serviceData.readUInt8(3)
+    const byte8 = serviceData.readUInt8(8)
 
     const hallState = (byte3 >> 1) & 0b00000011
     const tested = byte1 & 0b10000000
@@ -36,13 +37,13 @@ export class WoContact extends SwitchbotDevice {
       model: SwitchBotBLEModel.ContactSensor,
       modelName: SwitchBotBLEModelName.ContactSensor,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.ContactSensor,
-      movement: movement,
-      tested: tested,
-      battery: battery,
-      contact_open: contact_open,
-      contact_timeout: contact_timeout,
+      movement,
+      tested,
+      battery,
+      contact_open,
+      contact_timeout,
       lightLevel: lightLevel === 0 ? 'dark' : 'bright',
-      button_count: button_count,
+      button_count,
       doorState: hallState === 0 ? 'close' : hallState === 1 ? 'open' : 'timeout no closed',
     }
 

@@ -2,10 +2,9 @@
  *
  * types.ts: @switchbot/homebridge-switchbot platform class.
  */
-import type Noble from '@stoprocent/noble';
+import type Noble from '@stoprocent/noble'
 
-
-export type MacAddress = string;
+export type MacAddress = string
 
 export declare interface SwitchBotBLEDevice {
   Bot: {
@@ -239,10 +238,10 @@ export enum SwitchBotBLEModelFriendlyName {
   Unknown = 'Unknown',
 }
 
-export type Params = {
-  duration?: number,
-  model?: string,
-  id?: string,
-  quick?: false,
-  noble?: typeof Noble,
+export interface Params {
+  duration?: number
+  model?: string
+  id?: string
+  quick?: false
+  noble?: typeof Noble
 }

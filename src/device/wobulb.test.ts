@@ -1,19 +1,22 @@
-/* eslint-disable no-console */
-import { beforeEach, describe, it } from 'node:test';
-import { WoBulb } from './wobulb.js';
-import noble, { type Peripheral } from '@stoprocent/noble';
+import { Buffer } from 'node:buffer'
 
-describe('WoBulb', () => {
-  let bulb: WoBulb;
+import * as Noble from '@stoprocent/noble'
+/* eslint-disable no-console */
+import { beforeEach, describe, it } from 'vitest'
+
+import { WoBulb } from './wobulb.js'
+
+describe('woBulb', () => {
+  let bulb: WoBulb
 
   beforeEach(() => {
-    const peripheral = {}; // Replace with the actual peripheral object (e.g. from Noble)
-    bulb = new WoBulb(peripheral as Peripheral, noble);
-  });
+    const peripheral = {} // Replace with the actual peripheral object (e.g. from Noble)
+    bulb = new WoBulb(peripheral as Noble.Peripheral, Noble)
+  })
 
   it('should parse service data correctly', () => {
-    const manufacturerData = Buffer.from([0x57, 0x0f, 0x47, 0x01, 0x64, 0x32, 0x19, 0x80, 0x08, 0x7F, 0xFE, 0x00, 0x00]);
-    const result = WoBulb.parseServiceData(manufacturerData, console.log);
+    const manufacturerData = Buffer.from([0x57, 0x0F, 0x47, 0x01, 0x64, 0x32, 0x19, 0x80, 0x08, 0x7F, 0xFE, 0x00, 0x00])
+    const result = WoBulb.parseServiceData(manufacturerData, manufacturerData, console.log)
     expect(result).toHaveBeenCalledWith({
       model: 'ColorBulb',
       power: 0x47,
@@ -28,36 +31,36 @@ describe('WoBulb', () => {
       color_mode: 0x08,
       speed: 0x7F,
       loop_index: 0xFE,
-    });
-  });
+    })
+  })
 
   it('should turn on the bulb', async () => {
-    const result = await bulb.turnOn();
+    const result = await bulb.turnOn()
 
-    expect(result).toHaveBeenCalledWith(true);
-  });
+    expect(result).toHaveBeenCalledWith(true)
+  })
 
   it('should turn off the bulb', async () => {
-    const result = await bulb.turnOff();
+    const result = await bulb.turnOff()
 
-    expect(result).toHaveBeenCalledWith(false);
-  });
+    expect(result).toHaveBeenCalledWith(false)
+  })
 
   it('should set brightness correctly', async () => {
-    const result = await bulb.setBrightness(50);
+    const result = await bulb.setBrightness(50)
 
-    expect(result).toHaveBeenCalledWith(50);
-  });
+    expect(result).toHaveBeenCalledWith(50)
+  })
 
   it('should set color temperature correctly', async () => {
-    const result = await bulb.setColorTemperature(75);
+    const result = await bulb.setColorTemperature(75)
 
-    expect(result).toHaveBeenCalledWith(75);
-  });
+    expect(result).toHaveBeenCalledWith(75)
+  })
 
   it('should set RGB values correctly', async () => {
-    const result = await bulb.setRGB(50, 255, 100, 50);
+    const result = await bulb.setRGB(50, 255, 100, 50)
 
-    expect(result).toHaveBeenCalledWith({ brightness: 50, red: 255, green: 100, blue: 50 });
-  });
-});
+    expect(result).toHaveBeenCalledWith({ brightness: 50, red: 255, green: 100, blue: 50 })
+  })
+})

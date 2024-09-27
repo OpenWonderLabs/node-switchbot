@@ -1,11 +1,13 @@
+import type { Buffer } from 'node:buffer'
+
+import type { meterPlusServiceData, meterServiceData } from '../types/bledevicestatus.js'
+
 /* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
  * wosensorth.ts: Switchbot BLE API registration.
  */
-import { SwitchbotDevice } from '../device.js';
-import { meterPlusServiceData, meterServiceData } from '../types/bledevicestatus.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js';
-import type { Buffer } from 'node:buffer'
+import { SwitchbotDevice } from '../device.js'
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
 export class WoSensorTH extends SwitchbotDevice {
   static async parseServiceData(
@@ -14,14 +16,14 @@ export class WoSensorTH extends SwitchbotDevice {
   ): Promise<meterServiceData | null> {
     if (serviceData.length !== 6) {
       if (onlog && typeof onlog === 'function') {
-        onlog(`[parseServiceDataForWoSensorTH] Buffer length ${serviceData.length} !== 6!`);
+        onlog(`[parseServiceDataForWoSensorTH] Buffer length ${serviceData.length} !== 6!`)
       }
       return null
     }
-    const byte2 = serviceData.readUInt8(2);
-    const byte3 = serviceData.readUInt8(3);
-    const byte4 = serviceData.readUInt8(4);
-    const byte5 = serviceData.readUInt8(5);
+    const byte2 = serviceData.readUInt8(2)
+    const byte3 = serviceData.readUInt8(3)
+    const byte4 = serviceData.readUInt8(4)
+    const byte5 = serviceData.readUInt8(5)
 
     const temp_sign = byte4 & 0b10000000 ? 1 : -1
     const temp_c = temp_sign * ((byte4 & 0b01111111) + (byte3 & 0b00001111) / 10)
@@ -55,14 +57,14 @@ export class WoSensorTH extends SwitchbotDevice {
   ): Promise<meterPlusServiceData | null> {
     if (serviceData.length !== 6) {
       if (onlog && typeof onlog === 'function') {
-        onlog(`[parseServiceDataForWoSensorTHPlus] Buffer length ${serviceData.length} !== 6!`);
+        onlog(`[parseServiceDataForWoSensorTHPlus] Buffer length ${serviceData.length} !== 6!`)
       }
       return null
     }
-    const byte2 = serviceData.readUInt8(2);
-    const byte3 = serviceData.readUInt8(3);
-    const byte4 = serviceData.readUInt8(4);
-    const byte5 = serviceData.readUInt8(5);
+    const byte2 = serviceData.readUInt8(2)
+    const byte3 = serviceData.readUInt8(3)
+    const byte4 = serviceData.readUInt8(4)
+    const byte5 = serviceData.readUInt8(5)
 
     const temp_sign = byte4 & 0b10000000 ? 1 : -1
     const temp_c = temp_sign * ((byte4 & 0b01111111) + (byte3 & 0b00001111) / 10)
