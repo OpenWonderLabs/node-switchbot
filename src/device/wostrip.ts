@@ -68,11 +68,11 @@ export class WoStrip extends SwitchbotDevice {
 
   /**
    * Sets the state of the strip light.
-   * @private
+   * @public
    * @param {number[]} reqByteArray - The request byte array.
    * @returns {Promise<boolean>} - Resolves with true if the operation was successful.
    */
-  private async setState(reqByteArray: number[]): Promise<boolean> {
+  public async setState(reqByteArray: number[]): Promise<boolean> {
     const base = [0x57, 0x0F, 0x49, 0x01]
     return this.operateStripLight([...base, ...reqByteArray])
   }
@@ -128,11 +128,11 @@ export class WoStrip extends SwitchbotDevice {
 
   /**
    * Operates the strip light with the given byte array.
-   * @private
+   * @public
    * @param {number[]} bytes - The byte array to send.
    * @returns {Promise<boolean>} - Resolves with true if the operation was successful.
    */
-  private async operateStripLight(bytes: number[]): Promise<boolean> {
+  public async operateStripLight(bytes: number[]): Promise<boolean> {
     const req_buf = Buffer.from(bytes)
     const res_buf = await this.command(req_buf)
 
