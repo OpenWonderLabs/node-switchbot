@@ -245,3 +245,8 @@ export interface Params {
   quick?: false
   noble?: typeof Noble
 }
+
+export interface ErrorObject {
+  code: string
+  message: string
+}
