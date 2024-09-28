@@ -23,12 +23,17 @@ import { WoSmartLockPro } from './device/wosmartlockpro.js'
 import { WoStrip } from './device/wostrip.js'
 import { SwitchBotBLEModel } from './types/types.js'
 
-export type Ad = {
+interface ServiceData {
+  model: string
+  [key: string]: unknown
+}
+export interface Ad {
   id: string
   address: string
   rssi: number
-  serviceData: Record<string, unknown>
-} | null
+  serviceData: ServiceData
+  [key: string]: unknown
+}
 
 export interface AdvertisementData {
   serviceData: Buffer | null
@@ -51,7 +56,7 @@ export class Advertising {
   static async parse(
     peripheral: Noble.Peripheral,
     onlog?: (message: string) => void,
-  ): Promise<Ad> {
+  ): Promise<Ad | null> {
     const ad = peripheral.advertisement
     if (!ad || !ad.serviceData) {
       return null
@@ -156,7 +161,10 @@ export class Advertising {
       id: peripheral.id,
       address,
       rssi: peripheral.rssi,
-      serviceData: sd as Record<string, unknown>,
+      serviceData: {
+        model,
+        ...sd,
+      } as ServiceData,
     }
 
     if (onlog && typeof onlog === 'function') {

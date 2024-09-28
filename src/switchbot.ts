@@ -2,10 +2,10 @@
  *
  * switchbot.ts: Switchbot BLE API registration.
  */
-import type * as Noble from '@stoprocent/noble'
-
 import type { Ad } from './advertising.js'
 import type { Params } from './types/types.js'
+
+import * as Noble from '@stoprocent/noble'
 
 import { Advertising } from './advertising.js'
 import { SwitchbotDevice } from './device.js'
@@ -50,467 +50,268 @@ export class SwitchBot {
     this.ready = this.init(params)
   }
 
-  // Check parameters
-  async init(params?: Params) {
-    let noble: typeof Noble.default
-    if (params && params.noble) {
-      noble = params.noble
-    } else {
-      noble = (await import('@stoprocent/noble')).default
-    }
-
-    // Public properties
-    this.noble = noble as unknown as typeof Noble
+  /**
+   * Initializes the noble object.
+   *
+   * @param {Params} [params] - Optional parameters
+   * @param {typeof Noble} [params.noble] - Optional noble instance
+   * @returns {Promise<void>} - Resolves when initialization is complete
+   */
+  async init(params?: Params): Promise<void> {
+    this.noble = params?.noble ?? Noble
   }
 
   /**
-   * Initiates BLE discovery for SwitchBot devices, scanning for those matching specified criteria.
-   * This async operation looks for devices by model or ID within a set duration.
+   * Discover SwitchBot devices based on the provided parameters.
    *
-   * @param params An optional object with properties:
-   * - duration: Discovery time in milliseconds (1 to 60000, default 5000).
-   * - model: String specifying device type to discover, with each character representing a model:
-   * - "H": Bots
-   * - "T": Meters
-   * - "e": Humidifiers
-   * - "s": Motion Sensors
-   * - "d": Contact Sensors
-   * - "c": Curtains
-   * - "{": Curtain 3
-   * - "u": Color Bulbs
-   * - "g": Plugs
-   * - "o": Locks
-   * - "$": Lock Pros
-   * - "i": Meter Pluses
-   * - "r": Locks (Duplicate, possibly an error)
-   * - id: Optional device ID (MAC address) to discover, case-insensitive, ignores colons.
-   * - quick: If true, stops discovery upon first match, not waiting full duration. Defaults to false.
-   *
-   * @returns Promise resolving to an array of `SwitchbotDevice` objects for discovered devices.
-   *
-   * @deprecated since version 2.4.0. Will be removed in version 3.0.0. Use getDeviceObjectAsync() instead.
+   * @param {Params} params - The parameters for discovery.
+   * @returns {Promise<SwitchbotDevice[]>} - A promise that resolves with a list of discovered devices.
    */
-  discover(params: Params = {}) {
-    const promise = new Promise((resolve, reject) => {
-      // Check the parameters
-      const valid = parameterChecker.check(
-        params as Record<string, unknown>,
-        {
-          duration: { required: false, type: 'integer', min: 1, max: 60000 },
-          model: {
-            required: false,
-            type: 'string',
-            enum: Object.values(SwitchBotBLEModel),
-          },
-          id: { required: false, type: 'string', min: 12, max: 17 },
-          quick: { required: false, type: 'boolean' },
-        },
-        false,
-      )
+  async discover(params: Params = {}): Promise<SwitchbotDevice[]> {
+    // Validate parameters
+    const valid = parameterChecker.check(params as Record<string, unknown>, {
+      duration: { required: false, type: 'integer', min: 1, max: 60000 },
+      model: { required: false, type: 'string', enum: Object.values(SwitchBotBLEModel) },
+      id: { required: false, type: 'string', min: 12, max: 17 },
+      quick: { required: false, type: 'boolean' },
+    }, false)
 
-      if (!valid) {
-        reject(new Error(parameterChecker.error!.message))
-        return
-      }
+    if (!valid) {
+      throw new Error(parameterChecker.error!.message)
+    }
 
-      if (!params) {
-        params = {}
-      }
+    const { duration = this.DEFAULT_DISCOVERY_DURATION, model = '', id = '', quick = false } = params
 
-      // Determine the values of the parameters
-      const p = {
-        duration: params.duration || this.DEFAULT_DISCOVERY_DURATION,
-        model: params.model || '',
-        id: params.id || '',
-        quick: !!params.quick,
-      }
+    // Initialize the noble object
+    await this._init()
+    if (!this.noble) {
+      throw new Error('noble failed to initialize')
+    }
 
-      // Initialize the noble object
-      this._init()
-        .then(() => {
-          if (this.noble === null) {
-            return reject(new Error('noble failed to initialize'))
-          }
-          const peripherals: Record<string, SwitchbotDevice> = {}
-          let timer: NodeJS.Timeout = setTimeout(() => { }, 0)
-          const finishDiscovery = () => {
-            if (timer) {
-              clearTimeout(timer)
-            }
+    const peripherals: Record<string, SwitchbotDevice> = {}
+    let timer: NodeJS.Timeout
 
-            this.noble.removeAllListeners('discover')
-            this.noble.stopScanning()
+    const finishDiscovery = () => {
+      clearTimeout(timer)
+      this.noble.removeAllListeners('discover')
+      this.noble.stopScanning()
+      return Object.values(peripherals)
+    }
 
-            const device_list: SwitchbotDevice[] = []
-            for (const addr in peripherals) {
-              device_list.push(peripherals[addr])
-            }
-
-            resolve(device_list)
-          }
-
-          // Set a handler for the 'discover' event
-          this.noble.on('discover', async (peripheral: Noble.Peripheral) => {
-            const device = await this.getDeviceObject(peripheral, p.id, p.model)
-            if (!device) {
-              return
-            }
-            const id = device.id
-            if (device) {
-              peripherals[id!] = device
-            }
-
-            if (this.ondiscover && typeof this.ondiscover === 'function') {
+    return new Promise<SwitchbotDevice[]>((resolve, reject) => {
+      try {
+        // Set a handler for the 'discover' event
+        this.noble.on('discover', async (peripheral: Noble.Peripheral) => {
+          const device = await this.getDeviceObject(peripheral, id, model)
+          if (device) {
+            peripherals[device.id!] = device
+            if (this.ondiscover) {
               this.ondiscover(device)
             }
-
-            if (p.quick) {
-              finishDiscovery()
+            if (quick) {
+              resolve(finishDiscovery())
             }
+          }
+        })
+
+        // Start scanning
+        this.noble.startScanningAsync(this.PRIMARY_SERVICE_UUID_LIST, false)
+          .then(() => {
+            timer = setTimeout(() => {
+              resolve(finishDiscovery())
+            }, duration)
           })
-          // Start scanning
-          this.noble.startScanning(
-            this.PRIMARY_SERVICE_UUID_LIST,
-            false,
-            (error?: Error) => {
-              if (error) {
-                reject(error)
-                return
-              }
-              timer = setTimeout(() => {
-                finishDiscovery()
-              }, p.duration)
-            },
-          )
-        })
-        .catch((error) => {
-          reject(error)
-        })
+          .catch((error: Error) => {
+            reject(new Error(error.message))
+          })
+      } catch (error) {
+        reject(new Error(String(error)))
+      }
     })
-    return promise
   }
 
   async _init() {
     await this.ready
-    const promise = new Promise<void>((resolve, reject) => {
-      let err
-      if (this.noble._state === 'poweredOn') {
-        resolve()
-        return
-      }
+
+    if (this.noble._state === 'poweredOn') {
+      return
+    }
+
+    return new Promise<void>((resolve, reject) => {
       this.noble.once('stateChange', (state: typeof Noble._state) => {
-        switch (state) {
-          case 'unsupported':
-          case 'unauthorized':
-          case 'poweredOff':
-            err = new Error(
-              `Failed to initialize the Noble object: ${this.noble._state}`,
-            )
-            reject(err)
-            return
-          case 'resetting':
-          case 'unknown':
-            err = new Error(
-              `Adapter is not ready: ${this.noble._state}`,
-            )
-            reject(err)
-            return
-          case 'poweredOn':
-            resolve()
-            return
-          default:
-            err = new Error(
-              `Unknown state: ${this.noble._state}`,
-            )
-            reject(err)
+        if (state === 'poweredOn') {
+          resolve()
+        } else if (['unsupported', 'unauthorized', 'poweredOff'].includes(state)) {
+          reject(new Error(`Failed to initialize the Noble object: ${state}`))
+        } else if (['resetting', 'unknown'].includes(state)) {
+          reject(new Error(`Adapter is not ready: ${state}`))
+        } else {
+          reject(new Error(`Unknown state: ${state}`))
         }
       })
     })
-    return promise
   }
 
-  async getDeviceObject(peripheral: Noble.Peripheral, id: string, model: string) {
-    const ad: Ad = await Advertising.parse(peripheral, this.onlog)
-    if (this.filterAdvertising(ad, id, model)) {
-      let device
-      if (ad && ad.serviceData && ad.serviceData.model) {
-        switch (ad.serviceData.model) {
-          case SwitchBotBLEModel.Bot:
-            device = new WoHand(peripheral, this.noble)
-            break
-          case SwitchBotBLEModel.Curtain:
-          case SwitchBotBLEModel.Curtain3:
-            device = new WoCurtain(peripheral, this.noble)
-            break
-          case SwitchBotBLEModel.Humidifier:
-            device = new WoHumi(peripheral, this.noble)
-            break
-          case SwitchBotBLEModel.Meter:
-            device = new WoSensorTH(peripheral, this.noble)
-            break
-          case SwitchBotBLEModel.MeterPlus:
-            device = new WoSensorTH(peripheral, this.noble)
-            break
-          case SwitchBotBLEModel.Hub2:
-            device = new WoHub2(peripheral, this.noble)
-            break
-          case SwitchBotBLEModel.OutdoorMeter:
-            device = new WoIOSensorTH(peripheral, this.noble)
-            break
-          case SwitchBotBLEModel.MotionSensor:
-            device = new WoPresence(peripheral, this.noble)
-            break
-          case SwitchBotBLEModel.ContactSensor:
-            device = new WoContact(peripheral, this.noble)
-            break
-          case SwitchBotBLEModel.ColorBulb:
-            device = new WoBulb(peripheral, this.noble)
-            break
-          case SwitchBotBLEModel.CeilingLight:
-            device = new WoCeilingLight(peripheral, this.noble)
-            break
-          case SwitchBotBLEModel.CeilingLightPro:
-            device = new WoCeilingLight(peripheral, this.noble)
-            break
-          case SwitchBotBLEModel.StripLight:
-            device = new WoStrip(peripheral, this.noble)
-            break
-          case SwitchBotBLEModel.PlugMiniUS:
-          case SwitchBotBLEModel.PlugMiniJP:
-            device = new WoPlugMini(peripheral, this.noble)
-            break
-          case SwitchBotBLEModel.Lock:
-            device = new WoSmartLock(peripheral, this.noble)
-            break
-          case SwitchBotBLEModel.LockPro:
-            device = new WoSmartLockPro(peripheral, this.noble)
-            break
-          case SwitchBotBLEModel.BlindTilt:
-            device = new WoBlindTilt(peripheral, this.noble)
-            break
-          default: // 'resetting', 'unknown'
-            device = new SwitchbotDevice(peripheral, this.noble)
-        }
-      }
-      return device
-    } else {
+  async getDeviceObject(peripheral: Noble.Peripheral, id: string, model: string): Promise<SwitchbotDevice | null> {
+    const ad = await Advertising.parse(peripheral, this.onlog)
+    if (!ad) {
       return null
     }
+
+    if (!this.filterAdvertising(ad, id, model)) {
+      return null
+    }
+
+    const modelMapping: Record<string, new (p: Noble.Peripheral, n: typeof Noble) => SwitchbotDevice> = {
+      [SwitchBotBLEModel.Bot]: WoHand,
+      [SwitchBotBLEModel.Curtain]: WoCurtain,
+      [SwitchBotBLEModel.Curtain3]: WoCurtain,
+      [SwitchBotBLEModel.Humidifier]: WoHumi,
+      [SwitchBotBLEModel.Meter]: WoSensorTH,
+      [SwitchBotBLEModel.MeterPlus]: WoSensorTH,
+      [SwitchBotBLEModel.Hub2]: WoHub2,
+      [SwitchBotBLEModel.OutdoorMeter]: WoIOSensorTH,
+      [SwitchBotBLEModel.MotionSensor]: WoPresence,
+      [SwitchBotBLEModel.ContactSensor]: WoContact,
+      [SwitchBotBLEModel.ColorBulb]: WoBulb,
+      [SwitchBotBLEModel.CeilingLight]: WoCeilingLight,
+      [SwitchBotBLEModel.CeilingLightPro]: WoCeilingLight,
+      [SwitchBotBLEModel.StripLight]: WoStrip,
+      [SwitchBotBLEModel.PlugMiniUS]: WoPlugMini,
+      [SwitchBotBLEModel.PlugMiniJP]: WoPlugMini,
+      [SwitchBotBLEModel.Lock]: WoSmartLock,
+      [SwitchBotBLEModel.LockPro]: WoSmartLockPro,
+      [SwitchBotBLEModel.BlindTilt]: WoBlindTilt,
+    }
+
+    const DeviceClass = ad?.serviceData?.model ? modelMapping[ad.serviceData.model] : SwitchbotDevice
+    return new DeviceClass(peripheral, this.noble)
   }
 
-  filterAdvertising(ad: Ad, id: string, model: string) {
+  filterAdvertising(ad: Ad, id: string, model: string): boolean {
     if (!ad) {
       return false
     }
+
     if (id) {
-      id = id.toLowerCase().replace(/:/g, '')
-      const ad_id = ad.address.toLowerCase().replace(/[^a-z0-9]/g, '')
-      if (ad_id !== id) {
+      const normalizedId = id.toLowerCase().replace(/:/g, '')
+      const adId = ad.address.toLowerCase().replace(/[^a-z0-9]/g, '')
+      if (adId !== normalizedId) {
         return false
       }
     }
-    if (model) {
-      if (ad.serviceData.model !== model) {
-        return false
-      }
+
+    if (model && ad.serviceData.model !== model) {
+      return false
     }
+
     return true
   }
 
-  /* ------------------------------------------------------------------
-     * startScan([params])
-     * - Start to monitor advertising packets coming from switchbot devices
-     *
-     * [Arguments]
-     *   - params   | Object  | Optional |
-     *   - model    | String  | Optional | "H", "T", "e", "s", "d", "c", "{", "u", "g", "o", "i", "x", or "r".
-     *              |         |          | If "H" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Bots.
-     *              |         |          | If "T" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Meters.
-     *              |         |          | If "e" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Humidifiers.
-     *              |         |          | If "s" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Motion Sensor.
-     *              |         |          | If "d" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Contact Sensor.
-     *              |         |          | If "c" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Curtains.
-     *              |         |          | If "{" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Curtain 3.
-     *              |         |          | If "x" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from BlindTilt.
-     *              |         |          | If "u" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Color Bulb.
-     *              |         |          | If "g" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Plug Mini.
-     *              |         |          | If "o" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Smart Lock.
-     *              |         |          | If "$" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Smart Lock Pro.
-     *              |         |          | If "i" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Meter Plus.
-     *              |         |          | If "r" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from LED Strip Light.
-     *   - id       | String  | Optional | If this value is set, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from devices whose ID is as same as
-     *              |         |          | this value.
-     *              |         |          | The ID is identical to the MAC address.
-     *              |         |          | This parameter is case-insensitive, and
-     *              |         |          | colons are ignored.
-     *
-     * [Return value]
-     * - Promise object
-     *   Nothing will be passed to the `resolve()`.
-     * ---------------------------------------------------------------- */
-  startScan(params: Params = {}) {
-    const promise = new Promise<void>((resolve, reject) => {
-      // Check the parameters
-      const valid = parameterChecker.check(
-        params as Record<string, unknown>,
-        {
-          model: {
-            required: false,
-            type: 'string',
-            enum: [
-              SwitchBotBLEModel.Bot,
-              SwitchBotBLEModel.Curtain,
-              SwitchBotBLEModel.Curtain3,
-              SwitchBotBLEModel.Humidifier,
-              SwitchBotBLEModel.Meter,
-              SwitchBotBLEModel.MeterPlus,
-              SwitchBotBLEModel.Hub2,
-              SwitchBotBLEModel.OutdoorMeter,
-              SwitchBotBLEModel.MotionSensor,
-              SwitchBotBLEModel.ContactSensor,
-              SwitchBotBLEModel.ColorBulb,
-              SwitchBotBLEModel.CeilingLight,
-              SwitchBotBLEModel.CeilingLightPro,
-              SwitchBotBLEModel.StripLight,
-              SwitchBotBLEModel.PlugMiniUS,
-              SwitchBotBLEModel.PlugMiniJP,
-              SwitchBotBLEModel.Lock,
-              SwitchBotBLEModel.LockPro,
-              SwitchBotBLEModel.BlindTilt,
-            ],
-          },
-          id: { required: false, type: 'string', min: 12, max: 17 },
-        },
-        false,
-      )
-      if (!valid) {
-        reject(new Error(parameterChecker.error!.message))
-        return
+  /**
+   * startScan([params])
+   * - Start to monitor advertising packets coming from switchbot devices
+   *
+   * @param {object} params - Optional parameters
+   * @param {string} [params.model] - Optional model filter ("H", "T", "e", "s", "d", "c", "{", "u", "g", "o", "i", "x", "r")
+   * @param {string} [params.id] - Optional ID filter (MAC address, case-insensitive, colons ignored)
+   * @returns {Promise<void>} - Resolves when scanning starts successfully
+   */
+  async startScan(params: Params = {}): Promise<void> {
+  // Validate parameters
+    const valid = parameterChecker.check(params as Record<string, unknown>, {
+      model: {
+        required: false,
+        type: 'string',
+        enum: [
+          SwitchBotBLEModel.Bot,
+          SwitchBotBLEModel.Curtain,
+          SwitchBotBLEModel.Curtain3,
+          SwitchBotBLEModel.Humidifier,
+          SwitchBotBLEModel.Meter,
+          SwitchBotBLEModel.MeterPlus,
+          SwitchBotBLEModel.Hub2,
+          SwitchBotBLEModel.OutdoorMeter,
+          SwitchBotBLEModel.MotionSensor,
+          SwitchBotBLEModel.ContactSensor,
+          SwitchBotBLEModel.ColorBulb,
+          SwitchBotBLEModel.CeilingLight,
+          SwitchBotBLEModel.CeilingLightPro,
+          SwitchBotBLEModel.StripLight,
+          SwitchBotBLEModel.PlugMiniUS,
+          SwitchBotBLEModel.PlugMiniJP,
+          SwitchBotBLEModel.Lock,
+          SwitchBotBLEModel.LockPro,
+          SwitchBotBLEModel.BlindTilt,
+        ],
+      },
+      id: { required: false, type: 'string', min: 12, max: 17 },
+    }, false)
+
+    if (!valid) {
+      throw new Error(parameterChecker.error!.message)
+    }
+
+    // Initialize the noble object
+    await this._init()
+    if (this.noble === null) {
+      throw new Error('noble object failed to initialize')
+    }
+
+    const { model = '', id = '' } = params
+
+    // Set a handler for the 'discover' event
+    this.noble.on('discover', async (peripheral: Noble.Peripheral) => {
+      const ad = await Advertising.parse(peripheral, this.onlog)
+      if (ad && this.filterAdvertising(ad, id, model)) {
+        if (this.onadvertisement && typeof this.onadvertisement === 'function') {
+          this.onadvertisement(ad)
+        }
       }
-
-      // Initialize the noble object
-      this._init()
-        .then(() => {
-          if (this.noble === null) {
-            return reject(new Error('noble object failed to initialize'))
-          }
-          // Determine the values of the parameters
-          const p = {
-            model: params.model || '',
-            id: params.id || '',
-          }
-
-          // Set a handler for the 'discover' event
-          this.noble.on('discover', async (peripheral: Noble.Peripheral) => {
-            const ad = await Advertising.parse(peripheral, this.onlog)
-            if (this.filterAdvertising(ad, p.id, p.model)) {
-              if (
-                this.onadvertisement
-                && typeof this.onadvertisement === 'function'
-              ) {
-                this.onadvertisement(ad)
-              }
-            }
-          })
-
-          // Start scanning
-          this.noble.startScanning(
-            this.PRIMARY_SERVICE_UUID_LIST,
-            true,
-            (error?: Error) => {
-              if (error) {
-                reject(error)
-              } else {
-                resolve()
-              }
-            },
-          )
-        })
-        .catch((error) => {
-          throw new Error(error)
-        })
     })
-    return promise
+
+    // Start scanning
+    await this.noble.startScanningAsync(this.PRIMARY_SERVICE_UUID_LIST, true)
   }
 
-  /* ------------------------------------------------------------------
-      * stopScan()
-      * - Stop to monitor advertising packets coming from switchbot devices
-      *
-      * [Arguments]
-      * - none
-      *
-      * [Return value]
-      * - none
-      * ---------------------------------------------------------------- */
-  stopScan() {
-    if (this.noble === null) {
+  /**
+   * stopScan()
+   * - Stop monitoring advertising packets from SwitchBot devices
+   *
+   * @returns {Promise<void>} - Resolves when scanning stops successfully
+   */
+  async stopScan(): Promise<void> {
+    if (!this.noble) {
       return
     }
 
     this.noble.removeAllListeners('discover')
-    this.noble.stopScanning()
+    await this.noble.stopScanningAsync()
   }
 
-  /* ------------------------------------------------------------------
-     * wait(msec) {
-     * - Wait for the specified time (msec)
-     *
-     * [Arguments]
-     * - msec | Integer | Required | Msec.
-     *
-     * [Return value]
-     * - Promise object
-     *   Nothing will be passed to the `resolve()`.
-     * ---------------------------------------------------------------- */
-  wait(msec: number) {
-    return new Promise((resolve, reject) => {
-      // Check the parameters
-      const valid = parameterChecker.check(
-        { msec },
-        {
-          msec: { required: true, type: 'integer', min: 0 },
-        },
-        true, // Add the required argument
-      )
+  /**
+   * wait
+   * - Wait for the specified time (msec)
+   *
+   * @param {number} msec - The time to wait in milliseconds
+   * @returns {Promise<void>} - Resolves after the specified time
+   */
+  async wait(msec: number): Promise<void> {
+  // Validate parameters
+    const valid = parameterChecker.check(
+      { msec },
+      {
+        msec: { required: true, type: 'integer', min: 0 },
+      },
+      true,
+    )
 
-      if (!valid) {
-        reject(new Error(parameterChecker.error!.message))
-        return
-      }
-      // Set a timer
-      setTimeout(resolve, msec)
-    })
+    if (!valid) {
+      throw new Error(parameterChecker.error!.message)
+    }
+
+    // Return a promise that resolves after the specified time
+    return new Promise(resolve => setTimeout(resolve, msec))
   }
 }
 
