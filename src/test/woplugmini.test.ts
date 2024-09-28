@@ -18,7 +18,7 @@ describe('woPlugMini', () => {
       manufacturerData = Buffer.alloc(13)
       const result = await WoPlugMini.parseServiceData_US(manufacturerData, onlog)
       expect(result).toBeNull()
-      expect(onlog).toHaveBeenCalledWith('[parseServiceDataForWoPlugMiniUS] Buffer length 13 should be 14')
+      expect(onlog).toHaveBeenCalledWith('[parseServiceDataForWoPlugMini] Buffer length 13 should be 14')
     })
 
     it('should parse the service data correctly', async () => {
@@ -44,7 +44,7 @@ describe('woPlugMini', () => {
       manufacturerData = Buffer.alloc(13)
       const result = await WoPlugMini.parseServiceData_JP(manufacturerData, onlog)
       expect(result).toBeNull()
-      expect(onlog).toHaveBeenCalledWith('[parseServiceDataForWoPlugMiniJP] Buffer length 13 should be 14')
+      expect(onlog).toHaveBeenCalledWith('[parseServiceDataForWoPlugMini] Buffer length 13 should be 14')
     })
 
     it('should parse the service data correctly', async () => {
@@ -73,11 +73,12 @@ describe('woPlugMini', () => {
       plugMini = new WoPlugMini(peripheral as Noble.Peripheral, Noble)
       jest.spyOn(plugMini, 'operatePlug').mockImplementation(async (bytes: number[]) => {
         if (bytes.includes(0x80)) {
-          return
+          return true
         }
         if (bytes.includes(0x00)) {
-          // Intentionally left empty
+          return false
         }
+        return true
       })
     })
 

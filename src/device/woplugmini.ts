@@ -1,72 +1,67 @@
-import { Buffer } from 'node:buffer'
-
 /* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
  * woplugmini.ts: Switchbot BLE API registration.
  */
+import { Buffer } from 'node:buffer'
+
 import { SwitchbotDevice } from '../device.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
 /**
+ * Class representing a WoPlugMini device.
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/plugmini.md
  */
 export class WoPlugMini extends SwitchbotDevice {
+  /**
+   * Parses the service data for WoPlugMini US.
+   * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Function} [onlog] - Optional logging function.
+   * @returns {Promise<object | null>} - Parsed service data or null if invalid.
+   */
   static async parseServiceData_US(
     manufacturerData: Buffer,
-    onlog: ((message: string) => void) | undefined,
+    onlog?: (message: string) => void,
   ): Promise<object | null> {
-    if (manufacturerData.length !== 14) {
-      if (onlog && typeof onlog === 'function') {
-        onlog(`[parseServiceDataForWoPlugMiniUS] Buffer length ${manufacturerData.length} should be 14`)
-      }
-      return null
-    }
-    const byte9 = manufacturerData.readUInt8(9) // byte9:  plug mini state; 0x00=off, 0x80=on
-    const byte10 = manufacturerData.readUInt8(10) // byte10: bit0: 0=no delay,1=delay, bit1:0=no timer, 1=timer; bit2:0=no sync time, 1=sync'ed time
-    const byte11 = manufacturerData.readUInt8(11) // byte11: wifi rssi
-    const byte12 = manufacturerData.readUInt8(12) // byte12: bit7: overload?
-    const byte13 = manufacturerData.readUInt8(13) // byte12[bit0~6] + byte13: current power value
-
-    const state = byte9 === 0x00 ? 'off' : byte9 === 0x80 ? 'on' : null
-    const delay = !!(byte10 & 0b00000001)
-    const timer = !!(byte10 & 0b00000010)
-    const syncUtcTime = !!(byte10 & 0b00000100)
-    const wifiRssi = byte11
-    const overload = !!(byte12 & 0b10000000)
-    const currentPower = (((byte12 & 0b01111111) << 8) + byte13) / 10 // in watt
-    // TODO: voltage ???
-
-    const data = {
-      model: SwitchBotBLEModel.PlugMiniUS,
-      modelName: SwitchBotBLEModelName.PlugMini,
-      modelFriendlyName: SwitchBotBLEModelFriendlyName.PlugMini,
-      state,
-      delay,
-      timer,
-      syncUtcTime,
-      wifiRssi,
-      overload,
-      currentPower,
-    }
-
-    return data
+    return this.parseServiceData(manufacturerData, SwitchBotBLEModel.PlugMiniUS, onlog)
   }
 
+  /**
+   * Parses the service data for WoPlugMini JP.
+   * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Function} [onlog] - Optional logging function.
+   * @returns {Promise<object | null>} - Parsed service data or null if invalid.
+   */
   static async parseServiceData_JP(
     manufacturerData: Buffer,
-    onlog: ((message: string) => void) | undefined,
+    onlog?: (message: string) => void,
+  ): Promise<object | null> {
+    return this.parseServiceData(manufacturerData, SwitchBotBLEModel.PlugMiniJP, onlog)
+  }
+
+  /**
+   * Parses the service data for WoPlugMini.
+   * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {SwitchBotBLEModel} model - The model of the plug mini.
+   * @param {Function} [onlog] - Optional logging function.
+   * @returns {Promise<object | null>} - Parsed service data or null if invalid.
+   */
+  private static async parseServiceData(
+    manufacturerData: Buffer,
+    model: SwitchBotBLEModel,
+    onlog?: (message: string) => void,
   ): Promise<object | null> {
     if (manufacturerData.length !== 14) {
-      if (onlog && typeof onlog === 'function') {
-        onlog(`[parseServiceDataForWoPlugMiniJP] Buffer length ${manufacturerData.length} should be 14`)
-      }
+      onlog?.(`[parseServiceDataForWoPlugMini] Buffer length ${manufacturerData.length} should be 14`)
       return null
     }
-    const byte9 = manufacturerData.readUInt8(9) // byte9:  plug mini state; 0x00=off, 0x80=on
-    const byte10 = manufacturerData.readUInt8(10) // byte10: bit0: 0=no delay,1=delay, bit1:0=no timer, 1=timer; bit2:0=no sync time, 1=sync'ed time
-    const byte11 = manufacturerData.readUInt8(11) // byte11: wifi rssi
-    const byte12 = manufacturerData.readUInt8(12) // byte12: bit7: overload?
-    const byte13 = manufacturerData.readUInt8(13) // byte12[bit0~6] + byte13: current power value
+
+    const [byte9, byte10, byte11, byte12, byte13] = [
+      manufacturerData.readUInt8(9),
+      manufacturerData.readUInt8(10),
+      manufacturerData.readUInt8(11),
+      manufacturerData.readUInt8(12),
+      manufacturerData.readUInt8(13),
+    ]
 
     const state = byte9 === 0x00 ? 'off' : byte9 === 0x80 ? 'on' : null
     const delay = !!(byte10 & 0b00000001)
@@ -75,10 +70,9 @@ export class WoPlugMini extends SwitchbotDevice {
     const wifiRssi = byte11
     const overload = !!(byte12 & 0b10000000)
     const currentPower = (((byte12 & 0b01111111) << 8) + byte13) / 10 // in watt
-    // TODO: voltage ???
 
-    const data = {
-      model: SwitchBotBLEModel.PlugMiniJP,
+    return {
+      model,
       modelName: SwitchBotBLEModelName.PlugMini,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.PlugMini,
       state,
@@ -89,65 +83,70 @@ export class WoPlugMini extends SwitchbotDevice {
       overload,
       currentPower,
     }
-
-    return data
   }
 
   /**
-   * @returns resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
+   * Reads the state of the plug.
+   * @returns {Promise<boolean>} - Resolves with a boolean that tells whether the plug is ON (true) or OFF (false).
    */
-  async readState() {
-    return await this.operatePlug([0x57, 0x0F, 0x51, 0x01])
+  async readState(): Promise<boolean> {
+    return this.operatePlug([0x57, 0x0F, 0x51, 0x01])
   }
 
   /**
+   * Sets the state of the plug.
    * @private
+   * @param {number[]} reqByteArray - The request byte array.
+   * @returns {Promise<boolean>} - Resolves with a boolean that tells whether the plug is ON (true) or OFF (false).
    */
-  async setState(reqByteArray: number[]) {
+  private async setState(reqByteArray: number[]): Promise<boolean> {
     const base = [0x57, 0x0F, 0x50, 0x01]
-    return await this.operatePlug([...base, ...reqByteArray])
+    return this.operatePlug([...base, ...reqByteArray])
   }
 
   /**
-   * @returns resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
+   * Turns on the plug.
+   * @returns {Promise<boolean>} - Resolves with a boolean that tells whether the plug is ON (true) or OFF (false).
    */
-  async turnOn() {
-    return await this.setState([0x01, 0x80])
+  async turnOn(): Promise<boolean> {
+    return this.setState([0x01, 0x80])
   }
 
   /**
-   * @returns resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
+   * Turns off the plug.
+   * @returns {Promise<boolean>} - Resolves with a boolean that tells whether the plug is ON (true) or OFF (false).
    */
-  async turnOff() {
-    return await this.setState([0x01, 0x00])
+  async turnOff(): Promise<boolean> {
+    return this.setState([0x01, 0x00])
   }
 
   /**
-   * @returns resolves with a boolean that tells whether the plug in ON(true) or OFF(false)
+   * Toggles the state of the plug.
+   * @returns {Promise<boolean>} - Resolves with a boolean that tells whether the plug is ON (true) or OFF (false).
    */
-  async toggle() {
-    return await this.setState([0x02, 0x80])
+  async toggle(): Promise<boolean> {
+    return this.setState([0x02, 0x80])
   }
 
-  async operatePlug(bytes: number[]) {
-    const req_buf = Buffer.from(bytes)
-    await this.command(req_buf)
-      .then((res_bytes) => {
-        const res_buf = Buffer.from(res_bytes)
-        if (res_buf.length === 2) {
-          const code = res_buf.readUInt8(1)
-          if (code === 0x00 || code === 0x80) {
-            const is_on = code === 0x80
-            return is_on
-          } else {
-            throw new Error(`The device returned an error: 0x${res_buf.toString('hex')}`)
-          }
-        } else {
-          throw new Error(`Expecting a 2-byte response, got instead: 0x${res_buf.toString('hex')}`)
-        }
-      })
-      .catch((error) => {
-        throw error
-      })
+  /**
+   * Operates the plug with the given bytes.
+   * @param {number[]} bytes - The byte array to send to the plug.
+   * @returns {Promise<boolean>} - Resolves with a boolean that tells whether the plug is ON (true) or OFF (false).
+   */
+  public async operatePlug(bytes: number[]): Promise<boolean> {
+    const reqBuf = Buffer.from(bytes)
+    const resBytes = await this.command(reqBuf)
+    const resBuf = Buffer.from(resBytes)
+
+    if (resBuf.length !== 2) {
+      throw new Error(`Expecting a 2-byte response, got instead: 0x${resBuf.toString('hex')}`)
+    }
+
+    const code = resBuf.readUInt8(1)
+    if (code === 0x00 || code === 0x80) {
+      return code === 0x80
+    } else {
+      throw new Error(`The device returned an error: 0x${resBuf.toString('hex')}`)
+    }
   }
 }
