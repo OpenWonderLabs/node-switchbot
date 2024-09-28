@@ -27,25 +27,24 @@ import { WoStrip } from './device/wostrip.js'
 import { parameterChecker } from './parameter-checker.js'
 import { SwitchBotBLEModel } from './types/types.js'
 
+/**
+ * SwitchBot class to interact with SwitchBot devices.
+ */
 export class SwitchBot {
   private ready: Promise<void>
   noble!: typeof Noble
   ondiscover?: (device: SwitchbotDevice) => void
   onadvertisement?: (ad: Ad) => void
-  onlog: ((message: string) => void) | undefined
+  onlog?: (message: string) => void
   DEFAULT_DISCOVERY_DURATION = 5000
-  PRIMARY_SERVICE_UUID_LIST = []
-  /* ------------------------------------------------------------------
-               * Constructor
-               *
-               * [Arguments]
-               * - params  | Object  | Optional |
-               *   - noble | Noble   | Optional | The Noble object created by the noble module.
-               *           |         |          | This parameter is optional.
-               *           |         |          | If you don't specify this parameter, this
-               *           |         |          | module automatically creates it.
-               * ---------------------------------------------------------------- */
+  PRIMARY_SERVICE_UUID_LIST: string[] = []
 
+  /**
+   * Constructor
+   *
+   * @param {Params} [params] - Optional parameters
+   * @param {typeof Noble} [params.noble] - Optional noble instance
+   */
   constructor(params?: Params) {
     this.ready = this.init(params)
   }
@@ -68,7 +67,6 @@ export class SwitchBot {
    * @returns {Promise<SwitchbotDevice[]>} - A promise that resolves with a list of discovered devices.
    */
   async discover(params: Params = {}): Promise<SwitchbotDevice[]> {
-    // Validate parameters
     const valid = parameterChecker.check(params as Record<string, unknown>, {
       duration: { required: false, type: 'integer', min: 1, max: 60000 },
       model: { required: false, type: 'string', enum: Object.values(SwitchBotBLEModel) },
@@ -82,7 +80,6 @@ export class SwitchBot {
 
     const { duration = this.DEFAULT_DISCOVERY_DURATION, model = '', id = '', quick = false } = params
 
-    // Initialize the noble object
     await this._init()
     if (!this.noble) {
       throw new Error('noble failed to initialize')
@@ -100,7 +97,6 @@ export class SwitchBot {
 
     return new Promise<SwitchbotDevice[]>((resolve, reject) => {
       try {
-        // Set a handler for the 'discover' event
         this.noble.on('discover', async (peripheral: Noble.Peripheral) => {
           const device = await this.getDeviceObject(peripheral, id, model)
           if (device) {
@@ -114,7 +110,6 @@ export class SwitchBot {
           }
         })
 
-        // Start scanning
         this.noble.startScanningAsync(this.PRIMARY_SERVICE_UUID_LIST, false)
           .then(() => {
             timer = setTimeout(() => {
@@ -130,7 +125,12 @@ export class SwitchBot {
     })
   }
 
-  async _init() {
+  /**
+   * Initializes the noble object and waits for it to be powered on.
+   *
+   * @returns {Promise<void>} - Resolves when the noble object is powered on.
+   */
+  async _init(): Promise<void> {
     await this.ready
 
     if (this.noble._state === 'poweredOn') {
@@ -152,13 +152,17 @@ export class SwitchBot {
     })
   }
 
+  /**
+   * Gets the device object based on the peripheral, id, and model.
+   *
+   * @param {Noble.Peripheral} peripheral - The peripheral object.
+   * @param {string} id - The device id.
+   * @param {string} model - The device model.
+   * @returns {Promise<SwitchbotDevice | null>} - The device object or null.
+   */
   async getDeviceObject(peripheral: Noble.Peripheral, id: string, model: string): Promise<SwitchbotDevice | null> {
     const ad = await Advertising.parse(peripheral, this.onlog)
-    if (!ad) {
-      return null
-    }
-
-    if (!this.filterAdvertising(ad, id, model)) {
+    if (!ad || !this.filterAdvertising(ad, id, model)) {
       return null
     }
 
@@ -188,6 +192,14 @@ export class SwitchBot {
     return new DeviceClass(peripheral, this.noble)
   }
 
+  /**
+   * Filters advertising data based on id and model.
+   *
+   * @param {Ad} ad - The advertising data.
+   * @param {string} id - The device id.
+   * @param {string} model - The device model.
+   * @returns {boolean} - True if the advertising data matches the id and model, false otherwise.
+   */
   filterAdvertising(ad: Ad, id: string, model: string): boolean {
     if (!ad) {
       return false
@@ -209,41 +221,17 @@ export class SwitchBot {
   }
 
   /**
-   * startScan([params])
-   * - Start to monitor advertising packets coming from switchbot devices
+   * Starts scanning for SwitchBot devices.
    *
-   * @param {object} params - Optional parameters
-   * @param {string} [params.model] - Optional model filter ("H", "T", "e", "s", "d", "c", "{", "u", "g", "o", "i", "x", "r")
-   * @param {string} [params.id] - Optional ID filter (MAC address, case-insensitive, colons ignored)
-   * @returns {Promise<void>} - Resolves when scanning starts successfully
+   * @param {Params} [params] - Optional parameters.
+   * @returns {Promise<void>} - Resolves when scanning starts successfully.
    */
   async startScan(params: Params = {}): Promise<void> {
-  // Validate parameters
     const valid = parameterChecker.check(params as Record<string, unknown>, {
       model: {
         required: false,
         type: 'string',
-        enum: [
-          SwitchBotBLEModel.Bot,
-          SwitchBotBLEModel.Curtain,
-          SwitchBotBLEModel.Curtain3,
-          SwitchBotBLEModel.Humidifier,
-          SwitchBotBLEModel.Meter,
-          SwitchBotBLEModel.MeterPlus,
-          SwitchBotBLEModel.Hub2,
-          SwitchBotBLEModel.OutdoorMeter,
-          SwitchBotBLEModel.MotionSensor,
-          SwitchBotBLEModel.ContactSensor,
-          SwitchBotBLEModel.ColorBulb,
-          SwitchBotBLEModel.CeilingLight,
-          SwitchBotBLEModel.CeilingLightPro,
-          SwitchBotBLEModel.StripLight,
-          SwitchBotBLEModel.PlugMiniUS,
-          SwitchBotBLEModel.PlugMiniJP,
-          SwitchBotBLEModel.Lock,
-          SwitchBotBLEModel.LockPro,
-          SwitchBotBLEModel.BlindTilt,
-        ],
+        enum: Object.values(SwitchBotBLEModel),
       },
       id: { required: false, type: 'string', min: 12, max: 17 },
     }, false)
@@ -252,15 +240,13 @@ export class SwitchBot {
       throw new Error(parameterChecker.error!.message)
     }
 
-    // Initialize the noble object
     await this._init()
-    if (this.noble === null) {
+    if (!this.noble) {
       throw new Error('noble object failed to initialize')
     }
 
     const { model = '', id = '' } = params
 
-    // Set a handler for the 'discover' event
     this.noble.on('discover', async (peripheral: Noble.Peripheral) => {
       const ad = await Advertising.parse(peripheral, this.onlog)
       if (ad && this.filterAdvertising(ad, id, model)) {
@@ -270,15 +256,13 @@ export class SwitchBot {
       }
     })
 
-    // Start scanning
     await this.noble.startScanningAsync(this.PRIMARY_SERVICE_UUID_LIST, true)
   }
 
   /**
-   * stopScan()
-   * - Stop monitoring advertising packets from SwitchBot devices
+   * Stops scanning for SwitchBot devices.
    *
-   * @returns {Promise<void>} - Resolves when scanning stops successfully
+   * @returns {Promise<void>} - Resolves when scanning stops successfully.
    */
   async stopScan(): Promise<void> {
     if (!this.noble) {
@@ -290,14 +274,12 @@ export class SwitchBot {
   }
 
   /**
-   * wait
-   * - Wait for the specified time (msec)
+   * Waits for the specified time.
    *
-   * @param {number} msec - The time to wait in milliseconds
-   * @returns {Promise<void>} - Resolves after the specified time
+   * @param {number} msec - The time to wait in milliseconds.
+   * @returns {Promise<void>} - Resolves after the specified time.
    */
   async wait(msec: number): Promise<void> {
-  // Validate parameters
     const valid = parameterChecker.check(
       { msec },
       {
@@ -310,7 +292,6 @@ export class SwitchBot {
       throw new Error(parameterChecker.error!.message)
     }
 
-    // Return a promise that resolves after the specified time
     return new Promise(resolve => setTimeout(resolve, msec))
   }
 }
