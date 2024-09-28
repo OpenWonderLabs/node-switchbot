@@ -9,17 +9,17 @@ describe('woIOSensorTH', () => {
   const invalidManufacturerData = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A])
 
   it('should return null for incorrect serviceData length', async () => {
-    const result = await WoIOSensorTH.parseServiceData(invalidServiceData, validManufacturerData, undefined)
+    const result = await WoIOSensorTH.parseServiceData(invalidServiceData, validManufacturerData)
     expect(result).toBeNull()
   })
 
   it('should return null for incorrect manufacturerData length', async () => {
-    const result = await WoIOSensorTH.parseServiceData(validServiceData, invalidManufacturerData, undefined)
+    const result = await WoIOSensorTH.parseServiceData(validServiceData, invalidManufacturerData)
     expect(result).toBeNull()
   })
 
   it('should return correct parsed data for valid inputs', async () => {
-    const result = await WoIOSensorTH.parseServiceData(validServiceData, validManufacturerData, undefined)
+    const result = await WoIOSensorTH.parseServiceData(validServiceData, validManufacturerData)
     expect(result).toEqual({
       model: 'OutdoorMeter',
       modelName: 'OutdoorMeter',
@@ -28,7 +28,9 @@ describe('woIOSensorTH', () => {
         c: 1.5,
         f: 34.7,
       },
-      fahrenheit: true,
+      celsius: 1.5,
+      fahrenheit: 34.7,
+      fahrenheit_mode: true,
       humidity: 80,
       battery: 127,
     })
