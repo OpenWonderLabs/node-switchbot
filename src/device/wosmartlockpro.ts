@@ -1,5 +1,5 @@
 /*
- * wosmartlock.ts: Switchbot BLE API registration.
+ * wosmartlockpro.ts: Switchbot BLE API registration.
  * adapted off the work done by [pySwitchbot](https://github.com/Danielhiversen/pySwitchbot)
  */
 import type * as Noble from '@stoprocent/noble'
@@ -10,6 +10,7 @@ import { Buffer } from 'node:buffer'
 import * as Crypto from 'node:crypto'
 
 import { SwitchbotDevice } from '../device.js'
+import { WoSmartLockProCommands } from '../settings.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
 export class WoSmartLockPro extends SwitchbotDevice {
@@ -17,21 +18,13 @@ export class WoSmartLockPro extends SwitchbotDevice {
   public _key_id: string = ''
   public _encryption_key: Buffer | null = null
 
-  static COMMAND_GET_CK_IV = '570f2103'
-  static COMMAND_LOCK_INFO = '570f4f8102'
-  static COMMAND_UNLOCK = '570f4e0101000080'
-  static COMMAND_UNLOCK_NO_UNLATCH = '570f4e01010000a0'
-  static COMMAND_LOCK = '570f4e0101000000'
-  static COMMAND_ENABLE_NOTIFICATIONS = '570e01001e00008101'
-  static COMMAND_DISABLE_NOTIFICATIONS = '570e00'
-
   static Result = {
     ERROR: 0x00,
     SUCCESS: 0x01,
     SUCCESS_LOW_BATTERY: 0x06,
   }
 
-  static validateResponse(res: Buffer) {
+  static async validateResponse(res: Buffer) {
     if (res.length >= 3) {
       const result = res.readUInt8(0)
       if (result === WoSmartLockPro.Result.SUCCESS || result === WoSmartLockPro.Result.SUCCESS_LOW_BATTERY) {
@@ -109,7 +102,7 @@ export class WoSmartLockPro extends SwitchbotDevice {
    * @returns {Promise<number>} - The result of the unlock operation.
    */
   async unlock(): Promise<number> {
-    const resBuf = await this.operateLockPro(WoSmartLockPro.COMMAND_UNLOCK)
+    const resBuf = await this.operateLockPro(WoSmartLockProCommands.UNLOCK)
     return resBuf ? WoSmartLockPro.validateResponse(resBuf) : WoSmartLockPro.Result.ERROR
   }
 
@@ -118,7 +111,7 @@ export class WoSmartLockPro extends SwitchbotDevice {
    * @returns {Promise<number>} - The result of the unlock operation.
    */
   async unlockNoUnlatch(): Promise<number> {
-    const resBuf = await this.operateLockPro(WoSmartLockPro.COMMAND_UNLOCK_NO_UNLATCH)
+    const resBuf = await this.operateLockPro(WoSmartLockProCommands.UNLOCK_NO_UNLATCH)
     return resBuf ? WoSmartLockPro.validateResponse(resBuf) : WoSmartLockPro.Result.ERROR
   }
 
@@ -127,7 +120,7 @@ export class WoSmartLockPro extends SwitchbotDevice {
    * @returns {Promise<number>} - The result of the lock operation.
    */
   async lock(): Promise<number> {
-    const resBuf = await this.operateLockPro(WoSmartLockPro.COMMAND_LOCK)
+    const resBuf = await this.operateLockPro(WoSmartLockProCommands.LOCK)
     return resBuf ? WoSmartLockPro.validateResponse(resBuf) : WoSmartLockPro.Result.ERROR
   }
 
@@ -136,7 +129,7 @@ export class WoSmartLockPro extends SwitchbotDevice {
    * @returns {Promise<object | null>} - The state object or null if an error occurred.
    */
   async info(): Promise<object | null> {
-    const resBuf = await this.operateLockPro(WoSmartLockPro.COMMAND_LOCK_INFO)
+    const resBuf = await this.operateLockPro(WoSmartLockProCommands.LOCK_INFO)
     if (resBuf) {
       return {
         calibration: Boolean(resBuf[0] & 0b10000000),
@@ -175,7 +168,7 @@ export class WoSmartLockPro extends SwitchbotDevice {
    */
   async getIv(): Promise<Buffer> {
     if (!this._iv) {
-      const res = await this.operateLockPro(WoSmartLockPro.COMMAND_GET_CK_IV + this._key_id, false)
+      const res = await this.operateLockPro(WoSmartLockProCommands.GET_CKIV + this._key_id, false)
       if (res) {
         this._iv = res.subarray(4)
       } else {
@@ -201,7 +194,7 @@ export class WoSmartLockPro extends SwitchbotDevice {
     const buf = Buffer.from(bytes as Uint8Array)
     const code = WoSmartLockPro.validateResponse(buf)
 
-    if (code !== WoSmartLockPro.Result.ERROR) {
+    if (await code !== WoSmartLockPro.Result.ERROR) {
       return Buffer.concat([buf.subarray(0, 1), await this.decrypt(buf.subarray(4))])
     } else {
       throw new Error(`The device returned an error: 0x${buf.toString('hex')}`)
@@ -223,7 +216,7 @@ export class WoSmartLockPro extends SwitchbotDevice {
     const buf = Buffer.from(bytes as Uint8Array)
     const code = WoSmartLockPro.validateResponse(buf)
 
-    if (code === WoSmartLockPro.Result.ERROR) {
+    if (await code === WoSmartLockPro.Result.ERROR) {
       throw new Error(`The device returned an error: 0x${buf.toString('hex')}`)
     }
     return buf
