@@ -2,7 +2,7 @@
  *
  * types.ts: @switchbot/homebridge-switchbot platform class.
  */
-import type Noble from '@stoprocent/noble'
+import type * as Noble from '@stoprocent/noble'
 
 export type MacAddress = string
 

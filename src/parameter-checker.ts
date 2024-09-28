@@ -133,10 +133,8 @@ class ParameterChecker {
         this._error = {
           code: 'TYPE_UNKNOWN',
           message:
-            `The rule specified for the \`${
-              name
-            }\` includes an unknown type: ${
-              rule.type}`,
+            `The rule specified for the \`${name
+            }\` includes an unknown type: ${rule.type}`,
         }
       }
     }
@@ -185,10 +183,8 @@ class ParameterChecker {
         this._error = {
           code: 'VALUE_UNDERFLOW',
           message:
-            `The \`${
-              name
-            }\` must be grater than or equal to ${
-              rule.min
+            `The \`${name
+            }\` must be grater than or equal to ${rule.min
             }.`,
         }
         return false
@@ -199,10 +195,8 @@ class ParameterChecker {
         this._error = {
           code: 'VALUE_OVERFLOW',
           message:
-            `The \`${
-              name
-            }\` must be less than or equal to ${
-              rule.max
+            `The \`${name
+            }\` must be less than or equal to ${rule.max
             }.`,
         }
         return false
@@ -213,10 +207,8 @@ class ParameterChecker {
         this._error = {
           code: 'ENUM_UNMATCH',
           message:
-            `The \`${
-              name
-            }\` must be any one of ${
-              JSON.stringify(rule.enum)
+            `The \`${name
+            }\` must be any one of ${JSON.stringify(rule.enum)
             }.`,
         }
         return false
@@ -369,10 +361,8 @@ class ParameterChecker {
         this._error = {
           code: 'LENGTH_UNDERFLOW',
           message:
-            `The number of characters in the \`${
-              name
-            }\` must be grater than or equal to ${
-              rule.min
+            `The number of characters in the \`${name
+            }\` must be grater than or equal to ${rule.min
             }.`,
         }
         return false
@@ -383,10 +373,8 @@ class ParameterChecker {
         this._error = {
           code: 'LENGTH_OVERFLOW',
           message:
-            `The number of characters in the \`${
-              name
-            }\` must be less than or equal to ${
-              rule.max
+            `The number of characters in the \`${name
+            }\` must be less than or equal to ${rule.max
             }.`,
         }
         return false
@@ -440,10 +428,8 @@ class ParameterChecker {
         this._error = {
           code: 'LENGTH_UNDERFLOW',
           message:
-            `The number of characters in the \`${
-              name
-            }\` must be grater than or equal to ${
-              rule.min
+            `The number of characters in the \`${name
+            }\` must be grater than or equal to ${rule.min
             }.`,
         }
         return false
@@ -454,10 +440,8 @@ class ParameterChecker {
         this._error = {
           code: 'LENGTH_OVERFLOW',
           message:
-            `The number of characters in the \`${
-              name
-            }\` must be less than or equal to ${
-              rule.max
+            `The number of characters in the \`${name
+            }\` must be less than or equal to ${rule.max
             }.`,
         }
         return false
@@ -469,12 +453,9 @@ class ParameterChecker {
         this._error = {
           code: 'LENGTH_UNDERFLOW',
           message:
-            `The byte length of the \`${
-              name
-            }\` (${
-              blen
-            } bytes) must be grater than or equal to ${
-              rule.minBytes
+            `The byte length of the \`${name
+            }\` (${blen
+            } bytes) must be grater than or equal to ${rule.minBytes
             } bytes.`,
         }
         return false
@@ -486,12 +467,9 @@ class ParameterChecker {
         this._error = {
           code: 'LENGTH_OVERFLOW',
           message:
-            `The byte length of the \`${
-              name
-            }\` (${
-              blen
-            } bytes) must be less than or equal to ${
-              rule.maxBytes
+            `The byte length of the \`${name
+            }\` (${blen
+            } bytes) must be less than or equal to ${rule.maxBytes
             } bytes.`,
         }
         return false
@@ -511,10 +489,8 @@ class ParameterChecker {
         this._error = {
           code: 'ENUM_UNMATCH',
           message:
-            `The \`${
-              name
-            }\` must be any one of ${
-              JSON.stringify(rule.enum)
+            `The \`${name
+            }\` must be any one of ${JSON.stringify(rule.enum)
             }.`,
         }
         return false

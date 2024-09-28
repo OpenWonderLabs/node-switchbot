@@ -10,13 +10,13 @@ describe('woStrip', () => {
   describe('parseServiceData', () => {
     it('should return null if serviceData length is not 18', async () => {
       const serviceData = Buffer.alloc(10)
-      const result = await WoStrip.parseServiceData(serviceData, () => {})
+      const result = await WoStrip.parseServiceData(serviceData, () => { })
       return expect(result).to.be.null
     })
 
     it('should parse serviceData correctly', async () => {
       const serviceData = Buffer.from([0, 0, 0, 255, 255, 255, 0, 128, 8, 127, 254, 0, 0, 0, 0, 0, 0, 0])
-      const result = await WoStrip.parseServiceData(serviceData, () => {})
+      const result = await WoStrip.parseServiceData(serviceData, () => { })
       expect(result).to.deep.equal({
         model: 'StripLight',
         modelName: 'StripLight',
@@ -41,7 +41,7 @@ describe('woStrip', () => {
       const peripheral = {} as Noble.Peripheral // Replace with actual peripheral object
       const noble = {} as typeof Noble // Replace with actual noble object
       const woStrip = new WoStrip(peripheral, noble)
-      woStrip.operateStripLight = async () => {}
+      woStrip.operateStripLight = async () => { }
       const result = await woStrip.readState()
       return expect(result).to.be.true
     })
@@ -52,7 +52,7 @@ describe('woStrip', () => {
       const peripheral = {} as Noble.Peripheral // Replace with actual peripheral object
       const noble = {} as typeof Noble // Replace with actual noble object
       const woStrip = new WoStrip(peripheral, noble)
-      woStrip.setState = async () => {}
+      woStrip.setState = async () => { }
       const result = await woStrip.turnOn()
       return expect(result).to.be.true
     })
@@ -63,7 +63,7 @@ describe('woStrip', () => {
       const peripheral = {} as Noble.Peripheral // Replace with actual peripheral object
       const noble = {} as typeof Noble // Replace with actual noble object
       const woStrip = new WoStrip(peripheral, noble)
-      woStrip.setState = async () => {}
+      woStrip.setState = async () => { }
       const result = await woStrip.turnOff()
       return expect(result).to.be.true
     })
@@ -74,7 +74,7 @@ describe('woStrip', () => {
       const peripheral = {} as Noble.Peripheral // Replace with actual peripheral object
       const noble = {} as typeof Noble // Replace with actual noble object
       const woStrip = new WoStrip(peripheral, noble)
-      woStrip.setState = async () => {}
+      woStrip.setState = async () => { }
       const result = await woStrip.setBrightness(50)
       return expect(result).to.be.true
     })
@@ -100,7 +100,7 @@ describe('woStrip', () => {
       const peripheral = {} as Noble.Peripheral // Replace with actual peripheral object
       const noble = {} as typeof Noble // Replace with actual noble object
       const woStrip = new WoStrip(peripheral, noble)
-      woStrip.setState = async () => {}
+      woStrip.setState = async () => { }
       const result = await woStrip.setRGB(50, 255, 255, 255)
       return expect(result).to.be.true
     })

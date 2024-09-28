@@ -2,7 +2,7 @@
  *
  * advertising.ts: Switchbot BLE API registration.
  */
-import type { Peripheral } from '@stoprocent/noble'
+import type * as Noble from '@stoprocent/noble'
 
 import { Buffer } from 'node:buffer'
 
@@ -49,7 +49,7 @@ export class Advertising {
    * @returns An object containing parsed data specific to the SwitchBot device type, or `null` if the device is not recognized.
    */
   static async parse(
-    peripheral: Peripheral,
+    peripheral: Noble.Peripheral,
     onlog?: (message: string) => void,
   ): Promise<Ad> {
     const ad = peripheral.advertisement

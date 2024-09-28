@@ -1,4 +1,4 @@
-import type Noble from '@stoprocent/noble'
+import type * as Noble from '@stoprocent/noble'
 
 import type { lockServiceData } from '../types/bledevicestatus.js'
 

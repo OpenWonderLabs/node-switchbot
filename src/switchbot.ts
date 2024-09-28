@@ -2,12 +2,10 @@
  *
  * switchbot.ts: Switchbot BLE API registration.
  */
-import type Noble from '@stoprocent/noble'
+import type * as Noble from '@stoprocent/noble'
 
 import type { Ad } from './advertising.js'
 import type { Params } from './types/types.js'
-
-import { Buffer } from 'node:buffer'
 
 import { Advertising } from './advertising.js'
 import { SwitchbotDevice } from './device.js'
@@ -54,7 +52,7 @@ export class SwitchBot {
 
   // Check parameters
   async init(params?: Params) {
-    let noble: typeof Noble
+    let noble: typeof Noble.default
     if (params && params.noble) {
       noble = params.noble
     } else {
@@ -62,7 +60,7 @@ export class SwitchBot {
     }
 
     // Public properties
-    this.noble = noble
+    this.noble = noble as unknown as typeof Noble
   }
 
   /**

@@ -1,18 +1,24 @@
+import { Buffer } from 'node:buffer'
+
 /* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
  * device.ts: Switchbot BLE API registration.
  */
-import Noble from '@stoprocent/noble';
-import { parameterChecker } from './parameter-checker.js';
-import { Advertising } from './advertising.js';
+import type * as Noble from '@stoprocent/noble'
+
+import type { SwitchBotBLEModel, SwitchBotBLEModelName } from './types/types.js'
+
+import { Advertising } from './advertising.js'
+import { parameterChecker } from './parameter-checker.js'
 import {
-  SERV_UUID_PRIMARY, CHAR_UUID_WRITE, CHAR_UUID_NOTIFY, CHAR_UUID_DEVICE,
-  READ_TIMEOUT_MSEC, WRITE_TIMEOUT_MSEC, COMMAND_TIMEOUT_MSEC,
-} from './settings.js';
-import { SwitchBotBLEModel, SwitchBotBLEModelName } from './types/types.js';
-
-import { Buffer } from 'node:buffer'
-
+  CHAR_UUID_DEVICE,
+  CHAR_UUID_NOTIFY,
+  CHAR_UUID_WRITE,
+  COMMAND_TIMEOUT_MSEC,
+  READ_TIMEOUT_MSEC,
+  SERV_UUID_PRIMARY,
+  WRITE_TIMEOUT_MSEC,
+} from './settings.js'
 
 type Chars = {
   write: Noble.Characteristic | null
@@ -21,61 +27,61 @@ type Chars = {
 } | null
 
 export class SwitchbotDevice {
-  _noble: typeof Noble;
-  _peripheral: Noble.Peripheral;
-  _characteristics: Chars | null;
-  _id: string;
-  _address: any;
-  _model!: SwitchBotBLEModel;
-  _modelName!: SwitchBotBLEModelName;
-  _explicitly: boolean;
-  _connected: boolean;
-  onnotify_internal: any;
-  ondisconnect_internal!: () => void;
-  onconnect_internal!: () => Promise<void>;
+  _noble: typeof Noble
+  _peripheral: Noble.Peripheral
+  _characteristics: Chars | null
+  _id: string
+  _address: any
+  _model!: SwitchBotBLEModel
+  _modelName!: SwitchBotBLEModelName
+  _explicitly: boolean
+  _connected: boolean
+  onnotify_internal: any
+  ondisconnect_internal!: () => void
+  onconnect_internal!: () => Promise<void>
   /**
    * Constructor for the Device class.
    *
-   * @param {Object} peripheral - The `peripheral` object from noble, representing this device.
+   * @param {object} peripheral - The `peripheral` object from noble, representing this device.
    * @param {Noble} noble - The Noble object created by the noble module.
    *
    * This constructor initializes a new instance of the Device class with the specified peripheral and noble objects.
    */
   constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
-    this._peripheral = peripheral;
-    this._noble = noble;
-    this._characteristics = null;
+    this._peripheral = peripheral
+    this._noble = noble
+    this._characteristics = null
 
     // Save the device information
-    const ad: any = Advertising.parse(peripheral);
-    this._id = ad ? ad.id : null;
-    this._address = ad ? ad.address : null;
-    this._model = ad ? ad.serviceData.model : null;
-    this._modelName = ad ? ad.serviceData.modelName : null;
+    const ad: any = Advertising.parse(peripheral)
+    this._id = ad ? ad.id : null
+    this._address = ad ? ad.address : null
+    this._model = ad ? ad.serviceData.model : null
+    this._modelName = ad ? ad.serviceData.modelName : null
 
     this._explicitly = false
     this._connected = false
 
-    this._explicitly = false;
-    this._connected = false;
+    this._explicitly = false
+    this._connected = false
 
-    this.onconnect = () => { };
-    this.ondisconnect = () => { };
-    this.ondisconnect_internal = () => { };
-    this.onnotify_internal = () => { };
+    this.onconnect = () => { }
+    this.ondisconnect = () => { }
+    this.ondisconnect_internal = () => { }
+    this.onnotify_internal = () => { }
   }
 
   // Getters
   get id(): string {
-    return this._id;
+    return this._id
   }
 
   get address(): string {
-    return this._address;
+    return this._address
   }
 
   get model(): string {
-    return this._model;
+    return this._model
   }
 
   get modelName(): string {
@@ -90,60 +96,68 @@ export class SwitchbotDevice {
     }
   }
 
+  get onconnect(): () => Promise<void> | void {
+    return this.onconnect_internal
+  }
+
   /**
-  * Sets the asynchronous connection handler.
-  *
-  * This setter assigns a function to be used as the asynchronous connection handler. The handler
-  * is expected to be a function that returns a Promise, which resolves once the connection process
-  * is complete. The resolution of the Promise does not carry any value.
-  *
-  * @param func A function that returns a Promise, representing the asynchronous operation of connecting.
-  *             This function is expected to be called without any arguments.
-  * @throws Error if the provided argument is not a function, ensuring type safety.
-  */
+   * Sets the asynchronous connection handler.
+   *
+   * This setter assigns a function to be used as the asynchronous connection handler. The handler
+   * is expected to be a function that returns a Promise, which resolves once the connection process
+   * is complete. The resolution of the Promise does not carry any value.
+   *
+   * @param func A function that returns a Promise, representing the asynchronous operation of connecting.
+   * This function is expected to be called without any arguments.
+   * @throws Error if the provided argument is not a function, ensuring type safety.
+   */
   set onconnect(func: () => Promise<void> | void) {
     if (!func || typeof func !== 'function') {
-      throw new Error('The `onconnect` must be a function that returns a Promise<void>.');
+      throw new Error('The `onconnect` must be a function that returns a Promise<void>.')
     }
     this.onconnect_internal = async () => {
-      await func();
-    };
+      await func()
+    }
+  }
+
+  get ondisconnect(): () => Promise<void> | void {
+    return this.ondisconnect_internal
   }
 
   /**
-  * Sets the asynchronous disconnection handler.
-  *
-  * This setter configures a function to act as the asynchronous disconnection handler. The handler
-  * should be a function that returns a Promise, which resolves when the disconnection process
-  * is complete. The resolution of the Promise does not carry any value.
-  *
-  * @param func A function that returns a Promise, representing the asynchronous operation of disconnecting.
-  *             This function is expected to be called without any arguments.
-  * @throws Error if the provided argument is not a function, to ensure that the handler is correctly typed.
-  */
+   * Sets the asynchronous disconnection handler.
+   *
+   * This setter configures a function to act as the asynchronous disconnection handler. The handler
+   * should be a function that returns a Promise, which resolves when the disconnection process
+   * is complete. The resolution of the Promise does not carry any value.
+   *
+   * @param func A function that returns a Promise, representing the asynchronous operation of disconnecting.
+   * This function is expected to be called without any arguments.
+   * @throws Error if the provided argument is not a function, to ensure that the handler is correctly typed.
+   */
   set ondisconnect(func: () => Promise<void> | void) {
     if (!func || typeof func !== 'function') {
-      throw new Error('The `ondisconnect` must be a function that returns a Promise<void>.');
+      throw new Error('The `ondisconnect` must be a function that returns a Promise<void>.')
     }
-    this.ondisconnect = async () => {
-      await func();
-    };
+    this.ondisconnect_internal = async () => {
+      await func()
+    }
   }
 
   /**
-  * Initiates an asynchronous connection process.
-  *
-  * This method marks the device as being connected explicitly by setting a flag, then proceeds
-  * to initiate the actual connection process by calling an internal asynchronous method `connect_internalAsync`.
-  * The `connect_internalAsync` method is responsible for handling the low-level connection logic.
-  *
-  * @returns A Promise that resolves when the connection process initiated by `connect_internalAsync` completes.
-  *          The resolution of this Promise does not carry any value, indicating that the focus is on
-  *          the completion of the connection process rather than the result of the connection itself.
-  */
+   * Initiates an asynchronous connection process.
+   *
+   * This method marks the device as being connected explicitly by setting a flag, then proceeds
+   * to initiate the actual connection process by calling an internal asynchronous method `connect_internalAsync`.
+   * The `connect_internalAsync` method is responsible for handling the low-level connection logic.
+   *
+   * @returns A Promise that resolves when the connection process initiated by `connect_internalAsync` completes.
+   * The resolution of this Promise does not carry any value, indicating that the focus is on
+   * the completion of the connection process rather than the result of the connection itself.
+   */
   async connect(): Promise<void> {
-    this._explicitly = true;
-    return await this.connect_internal();
+    this._explicitly = true
+    return await this.connect_internal()
   }
 
   /**
@@ -167,93 +181,92 @@ export class SwitchbotDevice {
   async connect_internal() {
     // Check the bluetooth state
     if (this._noble._state !== 'poweredOn') {
-      throw new Error('The Bluetooth status is ' + this._noble._state + ', not poweredOn.');
+      throw new Error(`The Bluetooth status is ${this._noble._state}, not poweredOn.`)
     }
 
     // Check the connection state
-    const state = this.connectionState;
+    const state = this.connectionState
     if (state === 'connected') {
-      return;
+      return
     } else if (state === 'connecting' || state === 'disconnecting') {
-      throw new Error('Now ' + state + '. Wait for a few seconds then try again.');
+      throw new Error(`Now ${state}. Wait for a few seconds then try again.`)
     }
 
     // Set event handlers for events fired on the `Peripheral` object
     this._peripheral.once('connect', async () => {
-      this._connected = true;
-      await this.onconnect();
-    });
+      this._connected = true
+      await this.onconnect()
+    })
 
     this._peripheral.once('disconnect', async () => {
-      this._connected = false;
-      this._characteristics = null;
-      this._peripheral.removeAllListeners();
+      this._connected = false
+      this._characteristics = null
+      this._peripheral.removeAllListeners()
       try {
-        await this.ondisconnect_internal();
-        await this.ondisconnect();
+        await this.ondisconnect_internal()
+        await this.ondisconnect()
       } catch (error: any) {
-        throw new Error('Error during disconnect:', error);
+        throw new Error('Error during disconnect:', error)
       }
-    });
+    })
 
     // Connect
-    await this._peripheral.connectAsync();
-    const chars = await this.getCharacteristics();
-    this._characteristics = chars;
-    await this.subscribe();
+    await this._peripheral.connectAsync()
+    const chars = await this.getCharacteristics()
+    this._characteristics = chars
+    await this.subscribe()
   }
-
 
   async getCharacteristics(): Promise<Chars> {
     // Set timeout timer
     let timer: NodeJS.Timeout | null = setTimeout(async () => {
-      await this.ondisconnect_internal();
-      timer = null;
-      throw new Error('Failed to discover services and characteristics: TIMEOUT');
-    }, 5000);
+      await this.ondisconnect_internal()
+      timer = null
+      throw new Error('Failed to discover services and characteristics: TIMEOUT')
+    }, 5000)
 
     try {
       // Discover services and characteristics
-      const service_list = await this.discoverServices();
+      const service_list = await this.discoverServices()
       if (!timer) {
-        throw new Error('');
+        throw new Error('Failed to discover services and characteristics.')
       }
 
       const chars: Chars = {
         write: null,
         notify: null,
         device: null,
-      };
+      }
 
       for (const service of service_list) {
-        const char_list = await this.discoverCharacteristics(service);
+        const char_list = await this.discoverCharacteristics(service)
         for (const char of char_list) {
           if (char.uuid === CHAR_UUID_WRITE) {
-            chars.write = char;
+            chars.write = char
           } else if (char.uuid === CHAR_UUID_NOTIFY) {
-            chars.notify = char;
+            chars.notify = char
           } else if (char.uuid === CHAR_UUID_DEVICE) {
             // Some models of Bot don't seem to support this characteristic UUID
-            chars.device = char;
+            chars.device = char
           }
         }
       }
 
       if (!chars.write || !chars.notify) {
-        throw new Error('No characteristic was found.');
+        throw new Error('No characteristic was found.')
       }
 
-      return chars;
+      return chars
     } catch (error) {
       if (timer) {
-        clearTimeout(timer);
-        this.ondisconnect_internal = () => { };
+        clearTimeout(timer)
+        this.ondisconnect_internal = () => { }
       }
-      throw error;
+      throw error
     } finally {
       if (timer) {
-        clearTimeout(timer);
-        this.ondisconnect_internal = () => { };
+        clearTimeout(timer)
+        this.ondisconnect_internal = () => { }
       }
     }
   }
@@ -261,161 +274,151 @@ export class SwitchbotDevice {
   async discoverServices(): Promise<Noble.Service[]> {
     return await this._peripheral.discoverServicesAsync([])
       .then((service_list: any[]) => {
-        const services = service_list.filter((s: { uuid: string; }) => s.uuid === SERV_UUID_PRIMARY);
+        const services = service_list.filter((s: { uuid: string }) => s.uuid === SERV_UUID_PRIMARY)
         if (services.length === 0) {
-          throw new Error('No service was found.');
+          throw new Error('No service was found.')
         }
-        return services;
+        return services
       })
       .catch((error) => {
-        throw error;
-      });
+        throw error
+      })
   }
 
   /**
- * Asynchronously discovers the characteristics of the specified service.
- * This method is an asynchronous version of the deprecated `discoverCharacteristics` method.
- * It attempts to discover the characteristics of the specified service and returns a Promise that resolves with the list of characteristics.
- * If the discovery process fails, the Promise is rejected with an error.
- * @param service The service object for which characteristics will be discovered.
- * @returns A Promise that resolves with the list of characteristics or rejects with an error.
- */
+   * Asynchronously discovers the characteristics of the specified service.
+   * This method is an asynchronous version of the deprecated `discoverCharacteristics` method.
+   * It attempts to discover the characteristics of the specified service and returns a Promise that resolves with the list of characteristics.
+   * If the discovery process fails, the Promise is rejected with an error.
+   * @param service The service object for which characteristics will be discovered.
+   * @returns A Promise that resolves with the list of characteristics or rejects with an error.
+   */
   async discoverCharacteristics(service: Noble.Service): Promise<Noble.Characteristic[]> {
     return service.discoverCharacteristicsAsync([])
       .then((char_list) => {
-        return char_list;
+        return char_list
       })
       .catch((error) => {
-        throw error;
-      });
+        throw error
+      })
   }
 
-
-  /**
-   * Asynchronously writes data to the specified characteristic.
-   * This method is an asynchronous version of the deprecated `write` method.
-   * It attempts to write data to the specified characteristic and returns a Promise that resolves once the write operation is complete.
-   * If the write operation fails, the Promise is rejected with an error.
-   * @param char The characteristic object to which data will be written.
-   * @param buf The data to be written to the characteristic.
-   * @returns A Promise that resolves once the write operation is complete or rejects with an error.
-   */
   async subscribe() {
-    const char = this._characteristics ? this._characteristics.notify : null;
+    const char = this._characteristics ? this._characteristics.notify : null
     if (!char) {
-      throw new Error('No notify characteristic was found.');
+      throw new Error('No notify characteristic was found.')
     }
     char.subscribeAsync()
       .then(() => {
         char.on('data', (buf) => {
-          this.onnotify_internal(buf);
-        });
+          this.onnotify_internal(buf)
+        })
       })
       .catch((error) => {
-        throw error;
-      });
+        throw error
+      })
   }
 
   /**
- * Asynchronously unsubscribes from the device's notification characteristic.
- *
- * This method checks if the notification characteristic object exists within the cached characteristics
- * (`this.chars`). If the characteristic is found, it proceeds to remove all event listeners attached to it
- * to prevent any further handling of incoming data notifications. Then, it asynchronously unsubscribes from
- * the notification characteristic using `unsubscribeAsync()`, effectively stopping the device from sending
- * notifications to the client.
- *
- * If the notification characteristic is not found, the method simply returns without performing any action.
- *
- * @return A Promise that resolves to `void` upon successful unsubscription or if the characteristic is not found.
- */
+   * Asynchronously unsubscribes from the device's notification characteristic.
+   *
+   * This method checks if the notification characteristic object exists within the cached characteristics
+   * (`this.chars`). If the characteristic is found, it proceeds to remove all event listeners attached to it
+   * to prevent any further handling of incoming data notifications. Then, it asynchronously unsubscribes from
+   * the notification characteristic using `unsubscribeAsync()`, effectively stopping the device from sending
+   * notifications to the client.
+   *
+   * If the notification characteristic is not found, the method simply returns without performing any action.
+   *
+   * @return A Promise that resolves to `void` upon successful unsubscription or if the characteristic is not found.
+   */
   async unsubscribe() {
-    const char = this._characteristics ? this._characteristics.notify : null;
+    const char = this._characteristics ? this._characteristics.notify : null
     if (!char) {
-      return;
+      return
     }
-    char.removeAllListeners();
-    await char.unsubscribeAsync();
+    char.removeAllListeners()
+    await char.unsubscribeAsync()
   }
 
   /**
-  * Asynchronously disconnects from the device.
-  *
-  * This method handles the disconnection process by first checking the current
-  * connection state of the device. If the device is already disconnected, the
-  * method resolves immediately. If the device is in the process of connecting or
-  * disconnecting, it throws an error indicating that the operation should be retried
-  * after a brief wait. Otherwise, it proceeds to unsubscribe from any subscriptions
-  * and then initiates the disconnection process.
-  *
-  * Note: This method sets a flag to indicate that the disconnection was not initiated
-  * by the user explicitly.
-  *
-  * @returns A Promise that resolves when the disconnection process has completed.
-  *          The Promise does not pass any value upon resolution.
-  */
+   * Asynchronously disconnects from the device.
+   *
+   * This method handles the disconnection process by first checking the current
+   * connection state of the device. If the device is already disconnected, the
+   * method resolves immediately. If the device is in the process of connecting or
+   * disconnecting, it throws an error indicating that the operation should be retried
+   * after a brief wait. Otherwise, it proceeds to unsubscribe from any subscriptions
+   * and then initiates the disconnection process.
+   *
+   * Note: This method sets a flag to indicate that the disconnection was not initiated
+   * by the user explicitly.
+   *
+   * @returns A Promise that resolves when the disconnection process has completed.
+   * The Promise does not pass any value upon resolution.
+   */
   async disconnect() {
-    this._explicitly = false;
-    const state = this._peripheral.state;
+    this._explicitly = false
+    const state = this._peripheral.state
 
     if (state === 'disconnected') {
-      return; // Resolves the promise implicitly
+      return // Resolves the promise implicitly
     } else if (state === 'connecting' || state === 'disconnecting') {
-      throw new Error('Now ' + state + '. Wait for a few seconds then try again.');
+      throw new Error(`Now ${state}. Wait for a few seconds then try again.`)
     }
 
-    await this.unsubscribe(); // Wait for unsubscribe to complete
-    await this._peripheral.disconnectAsync();
+    await this.unsubscribe() // Wait for unsubscribe to complete
+    await this._peripheral.disconnectAsync()
   }
 
   /**
-  * Disconnects from the device asynchronously if the connection was not initiated by the user.
-  *
-  * This method checks the `explicitly` flag to determine if the connection was initiated by the user.
-  * If not, it proceeds to disconnect from the device by calling `this.disconnectAsync()`. After the disconnection,
-  * it sets `explicitly` to true to prevent future disconnections when the connection is user-initiated.
-  *
-  * This approach ensures that automatic disconnections only occur when the user has not explicitly initiated the connection,
-  * avoiding unnecessary disconnections in user-initiated sessions.
-  *
-  * @returns A Promise that resolves once the device has been successfully disconnected, applicable only when the
-  *          connection was not user-initiated.
-  */
+   * Disconnects from the device asynchronously if the connection was not initiated by the user.
+   *
+   * This method checks the `explicitly` flag to determine if the connection was initiated by the user.
+   * If not, it proceeds to disconnect from the device by calling `this.disconnectAsync()`. After the disconnection,
+   * it sets `explicitly` to true to prevent future disconnections when the connection is user-initiated.
+   *
+   * This approach ensures that automatic disconnections only occur when the user has not explicitly initiated the connection,
+   * avoiding unnecessary disconnections in user-initiated sessions.
+   *
+   * @returns A Promise that resolves once the device has been successfully disconnected, applicable only when the
+   * connection was not user-initiated.
+   */
   async disconnect_internal() {
     if (!this._explicitly) {
-      await this.disconnect();
-      this._explicitly = true; // Ensure this condition is updated to prevent re-entry or incorrect logic flow.
+      await this.disconnect()
+      this._explicitly = true // Ensure this condition is updated to prevent re-entry or incorrect logic flow.
     }
   }
 
   /**
- * Asynchronously retrieves the device name.
- * This method is designed to fetch the name of the device asynchronously and return it as a promise.
- * It is marked as deprecated and will be removed in a future version. Use `getDeviceNameAsync` instead.
- *
- * @deprecated since version 2.4.0. Will be removed in version 3.0.0. Use `getDeviceNameAsync()` instead.
- * @returns A Promise that resolves with the device name.
- */
+   * Asynchronously retrieves the device name.
+   * This method is designed to fetch the name of the device asynchronously and return it as a promise.
+   * It is marked as deprecated and will be removed in a future version. Use `getDeviceNameAsync` instead.
+   *
+   * @deprecated since version 2.4.0. Will be removed in version 3.0.0. Use `getDeviceNameAsync()` instead.
+   * @returns A Promise that resolves with the device name.
+   */
   async getDeviceName() {
-    let name = '';
+    let name = ''
     await this.connect_internal()
       .then(async () => {
         if (!this._characteristics || !this._characteristics.device) {
           // Some models of Bot don't seem to support this characteristic UUID
-          throw new Error('The device does not support the characteristic UUID 0x' + CHAR_UUID_DEVICE + '.');
+          throw new Error(`The device does not support the characteristic UUID 0x${CHAR_UUID_DEVICE}.`)
         }
-        return await this.read(this._characteristics.device);
+        return await this.read(this._characteristics.device)
       })
       .then((buf) => {
-        name = buf.toString('utf8');
-        return this.disconnect_internal();
+        name = buf.toString('utf8')
+        return this.disconnect_internal()
       })
       .then(() => {
-        return name;
+        return name
       })
       .catch((error) => {
-        throw new Error(error);
-      });
+        throw new Error(error)
+      })
   }
 
   /**
@@ -429,26 +432,26 @@ export class SwitchbotDevice {
    * @returns A Promise that resolves with the device name as a string.
    */
   async getDeviceNameAsnyc(): Promise<string> {
-    await this.connect_internal();
+    await this.connect_internal()
     if (!this._characteristics || !this._characteristics.device) {
-      throw new Error(`The device does not support the characteristic UUID 0x${CHAR_UUID_DEVICE}.`);
+      throw new Error(`The device does not support the characteristic UUID 0x${CHAR_UUID_DEVICE}.`)
     }
-    const buf = await this.read(this._characteristics.device);
-    const name = buf.toString('utf8');
-    await this.disconnect_internal();
-    return name;
+    const buf = await this.read(this._characteristics.device)
+    const name = buf.toString('utf8')
+    await this.disconnect_internal()
+    return name
   }
 
   /**
- * Asynchronously sets the device name to the specified value.
- * Validates the new name to ensure it meets the criteria of being a string with a byte length between 1 and 100 bytes.
- * If the validation fails, the promise is rejected with an error detailing the validation issue.
- * Upon successful validation, the device name is updated, and the promise resolves without passing any value.
- *
- * @param name The new device name as a string. Must be 1 to 100 bytes in length.
- * @returns A Promise that resolves to `void` upon successful update of the device name.
- * @deprecated since version 2.4.0. Will be removed in version 3.0.0. Use `setDeviceNameAsync()` instead.
- */
+   * Asynchronously sets the device name to the specified value.
+   * Validates the new name to ensure it meets the criteria of being a string with a byte length between 1 and 100 bytes.
+   * If the validation fails, the promise is rejected with an error detailing the validation issue.
+   * Upon successful validation, the device name is updated, and the promise resolves without passing any value.
+   *
+   * @param name The new device name as a string. Must be 1 to 100 bytes in length.
+   * @returns A Promise that resolves to `void` upon successful update of the device name.
+   * @deprecated since version 2.4.0. Will be removed in version 3.0.0. Use `setDeviceNameAsync()` instead.
+   */
   setDeviceName(name: string) {
     return new Promise<void>((resolve, reject) => {
       // Check the parameters
@@ -465,26 +468,26 @@ export class SwitchbotDevice {
         return
       }
 
-      const buf = Buffer.from(name, 'utf8');
+      const buf = Buffer.from(name, 'utf8')
       this.connect_internal()
         .then(() => {
           if (!this._characteristics || !this._characteristics.device) {
             // Some models of Bot don't seem to support this characteristic UUID
-            throw new Error('The device does not support the characteristic UUID 0x' + CHAR_UUID_DEVICE + '.');
+            throw new Error(`The device does not support the characteristic UUID 0x${CHAR_UUID_DEVICE}.`)
           }
-          return this.write(this._characteristics.device, buf);
+          return this.write(this._characteristics.device, buf)
         })
         .then(() => {
-          return this.disconnect_internal();
+          return this.disconnect_internal()
         })
         .then(() => {
-          return;
-          resolve();
+          return
+          resolve()
         })
         .catch((error) => {
-          throw new Error(error);
-        });
-    });
+          throw new Error(error)
+        })
+    })
   }
 
   /**
@@ -503,27 +506,27 @@ export class SwitchbotDevice {
   async setDeviceNameAsync(name: string): Promise<void> {
     // Check the parameters
     const valid = parameterChecker.check(
-      { name: name },
+      { name },
       {
         name: { required: true, type: 'string', minBytes: 1, maxBytes: 100 },
       },
       true, // Indicates that the 'name' argument is required
-    );
+    )
 
     if (!valid) {
-      throw new Error(parameterChecker.error!.message);
+      throw new Error(parameterChecker.error!.message)
     }
 
-    const buf = Buffer.from(name, 'utf8');
-    await this.connect_internal();
+    const buf = Buffer.from(name, 'utf8')
+    await this.connect_internal()
 
     if (!this._characteristics || !this._characteristics.device) {
       // Some models of Bot don't seem to support this characteristic UUID
-      throw new Error('The device does not support the characteristic UUID 0x' + CHAR_UUID_DEVICE + '.');
+      throw new Error(`The device does not support the characteristic UUID 0x${CHAR_UUID_DEVICE}.`)
     }
 
-    await this.write(this._characteristics.device, buf);
-    await this.disconnect_internal();
+    await this.write(this._characteristics.device, buf)
+    await this.disconnect_internal()
   }
 
   /**
@@ -538,20 +541,20 @@ export class SwitchbotDevice {
    */
   async command(req_buf: Buffer): Promise<Buffer> {
     if (!Buffer.isBuffer(req_buf)) {
-      throw new Error('The specified data is not acceptable for writing.');
+      throw new TypeError('The specified data is not acceptable for writing.')
     }
 
-    await this.connect_internal();
+    await this.connect_internal()
 
     if (!this._characteristics || !this._characteristics.write) {
-      throw new Error('No characteristics available.');
+      throw new Error('No characteristics available.')
     }
 
-    await this.write(this._characteristics.write, req_buf);
-    const res_buf = await this._waitCommandResponseAsync();
-    await this.disconnect_internal();
+    await this.write(this._characteristics.write, req_buf)
+    const res_buf = await this._waitCommandResponseAsync()
+    await this.disconnect_internal()
 
-    return res_buf;
+    return res_buf
   }
 
   /**
@@ -568,20 +571,20 @@ export class SwitchbotDevice {
   _waitCommandResponse(): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       let timer: NodeJS.Timeout | undefined = setTimeout(() => {
-        timer = undefined;
-        this.onnotify_internal = () => { };
-        reject(new Error('COMMAND_TIMEOUT'));
-      }, COMMAND_TIMEOUT_MSEC);
+        timer = undefined
+        this.onnotify_internal = () => { }
+        reject(new Error('COMMAND_TIMEOUT'))
+      }, COMMAND_TIMEOUT_MSEC)
 
       this.onnotify_internal = (buf: Buffer | PromiseLike<Buffer>) => {
         if (timer) {
           clearTimeout(timer)
           timer = undefined
         }
-        this.onnotify_internal = () => { };
-        return buf;
-      };
-    });
+        this.onnotify_internal = () => { }
+        return buf
+      }
+    })
   }
 
   /**
@@ -595,25 +598,25 @@ export class SwitchbotDevice {
    * @returns A Promise that resolves with the received Buffer or rejects with an error if a timeout occurs.
    */
   async _waitCommandResponseAsync(): Promise<Buffer> {
-    const timeout = READ_TIMEOUT_MSEC; // Timeout period in milliseconds
-    let timer: NodeJS.Timeout | null = null;
+    const timeout = READ_TIMEOUT_MSEC // Timeout period in milliseconds
+    let timer: NodeJS.Timeout | null = null
 
     // Setup a timeout to reject the operation if it takes too long
     const timeoutPromise = new Promise<never>((_, reject) => {
-      timer = setTimeout(() => reject(new Error('READ_TIMEOUT')), timeout);
-    });
+      timer = setTimeout(() => reject(new Error('READ_TIMEOUT')), timeout)
+    })
 
     // Setup the read operation promise
-    const readPromise = await this.onnotify_internal();
+    const readPromise = await this.onnotify_internal()
 
     // Wait for either the read operation to complete or the timeout to occur
-    const result = await Promise.race([readPromise, timeoutPromise]);
+    const result = await Promise.race([readPromise, timeoutPromise])
 
     // Clear the timeout if the read operation completes successfully
     if (timer) {
-      clearTimeout(timer);
+      clearTimeout(timer)
     }
-    return result;
+    return result
   }
 
   /**
@@ -629,29 +632,29 @@ export class SwitchbotDevice {
    */
   async read(char: Noble.Characteristic): Promise<Buffer> {
     let timer: NodeJS.Timeout | undefined = setTimeout(() => {
-      throw new Error('READ_TIMEOUT');
-    }, READ_TIMEOUT_MSEC);
+      throw new Error('READ_TIMEOUT')
+    }, READ_TIMEOUT_MSEC)
 
     // Setup the read operation promise
     const readPromise = await char.readAsync()
       .then((result) => {
         if (timer) {
-          clearTimeout(timer);
-          timer = undefined;
+          clearTimeout(timer)
+          timer = undefined
         } else {
-          throw new Error('READ_TIMEOUT');
+          throw new Error('READ_TIMEOUT')
         }
-        return result;
-      });
+        return result
+      })
 
     // Wait for either the read operation to complete or the timeout to occur
-    const result = await Promise.race([readPromise, timer]) as Buffer;
+    const result = await Promise.race([readPromise, timer]) as Buffer
 
     // Clear the timeout if the read operation completes successfully
     if (timer) {
-      clearTimeout(timer);
+      clearTimeout(timer)
     }
-    return result;
+    return result
   }
 
   /**
@@ -666,21 +669,21 @@ export class SwitchbotDevice {
    */
   async write(char: Noble.Characteristic, buf: Buffer): Promise<void | string> {
     let timer: NodeJS.Timeout | undefined = setTimeout(() => {
-      throw new Error('WRITE_TIMEOUT');
-    }, WRITE_TIMEOUT_MSEC);
+      throw new Error('WRITE_TIMEOUT')
+    }, WRITE_TIMEOUT_MSEC)
 
     // write characteristic data
     await char.writeAsync(buf, false)
       .then(() => {
         if (timer) {
-          clearTimeout(timer);
-          timer = undefined;
+          clearTimeout(timer)
+          timer = undefined
         } else {
-          throw new Error('READ_TIMEOUT');
+          throw new Error('READ_TIMEOUT')
         }
       })
       .catch((error) => {
-        throw new Error('WRITE_TIMEOUT, ' + error);
-      });
+        throw new Error(`WRITE_TIMEOUT, ${error}`)
+      })
   }
 }
