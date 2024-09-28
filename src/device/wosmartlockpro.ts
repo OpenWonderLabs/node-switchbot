@@ -14,9 +14,9 @@ import { WoSmartLockProCommands } from '../settings.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
 export class WoSmartLockPro extends SwitchbotDevice {
-  public _iv: Buffer | null = null
-  public _key_id: string = ''
-  public _encryption_key: Buffer | null = null
+  public iv: Buffer | null = null
+  public key_id: string = ''
+  public encryption_key: Buffer | null = null
 
   static Result = {
     ERROR: 0x00,
@@ -92,9 +92,9 @@ export class WoSmartLockPro extends SwitchbotDevice {
    * @param {string} encryptionKey - The encryption key.
    */
   async setKey(keyId: string, encryptionKey: string) {
-    this._iv = null
-    this._key_id = keyId
-    this._encryption_key = Buffer.from(encryptionKey, 'hex')
+    this.iv = null
+    this.key_id = keyId
+    this.encryption_key = Buffer.from(encryptionKey, 'hex')
   }
 
   /**
@@ -148,7 +148,7 @@ export class WoSmartLockPro extends SwitchbotDevice {
    * @returns {Promise<string>} - The encrypted string in hex format.
    */
   async encrypt(str: string): Promise<string> {
-    const cipher = Crypto.createCipheriv('aes-128-ctr', this._encryption_key!, this._iv)
+    const cipher = Crypto.createCipheriv('aes-128-ctr', this.encryption_key!, this.iv)
     return Buffer.concat([cipher.update(str, 'hex'), cipher.final()]).toString('hex')
   }
 
@@ -158,7 +158,7 @@ export class WoSmartLockPro extends SwitchbotDevice {
    * @returns {Promise<Buffer>} - The decrypted data.
    */
   async decrypt(data: Buffer): Promise<Buffer> {
-    const decipher = Crypto.createDecipheriv('aes-128-ctr', this._encryption_key!, this._iv)
+    const decipher = Crypto.createDecipheriv('aes-128-ctr', this.encryption_key!, this.iv)
     return Buffer.concat([decipher.update(data), decipher.final()])
   }
 
@@ -167,15 +167,15 @@ export class WoSmartLockPro extends SwitchbotDevice {
    * @returns {Promise<Buffer>} - The IV buffer.
    */
   async getIv(): Promise<Buffer> {
-    if (!this._iv) {
-      const res = await this.operateLockPro(WoSmartLockProCommands.GET_CKIV + this._key_id, false)
+    if (!this.iv) {
+      const res = await this.operateLockPro(WoSmartLockProCommands.GET_CKIV + this.key_id, false)
       if (res) {
-        this._iv = res.subarray(4)
+        this.iv = res.subarray(4)
       } else {
         throw new Error('Failed to retrieve IV from the device.')
       }
     }
-    return this._iv
+    return this.iv
   }
 
   /**
@@ -186,7 +186,7 @@ export class WoSmartLockPro extends SwitchbotDevice {
   async encryptedCommand(key: string): Promise<Buffer> {
     const iv = await this.getIv()
     const req = Buffer.from(
-      key.substring(0, 2) + this._key_id + Buffer.from(iv.subarray(0, 2)).toString('hex') + await this.encrypt(key.substring(2)),
+      key.substring(0, 2) + this.key_id + Buffer.from(iv.subarray(0, 2)).toString('hex') + await this.encrypt(key.substring(2)),
       'hex',
     )
 

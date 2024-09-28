@@ -14,9 +14,9 @@ import { WoSmartLockCommands } from '../settings.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
 export class WoSmartLock extends SwitchbotDevice {
-  private iv: Buffer | null = null
-  private key_id: string = ''
-  private encryption_key: Buffer | null = null
+  public iv: Buffer | null = null
+  public key_id: string = ''
+  public encryption_key: Buffer | null = null
 
   static Result = {
     ERROR: 0x00,

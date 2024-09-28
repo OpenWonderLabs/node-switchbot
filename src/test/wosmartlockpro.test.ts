@@ -5,6 +5,7 @@ import { expect } from 'chai'
 import sinon from 'sinon'
 
 import { WoSmartLockPro } from '../device/wosmartlockpro.js'
+import { WoSmartLockProCommands } from '../settings.js'
 
 describe('woSmartLockPro', () => {
   let lock: WoSmartLockPro
@@ -26,8 +27,8 @@ describe('woSmartLockPro', () => {
       const keyId = 'testKeyId'
       const encryptionKey = '0123456789abcdef0123456789abcdef'
       await lock.setKey(keyId, encryptionKey)
-      expect(lock._key_id).to.equal(keyId)
-      expect(lock._encryption_key?.toString('hex')).to.equal(encryptionKey)
+      expect(lock.key_id).to.equal(keyId)
+      expect(lock.encryption_key?.toString('hex')).to.equal(encryptionKey)
     })
   })
 
@@ -36,7 +37,7 @@ describe('woSmartLockPro', () => {
       const operateLockProStub = sinon.stub(lock, 'operateLockPro').resolves(Buffer.from([0x01]))
       const result = await lock.unlock()
       expect(result).to.equal(WoSmartLockPro.Result.SUCCESS)
-      return expect(operateLockProStub.calledOnceWith(WoSmartLockPro.COMMAND_UNLOCK)).to.be.true
+      return expect(operateLockProStub.calledOnceWith(WoSmartLockProCommands.UNLOCK)).to.be.true
     })
   })
 
@@ -45,7 +46,7 @@ describe('woSmartLockPro', () => {
       const operateLockProStub = sinon.stub(lock, 'operateLockPro').resolves(Buffer.from([0x01]))
       const result = await lock.unlockNoUnlatch()
       expect(result).to.equal(WoSmartLockPro.Result.SUCCESS)
-      return expect(operateLockProStub.calledOnceWith(WoSmartLockPro.COMMAND_UNLOCK_NO_UNLATCH)).to.be.true
+      return expect(operateLockProStub.calledOnceWith(WoSmartLockProCommands.UNLOCK_NO_UNLATCH)).to.be.true
     })
   })
 
@@ -54,7 +55,7 @@ describe('woSmartLockPro', () => {
       const operateLockProStub = sinon.stub(lock, 'operateLockPro').resolves(Buffer.from([0x01]))
       const result = await lock.lock()
       expect(result).to.equal(WoSmartLockPro.Result.SUCCESS)
-      return expect(operateLockProStub.calledOnceWith(WoSmartLockPro.COMMAND_LOCK)).to.be.true
+      return expect(operateLockProStub.calledOnceWith(WoSmartLockProCommands.LOCK)).to.be.true
     })
   })
 
@@ -70,15 +71,15 @@ describe('woSmartLockPro', () => {
         unclosed_alarm: true,
         unlocked_alarm: false,
       })
-      return expect(operateLockProStub.calledOnceWith(WoSmartLockPro.COMMAND_LOCK_INFO)).to.be.true
+      return expect(operateLockProStub.calledOnceWith(WoSmartLockProCommands.LOCK_INFO)).to.be.true
     })
   })
 
   describe('encrypt', () => {
     it('should encrypt a string', async () => {
       const str = 'test'
-      lock._encryption_key = Buffer.from('0123456789abcdef0123456789abcdef', 'hex')
-      lock._iv = Buffer.from('0123456789abcdef', 'hex')
+      lock.encryption_key = Buffer.from('0123456789abcdef0123456789abcdef', 'hex')
+      lock.iv = Buffer.from('0123456789abcdef', 'hex')
       const encrypted = await lock.encrypt(str)
       expect(encrypted).to.be.a('string')
     })
@@ -87,8 +88,8 @@ describe('woSmartLockPro', () => {
   describe('decrypt', () => {
     it('should decrypt a buffer', async () => {
       const data = Buffer.from('74657374', 'hex') // 'test' in hex
-      lock._encryption_key = Buffer.from('0123456789abcdef0123456789abcdef', 'hex')
-      lock._iv = Buffer.from('0123456789abcdef', 'hex')
+      lock.encryption_key = Buffer.from('0123456789abcdef0123456789abcdef', 'hex')
+      lock.iv = Buffer.from('0123456789abcdef', 'hex')
       const decrypted = await lock.decrypt(data)
       expect(decrypted.toString()).to.equal('test')
     })
@@ -100,7 +101,7 @@ describe('woSmartLockPro', () => {
       const operateLockProStub = sinon.stub(lock, 'operateLockPro').resolves(res)
       const iv = await lock.getIv()
       expect(iv).to.deep.equal(res.subarray(4))
-      return expect(operateLockProStub.calledOnceWith(WoSmartLockPro.COMMAND_GET_CK_IV + lock._key_id, false)).to.be.true
+      return expect(operateLockProStub.calledOnceWith(WoSmartLockProCommands.GET_CKIV + lock.key_id, false)).to.be.true
     })
   })
 
@@ -119,7 +120,7 @@ describe('woSmartLockPro', () => {
     })
   })
 
-  describe('operateLockPro', () => {
+  describe('operateLock', () => {
     it('should operate the lock with encryption', async () => {
       const key = 'testKey'
       const encryptedCommandStub = sinon.stub(lock, 'encryptedCommand').resolves(Buffer.from('01000000', 'hex'))
