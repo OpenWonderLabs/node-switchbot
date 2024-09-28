@@ -1,74 +1,86 @@
 import { Buffer } from 'node:buffer'
 
-import * as Noble from '@stoprocent/noble'
-
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
-/* eslint-disable no-console */
-// wohand.test.ts
 import { WoHand } from '../device/wohand.js'
 
 describe('woHand', () => {
-  describe('parseServiceData', () => {
-    it('should return null if serviceData length is not 3', async () => {
-      const serviceData = Buffer.from([0x01, 0x02])
-      const result = await WoHand.parseServiceData(serviceData, console.log)
-      expect(result).toBeNull()
-    })
+  let onlog: jest.Mock
 
-    it('should parse service data correctly', async () => {
-      const serviceData = Buffer.from([0x00, 0b11000000, 0b01111111])
-      const result = await WoHand.parseServiceData(serviceData, console.log)
-      expect(result).toEqual({
-        model: SwitchBotBLEModel.Bot,
-        modelName: SwitchBotBLEModelName.Bot,
-        modelFriendlyName: SwitchBotBLEModelFriendlyName.Bot,
-        mode: true,
-        state: false,
-        battery: 127,
-      })
-    })
+  beforeEach(() => {
+    onlog = jest.fn()
   })
 
-  describe('woHand operations', () => {
+  it('should return null if serviceData length is not 3', async () => {
+    const serviceData = Buffer.alloc(2) // Invalid length
+    const result = await WoHand.parseServiceData(serviceData, onlog)
+    expect(result).toBeNull()
+    expect(onlog).toHaveBeenCalledWith('[parseServiceData] Buffer length 2 !== 3!')
+  })
+
+  it('should parse valid serviceData correctly', async () => {
+    const serviceData = Buffer.from([0x00, 0x80, 0x7F]) // Example valid data
+    const result = await WoHand.parseServiceData(serviceData, onlog)
+    expect(result).toEqual({
+      model: 'Bot',
+      modelName: 'Bot',
+      modelFriendlyName: 'Bot',
+      mode: true,
+      state: false,
+      battery: 127,
+    })
+    expect(onlog).not.toHaveBeenCalled()
+  })
+
+  describe('operateBot', () => {
     let wohand: WoHand
 
     beforeEach(() => {
       const peripheral = {} // Replace with the actual peripheral object (e.g. from Noble)
-      wohand = new WoHand(peripheral as Noble.Peripheral, Noble)
-      jest.spyOn(wohand, 'command').mockImplementation(async () => {
-        return Buffer.from([0x01, 0x00, 0x00])
-      })
+      wohand = new WoHand(peripheral as any, {} as any)
+      jest.spyOn(wohand, 'command').mockResolvedValue(Buffer.from([0x01, 0x00, 0x00]))
     })
 
-    it('should press the button', async () => {
-      await expect(wohand.press()).resolves.toBeUndefined()
+    it('press should call operateBot with correct bytes', async () => {
+      const operateBotSpy = jest.spyOn(wohand as any, 'operateBot')
+      await wohand.press()
+      expect(operateBotSpy).toHaveBeenCalledWith([0x57, 0x01, 0x00])
     })
 
-    it('should turn on the device', async () => {
-      await expect(wohand.turnOn()).resolves.toBeUndefined()
+    it('turnOn should call operateBot with correct bytes', async () => {
+      const operateBotSpy = jest.spyOn(wohand as any, 'operateBot')
+      await wohand.turnOn()
+      expect(operateBotSpy).toHaveBeenCalledWith([0x57, 0x01, 0x01])
     })
 
-    it('should turn off the device', async () => {
-      await expect(wohand.turnOff()).resolves.toBeUndefined()
+    it('turnOff should call operateBot with correct bytes', async () => {
+      const operateBotSpy = jest.spyOn(wohand as any, 'operateBot')
+      await wohand.turnOff()
+      expect(operateBotSpy).toHaveBeenCalledWith([0x57, 0x01, 0x02])
     })
 
-    it('should move the device down', async () => {
-      await expect(wohand.down()).resolves.toBeUndefined()
+    it('down should call operateBot with correct bytes', async () => {
+      const operateBotSpy = jest.spyOn(wohand as any, 'operateBot')
+      await wohand.down()
+      expect(operateBotSpy).toHaveBeenCalledWith([0x57, 0x01, 0x03])
     })
 
-    it('should move the device up', async () => {
-      await expect(wohand.up()).resolves.toBeUndefined()
+    it('up should call operateBot with correct bytes', async () => {
+      const operateBotSpy = jest.spyOn(wohand as any, 'operateBot')
+      await wohand.up()
+      expect(operateBotSpy).toHaveBeenCalledWith([0x57, 0x01, 0x04])
     })
 
-    it('should handle operateBot correctly', async () => {
-      await expect(wohand.operateBot([0x57, 0x01, 0x00])).resolves.toBeUndefined()
+    it('operateBot should handle successful response', async () => {
+      await expect((wohand as any).operateBot([0x57, 0x01, 0x00])).resolves.toBeUndefined()
     })
 
-    it('should throw an error if the device returns an error', async () => {
-      jest.spyOn(wohand, 'command').mockImplementation(async () => {
-        return Buffer.from([0x00, 0x00, 0x00])
-      })
-      await expect(wohand.operateBot([0x57, 0x01, 0x00])).rejects.toThrow('The device returned an error: 0x000000')
+    it('operateBot should handle error response', async () => {
+      jest.spyOn(wohand, 'command').mockResolvedValue(Buffer.from([0x02, 0x00, 0x00]))
+      await expect((wohand as any).operateBot([0x57, 0x01, 0x00])).rejects.toThrow('The device returned an error: 0x020000')
+    })
+
+    it('operateBot should handle command rejection', async () => {
+      jest.spyOn(wohand, 'command').mockRejectedValue(new Error('Command failed'))
+      await expect((wohand as any).operateBot([0x57, 0x01, 0x00])).rejects.toThrow('Command failed')
     })
   })
 })
