@@ -2,8 +2,7 @@
  *
  * switchbot.ts: Switchbot BLE API registration.
  */
-import type { Ad } from './advertising.js'
-import type { Params } from './types/types.js'
+import type { Ad, Params } from './types/types.js'
 
 import * as Noble from '@stoprocent/noble'
 

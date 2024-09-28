@@ -2,6 +2,8 @@
  *
  * types.ts: @switchbot/homebridge-switchbot platform class.
  */
+import type { Buffer } from 'node:buffer'
+
 import type * as Noble from '@stoprocent/noble'
 
 export type MacAddress = string
@@ -255,4 +257,22 @@ export interface Chars {
   write: Noble.Characteristic | null
   notify: Noble.Characteristic | null
   device: Noble.Characteristic | null
+}
+
+export interface ServiceData {
+  model: string
+  [key: string]: unknown
+}
+
+export interface Ad {
+  id: string
+  address: string
+  rssi: number
+  serviceData: ServiceData
+  [key: string]: unknown
+}
+
+export interface AdvertisementData {
+  serviceData: Buffer | null
+  manufacturerData: Buffer | null
 }

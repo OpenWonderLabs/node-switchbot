@@ -4,6 +4,8 @@
  */
 import type * as Noble from '@stoprocent/noble'
 
+import type { Ad, ServiceData } from './types/types.js'
+
 import { Buffer } from 'node:buffer'
 
 import { WoBlindTilt } from './device/woblindtilt.js'
@@ -23,25 +25,11 @@ import { WoSmartLockPro } from './device/wosmartlockpro.js'
 import { WoStrip } from './device/wostrip.js'
 import { SwitchBotBLEModel } from './types/types.js'
 
-interface ServiceData {
-  model: string
-  [key: string]: unknown
-}
-export interface Ad {
-  id: string
-  address: string
-  rssi: number
-  serviceData: ServiceData
-  [key: string]: unknown
-}
-
-export interface AdvertisementData {
-  serviceData: Buffer | null
-  manufacturerData: Buffer | null
-}
-
+/**
+ * Represents the advertising data parser for SwitchBot devices.
+ */
 export class Advertising {
-  constructor() { }
+  constructor() {}
 
   /**
    * Parses the advertisement data coming from SwitchBot device.
@@ -49,9 +37,9 @@ export class Advertising {
    * This function processes advertising packets received from SwitchBot devices
    * and extracts relevant information based on the device type.
    *
-   * @param peripheral - The peripheral device object from noble.
-   * @param onlog - A logging function for debugging purposes.
-   * @returns An object containing parsed data specific to the SwitchBot device type, or `null` if the device is not recognized.
+   * @param {Noble.Peripheral} peripheral - The peripheral device object from noble.
+   * @param {(message: string) => void} [onlog] - A logging function for debugging purposes.
+   * @returns {Promise<Ad | null>} - An object containing parsed data specific to the SwitchBot device type, or `null` if the device is not recognized.
    */
   static async parse(
     peripheral: Noble.Peripheral,
@@ -61,115 +49,118 @@ export class Advertising {
     if (!ad || !ad.serviceData) {
       return null
     }
-    const adServiceData = ad.serviceData[0] || ad.serviceData
+
+    const serviceData = ad.serviceData[0]?.data
     const manufacturerData = ad.manufacturerData
-    const serviceData = adServiceData.data
 
-    function validateBuffer(buffer: any): boolean {
-      return buffer && Buffer.isBuffer(buffer) && buffer.length >= 3
-    }
-
-    if (!validateBuffer(serviceData) || !validateBuffer(manufacturerData)) {
+    if (!Advertising.validateBuffer(serviceData) || !Advertising.validateBuffer(manufacturerData)) {
       return null
     }
 
     const model = serviceData.subarray(0, 1).toString('utf8')
-    let sd
-    switch (model) {
-      case SwitchBotBLEModel.Bot:
-        sd = await WoHand.parseServiceData(serviceData, onlog)
-        break
-      case SwitchBotBLEModel.Curtain:
-      case SwitchBotBLEModel.Curtain3:
-        sd = await WoCurtain.parseServiceData(serviceData, manufacturerData, onlog)
-        break
-      case SwitchBotBLEModel.Humidifier:
-        sd = await WoHumi.parseServiceData(serviceData, onlog)
-        break
-      case SwitchBotBLEModel.Meter:
-        sd = await WoSensorTH.parseServiceData(serviceData, onlog)
-        break
-      case SwitchBotBLEModel.MeterPlus:
-        sd = await WoSensorTH.parseServiceData_Plus(serviceData, onlog)
-        break
-      case SwitchBotBLEModel.Hub2:
-        sd = await WoHub2.parseServiceData(manufacturerData, onlog)
-        break
-      case SwitchBotBLEModel.OutdoorMeter:
-        sd = await WoIOSensorTH.parseServiceData(serviceData, manufacturerData, onlog)
-        break
-      case SwitchBotBLEModel.MotionSensor:
-        sd = await WoPresence.parseServiceData(serviceData, onlog)
-        break
-      case SwitchBotBLEModel.ContactSensor:
-        sd = await WoContact.parseServiceData(serviceData, onlog)
-        break
-      case SwitchBotBLEModel.ColorBulb:
-        sd = await WoBulb.parseServiceData(serviceData, manufacturerData, onlog)
-        break
-      case SwitchBotBLEModel.CeilingLight:
-        sd = await WoCeilingLight.parseServiceData(manufacturerData, onlog)
-        break
-      case SwitchBotBLEModel.CeilingLightPro:
-        sd = await WoCeilingLight.parseServiceData_Pro(manufacturerData, onlog)
-        break
-      case SwitchBotBLEModel.StripLight:
-        sd = await WoStrip.parseServiceData(serviceData, onlog)
-        break
-      case SwitchBotBLEModel.PlugMiniUS:
-        sd = await WoPlugMini.parseServiceData_US(manufacturerData, onlog)
-        break
-      case SwitchBotBLEModel.PlugMiniJP:
-        sd = await WoPlugMini.parseServiceData_JP(manufacturerData, onlog)
-        break
-      case SwitchBotBLEModel.Lock:
-        sd = await WoSmartLock.parseServiceData(serviceData, manufacturerData, onlog)
-        break
-      case SwitchBotBLEModel.LockPro:
-        sd = await WoSmartLockPro.parseServiceData(serviceData, manufacturerData, onlog)
-        break
-      case SwitchBotBLEModel.BlindTilt:
-        sd = await WoBlindTilt.parseServiceData(serviceData, manufacturerData, onlog)
-        break
-      default:
-        if (onlog && typeof onlog === 'function') {
-          onlog(`[parseAdvertising.${peripheral.id}] return null, model "${model}" not available!`)
-        }
-        return null
-    }
+    const sd = await Advertising.parseServiceData(model, serviceData, manufacturerData, onlog)
     if (!sd) {
-      if (onlog && typeof onlog === 'function') {
-        onlog(`[parseAdvertising.${peripheral.id}.${model}] return null, parsed serviceData empty!`)
-      }
+      onlog?.(`[parseAdvertising.${peripheral.id}.${model}] return null, parsed serviceData empty!`)
       return null
     }
-    let address = peripheral.address || ''
-    if (address === '') {
-      const str = peripheral.advertisement.manufacturerData
-        .toString('hex')
-        .slice(4, 16)
-      if (str !== '') {
-        address = str.substring(0, 2)
-        for (let i = 2; i < str.length; i += 2) {
-          address = `${address}:${str.substring(i, i + 2)}`
-        }
-      }
-    } else {
-      address = address.replace(/-/g, ':')
-    }
+
+    const address = Advertising.formatAddress(peripheral)
     const data = {
       id: peripheral.id,
       address,
       rssi: peripheral.rssi,
-      serviceData: {
-        model,
-        ...sd,
-      } as ServiceData,
+      serviceData: { model, ...sd } as ServiceData,
     }
 
-    if (onlog && typeof onlog === 'function') {
-      onlog(`[parseAdvertising.${peripheral.id}.${model}] return ${JSON.stringify(data)}`)
-    }
+    onlog?.(`[parseAdvertising.${peripheral.id}.${model}] return ${JSON.stringify(data)}`)
     return data
+  }
+
+  /**
+   * Validates if the buffer is a valid Buffer object with a minimum length.
+   *
+   * @param {any} buffer - The buffer to validate.
+   * @returns {boolean} - True if the buffer is valid, false otherwise.
+   */
+  private static validateBuffer(buffer: any): boolean {
+    return buffer && Buffer.isBuffer(buffer) && buffer.length >= 3
+  }
+
+  /**
+   * Parses the service data based on the device model.
+   *
+   * @param {string} model - The device model.
+   * @param {Buffer} serviceData - The service data buffer.
+   * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {(message: string) => void} [onlog] - A logging function for debugging purposes.
+   * @returns {Promise<any>} - The parsed service data.
+   */
+  private static async parseServiceData(
+    model: string,
+    serviceData: Buffer,
+    manufacturerData: Buffer,
+    onlog?: (message: string) => void,
+  ): Promise<any> {
+    switch (model) {
+      case SwitchBotBLEModel.Bot:
+        return WoHand.parseServiceData(serviceData, onlog)
+      case SwitchBotBLEModel.Curtain:
+      case SwitchBotBLEModel.Curtain3:
+        return WoCurtain.parseServiceData(serviceData, manufacturerData, onlog)
+      case SwitchBotBLEModel.Humidifier:
+        return WoHumi.parseServiceData(serviceData, onlog)
+      case SwitchBotBLEModel.Meter:
+        return WoSensorTH.parseServiceData(serviceData, onlog)
+      case SwitchBotBLEModel.MeterPlus:
+        return WoSensorTH.parseServiceData_Plus(serviceData, onlog)
+      case SwitchBotBLEModel.Hub2:
+        return WoHub2.parseServiceData(manufacturerData, onlog)
+      case SwitchBotBLEModel.OutdoorMeter:
+        return WoIOSensorTH.parseServiceData(serviceData, manufacturerData, onlog)
+      case SwitchBotBLEModel.MotionSensor:
+        return WoPresence.parseServiceData(serviceData, onlog)
+      case SwitchBotBLEModel.ContactSensor:
+        return WoContact.parseServiceData(serviceData, onlog)
+      case SwitchBotBLEModel.ColorBulb:
+        return WoBulb.parseServiceData(serviceData, manufacturerData, onlog)
+      case SwitchBotBLEModel.CeilingLight:
+        return WoCeilingLight.parseServiceData(manufacturerData, onlog)
+      case SwitchBotBLEModel.CeilingLightPro:
+        return WoCeilingLight.parseServiceData_Pro(manufacturerData, onlog)
+      case SwitchBotBLEModel.StripLight:
+        return WoStrip.parseServiceData(serviceData, onlog)
+      case SwitchBotBLEModel.PlugMiniUS:
+        return WoPlugMini.parseServiceData_US(manufacturerData, onlog)
+      case SwitchBotBLEModel.PlugMiniJP:
+        return WoPlugMini.parseServiceData_JP(manufacturerData, onlog)
+      case SwitchBotBLEModel.Lock:
+        return WoSmartLock.parseServiceData(serviceData, manufacturerData, onlog)
+      case SwitchBotBLEModel.LockPro:
+        return WoSmartLockPro.parseServiceData(serviceData, manufacturerData, onlog)
+      case SwitchBotBLEModel.BlindTilt:
+        return WoBlindTilt.parseServiceData(serviceData, manufacturerData, onlog)
+      default:
+        onlog?.(`[parseAdvertising.${model}] return null, model "${model}" not available!`)
+        return null
+    }
+  }
+
+  /**
+   * Formats the address of the peripheral.
+   *
+   * @param {Noble.Peripheral} peripheral - The peripheral device object from noble.
+   * @returns {string} - The formatted address.
+   */
+  private static formatAddress(peripheral: Noble.Peripheral): string {
+    let address = peripheral.address || ''
+    if (address === '') {
+      const str = peripheral.advertisement.manufacturerData?.toString('hex').slice(4, 16) || ''
+      if (str !== '') {
+        address = str.match(/.{1,2}/g)?.join(':') || ''
+      }
+    } else {
+      address = address.replace(/-/g, ':')
+    }
+    return address
   }
 }
