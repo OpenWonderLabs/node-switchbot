@@ -250,3 +250,9 @@ export interface ErrorObject {
   code: string
   message: string
 }
+
+export interface Chars {
+  write: Noble.Characteristic | null
+  notify: Noble.Characteristic | null
+  device: Noble.Characteristic | null
+}
