@@ -4,7 +4,7 @@ import { Buffer } from 'node:buffer'
 
 import { expect } from 'chai'
 
-import { WoStrip } from './wostrip.js'
+import { WoStrip } from '../device/wostrip.js'
 
 describe('woStrip', () => {
   describe('parseServiceData', () => {

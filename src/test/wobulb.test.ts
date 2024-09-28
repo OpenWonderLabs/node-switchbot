@@ -4,7 +4,7 @@ import * as Noble from '@stoprocent/noble'
 /* eslint-disable no-console */
 import { beforeEach, describe, it } from 'vitest'
 
-import { WoBulb } from './wobulb.js'
+import { WoBulb } from '../device/wobulb.js'
 
 describe('woBulb', () => {
   let bulb: WoBulb

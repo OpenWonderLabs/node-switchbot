@@ -1,7 +1,7 @@
 import { Buffer } from 'node:buffer'
 
 /* eslint-disable no-console */
-import { WoContact } from './wocontact.js'
+import { WoContact } from '../device/wocontact.js'
 
 describe('woContact', () => {
   it('parseServiceData should return null for incorrect buffer length', async () => {

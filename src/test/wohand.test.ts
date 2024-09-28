@@ -5,7 +5,7 @@ import * as Noble from '@stoprocent/noble'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 /* eslint-disable no-console */
 // wohand.test.ts
-import { WoHand } from './wohand.js'
+import { WoHand } from '../device/wohand.js'
 
 describe('woHand', () => {
   describe('parseServiceData', () => {

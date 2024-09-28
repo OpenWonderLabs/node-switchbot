@@ -3,7 +3,7 @@ import { Buffer } from 'node:buffer'
 import * as Noble from '@stoprocent/noble'
 
 /* eslint-disable no-console */
-import { WoCeilingLight } from './woceilinglight.js'
+import { WoCeilingLight } from '../device/woceilinglight.js'
 
 describe('woCeilingLight', () => {
   let ceilingLight: WoCeilingLight

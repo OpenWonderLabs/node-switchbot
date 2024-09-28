@@ -3,7 +3,7 @@ import { Buffer } from 'node:buffer'
 import * as Noble from '@stoprocent/noble'
 
 // wohumi.test.ts
-import { WoHumi } from './wohumi.js'
+import { WoHumi } from '../device/wohumi.js'
 
 jest.mock('../device.js', () => {
   return {

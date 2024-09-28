@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer'
 
-import { WoIOSensorTH } from './woiosensorth.js'
+import { WoIOSensorTH } from '../device/woiosensorth.js'
 
 describe('woIOSensorTH', () => {
   const validServiceData = Buffer.from([0x00, 0x00, 0x7F])

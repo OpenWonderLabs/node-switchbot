@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer'
 
-import { WoHub2 } from './wohub2.js'
+import { WoHub2 } from '../device/wohub2.js'
 
 describe('woHub2', () => {
   let onlog: jest.Mock

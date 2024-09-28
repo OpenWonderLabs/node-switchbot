@@ -2,8 +2,8 @@ import { Buffer } from 'node:buffer'
 
 import * as Noble from '@stoprocent/noble'
 
+import { WoPlugMini } from '../device/woplugmini.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
-import { WoPlugMini } from './woplugmini.js'
 
 describe('woPlugMini', () => {
   let manufacturerData: Buffer

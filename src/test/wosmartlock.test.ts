@@ -6,7 +6,7 @@ import * as Noble from '@stoprocent/noble'
 
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 // wosmartlock.test.ts
-import { WoSmartLock } from './wosmartlock.js'
+import { WoSmartLock } from '../device/wosmartlock.js'
 
 jest.mock('@stoprocent/noble')
 jest.mock('crypto')

@@ -4,7 +4,7 @@ import { Buffer } from 'node:buffer'
 
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 // wosensorth.test.ts
-import { WoSensorTH } from './wosensorth.js'
+import { WoSensorTH } from '../device/wosensorth.js'
 
 describe('woSensorTH', () => {
   it('should parse service data correctly for Meter', async () => {

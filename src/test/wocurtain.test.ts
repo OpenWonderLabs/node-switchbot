@@ -2,7 +2,7 @@ import { Buffer } from 'node:buffer'
 
 import * as Noble from '@stoprocent/noble'
 
-import { WoCurtain } from './wocurtain.js'
+import { WoCurtain } from '../device/wocurtain.js'
 
 describe('woCurtain', () => {
   let curtain: WoCurtain

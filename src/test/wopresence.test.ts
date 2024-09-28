@@ -1,7 +1,7 @@
 import { Buffer } from 'node:buffer'
 
+import { WoPresence } from '../device/wopresence.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
-import { WoPresence } from './wopresence.js'
 
 describe('woPresence', () => {
   describe('parseServiceData', () => {

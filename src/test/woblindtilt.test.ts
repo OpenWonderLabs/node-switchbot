@@ -1,7 +1,7 @@
 import * as Noble from '@stoprocent/noble'
 import { beforeEach, describe, it } from 'vitest'
 
-import { WoBlindTilt } from './woblindtilt.js'
+import { WoBlindTilt } from '../device/woblindtilt.js'
 
 describe('woBlindTilt', () => {
   let woBlindTilt: WoBlindTilt

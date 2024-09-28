@@ -4,7 +4,7 @@ import * as Noble from '@stoprocent/noble'
 import { expect } from 'chai'
 import sinon from 'sinon'
 
-import { WoSmartLockPro } from './wosmartlockpro.js'
+import { WoSmartLockPro } from '../device/wosmartlockpro.js'
 
 describe('woSmartLockPro', () => {
   let lock: WoSmartLockPro
