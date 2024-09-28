@@ -86,11 +86,11 @@ describe('woSmartLockPro', () => {
 
   describe('decrypt', () => {
     it('should decrypt a buffer', async () => {
-      const data = Buffer.from('test', 'hex')
+      const data = Buffer.from('74657374', 'hex') // 'test' in hex
       lock._encryption_key = Buffer.from('0123456789abcdef0123456789abcdef', 'hex')
       lock._iv = Buffer.from('0123456789abcdef', 'hex')
       const decrypted = await lock.decrypt(data)
-      expect(decrypted).to.be.instanceOf(Buffer)
+      expect(decrypted.toString()).to.equal('test')
     })
   })
 
