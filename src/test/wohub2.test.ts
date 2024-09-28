@@ -13,7 +13,7 @@ describe('woHub2', () => {
     const manufacturerData = Buffer.alloc(15) // Invalid length
     const result = await WoHub2.parseServiceData(manufacturerData, onlog)
     expect(result).toBeNull()
-    expect(onlog).toHaveBeenCalledWith('[parseServiceDataForWoSensorTH] Buffer length 15 !== 16!')
+    expect(onlog).toHaveBeenCalledWith('[parseServiceDataForWoHub2] Buffer length 15 !== 16!')
   })
 
   it('should parse valid manufacturerData correctly', async () => {
@@ -44,7 +44,9 @@ describe('woHub2', () => {
         c: 2.1,
         f: 35.8,
       },
-      fahrenheit: true,
+      celsius: 2.1,
+      fahrenheit: 35.8,
+      fahrenheit_mode: true,
       humidity: 127,
       lightLevel: 31,
     })
