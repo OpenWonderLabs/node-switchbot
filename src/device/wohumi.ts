@@ -1,23 +1,31 @@
-import { Buffer } from 'node:buffer'
-
 /* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
  * wohumi.ts: Switchbot BLE API registration.
  */
+import { Buffer } from 'node:buffer'
+
 import { SwitchbotDevice } from '../device.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
+/**
+ * Class representing a WoHumi device.
+ */
 export class WoHumi extends SwitchbotDevice {
+  /**
+   * Parses the service data for WoHumi.
+   * @param {Buffer} serviceData - The service data buffer.
+   * @param {Function} [onlog] - Optional logging function.
+   * @returns {Promise<object | null>} - Parsed service data or null if invalid.
+   */
   static async parseServiceData(
     serviceData: Buffer,
-    onlog: ((message: string) => void) | undefined,
+    onlog?: (message: string) => void,
   ): Promise<object | null> {
     if (serviceData.length !== 8) {
-      if (onlog && typeof onlog === 'function') {
-        onlog(`[parseServiceDataForWoHumi] Buffer length ${serviceData.length} !== 8!`)
-      }
+      onlog?.(`[parseServiceDataForWoHumi] Buffer length ${serviceData.length} !== 8!`)
       return null
     }
+
     const byte1 = serviceData.readUInt8(1)
     const byte4 = serviceData.readUInt8(4)
 
@@ -26,7 +34,7 @@ export class WoHumi extends SwitchbotDevice {
     const percentage = byte4 & 0b01111111 // 0-100%, 101/102/103 - Quick gear 1/2/3
     const humidity = autoMode ? 0 : percentage === 101 ? 33 : percentage === 102 ? 66 : percentage === 103 ? 100 : percentage
 
-    const data = {
+    return {
       model: SwitchBotBLEModel.Humidifier,
       modelName: SwitchBotBLEModelName.Humidifier,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.Humidifier,
@@ -35,98 +43,60 @@ export class WoHumi extends SwitchbotDevice {
       percentage: autoMode ? 0 : percentage,
       humidity,
     }
-
-    return data
   }
 
-  /* ------------------------------------------------------------------
-   * press()
-   * - Press
-   *
-   * [Arguments]
-   * - none
-   *
-   * [Return value]
-   * - Promise object
-   *   Nothing will be passed to the `resolve()`.
-   * ---------------------------------------------------------------- */
-  async press() {
-    return await this.operateHumi([0x57, 0x01, 0x00])
+  /**
+   * Sends a command to the humidifier.
+   * @param {number[]} bytes - The command bytes.
+   * @returns {Promise<void>}
+   */
+  public async operateHumi(bytes: number[]): Promise<void> {
+    const reqBuf = Buffer.from(bytes)
+    const resBuf = await this.command(reqBuf)
+    const code = resBuf.readUInt8(0)
+
+    if (resBuf.length !== 3 || (code !== 0x01 && code !== 0x05)) {
+      throw new Error(`The device returned an error: 0x${resBuf.toString('hex')}`)
+    }
   }
 
-  /* ------------------------------------------------------------------
-   * turnOn()
-   * - Turn on
-   *
-   * [Arguments]
-   * - none
-   *
-   * [Return value]
-   * - Promise object
-   *   Nothing will be passed to the `resolve()`.
-   * ---------------------------------------------------------------- */
-  async turnOn() {
-    return await this.operateHumi([0x57, 0x01, 0x01])
+  /**
+   * Presses the humidifier button.
+   * @returns {Promise<void>}
+   */
+  async press(): Promise<void> {
+    await this.operateHumi([0x57, 0x01, 0x00])
   }
 
-  /* ------------------------------------------------------------------
-   * turnOff()
-   * - Turn off
-   *
-   * [Arguments]
-   * - none
-   *
-   * [Return value]
-   * - Promise object
-   *   Nothing will be passed to the `resolve()`.
-   * ---------------------------------------------------------------- */
-  async turnOff() {
-    return await this.operateHumi([0x57, 0x01, 0x02])
+  /**
+   * Turns on the humidifier.
+   * @returns {Promise<void>}
+   */
+  async turnOn(): Promise<void> {
+    await this.operateHumi([0x57, 0x01, 0x01])
   }
 
-  /* ------------------------------------------------------------------
-   * down()
-   * - Down
-   *
-   * [Arguments]
-   * - none
-   *
-   * [Return value]
-   * - Promise object
-   *   Nothing will be passed to the `resolve()`.
-   * ---------------------------------------------------------------- */
-  async down() {
-    return await this.operateHumi([0x57, 0x01, 0x03])
+  /**
+   * Turns off the humidifier.
+   * @returns {Promise<void>}
+   */
+  async turnOff(): Promise<void> {
+    await this.operateHumi([0x57, 0x01, 0x02])
   }
 
-  /* ------------------------------------------------------------------
-   * up()
-   * - Up
-   *
-   * [Arguments]
-   * - none
-   *
-   * [Return value]
-   * - Promise object
-   *   Nothing will be passed to the `resolve()`.
-   * ---------------------------------------------------------------- */
-  async up() {
-    return await this.operateHumi([0x57, 0x01, 0x04])
+  /**
+   * Decreases the humidifier setting.
+   * @returns {Promise<void>}
+   */
+  async down(): Promise<void> {
+    await this.operateHumi([0x57, 0x01, 0x03])
   }
 
-  async operateHumi(bytes: number[]) {
-    const req_buf = Buffer.from(bytes)
-    await this.command(req_buf)
-      .then((res_buf) => {
-        const code = res_buf.readUInt8(0)
-        if (res_buf.length === 3 && (code === 0x01 || code === 0x05)) {
-          // Intentionally left empty
-        } else {
-          throw new Error(`The device returned an error: 0x${res_buf.toString('hex')}`)
-        }
-      })
-      .catch((error) => {
-        throw error
-      })
+  /**
+   * Increases the humidifier setting.
+   * @returns {Promise<void>}
+   */
+  async up(): Promise<void> {
+    await this.operateHumi([0x57, 0x01, 0x04])
   }
 }
