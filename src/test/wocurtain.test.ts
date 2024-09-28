@@ -1,42 +1,85 @@
 import { Buffer } from 'node:buffer'
 
-import * as Noble from '@stoprocent/noble'
-
 import { WoCurtain } from '../device/wocurtain.js'
 
 describe('woCurtain', () => {
-  let curtain: WoCurtain
+  let onlog: jest.Mock
 
   beforeEach(() => {
-    const peripheral = {} // Replace with the actual peripheral object (e.g. from Noble)
-    curtain = new WoCurtain(peripheral as Noble.Peripheral, Noble)
-    curtain.command = jest.fn().mockResolvedValue(Buffer.from([0x01, 0x00, 0x00]))
+    onlog = jest.fn()
   })
 
-  it('runToPos should throw error for incorrect percent type', async () => {
-    await expect(curtain.runToPos('50' as any)).rejects.toThrow('The type of target position percentage is incorrect: string')
+  it('should return null if serviceData length is not 5 or 6', async () => {
+    const serviceData = Buffer.alloc(4) // Invalid length
+    const manufacturerData = Buffer.alloc(13)
+    const result = await WoCurtain.parseServiceData(serviceData, manufacturerData, onlog)
+    expect(result).toBeNull()
+    expect(onlog).toHaveBeenCalledWith('[parseServiceDataForWoCurtain] Buffer length 4 !== 5 or 6!')
   })
 
-  it('runToPos should throw error for incorrect mode type', async () => {
-    await expect(curtain.runToPos(50, '0xff' as any)).rejects.toThrow('The type of running mode is incorrect: string')
+  it('should parse valid serviceData and manufacturerData correctly', async () => {
+    const serviceData = Buffer.from([0x63, 0x40, 0x7F, 0x00, 0x00, 0x00]) // Example valid data
+    const manufacturerData = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x7F])
+    const result = await WoCurtain.parseServiceData(serviceData, manufacturerData, onlog)
+    expect(result).toEqual({
+      model: 'c',
+      modelName: 'Curtain',
+      modelFriendlyName: 'Curtain',
+      calibration: true,
+      battery: 127,
+      inMotion: false,
+      position: 0,
+      lightLevel: 0,
+      deviceChain: 0,
+    })
+    expect(onlog).not.toHaveBeenCalled()
   })
 
-  it('runToPos should set percent to 100 if greater than 100', async () => {
-    await curtain.runToPos(150)
-    expect(curtain.command).toHaveBeenCalledWith(Buffer.from([0x57, 0x0F, 0x45, 0x01, 0x05, 0xFF, 100]))
-  })
+  describe('operateCurtain', () => {
+    let wocurtain: WoCurtain
 
-  it('runToPos should set percent to 0 if less than 0', async () => {
-    await curtain.runToPos(-10)
-    expect(curtain.command).toHaveBeenCalledWith(Buffer.from([0x57, 0x0F, 0x45, 0x01, 0x05, 0xFF, 0]))
-  })
+    beforeEach(() => {
+      const peripheral = {} // Replace with the actual peripheral object (e.g. from Noble)
+      wocurtain = new WoCurtain(peripheral as any, {} as any)
+      jest.spyOn(wocurtain, 'command').mockResolvedValue(Buffer.from([0x01, 0x00, 0x00]))
+    })
 
-  it('operateCurtain should throw error for incorrect response', async () => {
-    curtain.command = jest.fn().mockResolvedValue(Buffer.from([0x02, 0x00, 0x00]))
-    await expect(curtain.operateCurtain([0x57, 0x0F, 0x45, 0x01, 0x05, 0xFF, 50])).rejects.toThrow('The device returned an error: 0x020000')
-  })
+    it('open should call runToPos with correct arguments', async () => {
+      const runToPosSpy = jest.spyOn(wocurtain, 'runToPos')
+      await wocurtain.open()
+      expect(runToPosSpy).toHaveBeenCalledWith(0, 0xFF)
+    })
 
-  it('operateCurtain should not throw error for correct response', async () => {
-    await expect(curtain.operateCurtain([0x57, 0x0F, 0x45, 0x01, 0x05, 0xFF, 50])).resolves.not.toThrow()
+    it('close should call runToPos with correct arguments', async () => {
+      const runToPosSpy = jest.spyOn(wocurtain, 'runToPos')
+      await wocurtain.close()
+      expect(runToPosSpy).toHaveBeenCalledWith(100, 0xFF)
+    })
+
+    it('pause should call operateCurtain with correct bytes', async () => {
+      const operateCurtainSpy = jest.spyOn(wocurtain as any, 'operateCurtain')
+      await wocurtain.pause()
+      expect(operateCurtainSpy).toHaveBeenCalledWith([0x57, 0x0F, 0x45, 0x01, 0x00, 0xFF])
+    })
+
+    it('runToPos should call operateCurtain with correct bytes', async () => {
+      const operateCurtainSpy = jest.spyOn(wocurtain as any, 'operateCurtain')
+      await wocurtain.runToPos(50)
+      expect(operateCurtainSpy).toHaveBeenCalledWith([0x57, 0x0F, 0x45, 0x01, 0x05, 0xFF, 50])
+    })
+
+    it('operateCurtain should handle successful response', async () => {
+      await expect((wocurtain as any).operateCurtain([0x57, 0x0F, 0x45, 0x01, 0x05, 0xFF, 50])).resolves.toBeUndefined()
+    })
+
+    it('operateCurtain should handle error response', async () => {
+      jest.spyOn(wocurtain, 'command').mockResolvedValue(Buffer.from([0x02, 0x00, 0x00]))
+      await expect((wocurtain as any).operateCurtain([0x57, 0x0F, 0x45, 0x01, 0x05, 0xFF, 50])).rejects.toThrow('The device returned an error: 0x020000')
+    })
+
+    it('operateCurtain should handle command rejection', async () => {
+      jest.spyOn(wocurtain, 'command').mockRejectedValue(new Error('Command failed'))
+      await expect((wocurtain as any).operateCurtain([0x57, 0x0F, 0x45, 0x01, 0x05, 0xFF, 50])).rejects.toThrow('Command failed')
+    })
   })
 })
