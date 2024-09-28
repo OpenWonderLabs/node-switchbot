@@ -464,6 +464,25 @@ export class SwitchBot {
   }
 
   /* ------------------------------------------------------------------
+      * stopScan()
+      * - Stop to monitor advertising packets coming from switchbot devices
+      *
+      * [Arguments]
+      * - none
+      *
+      * [Return value]
+      * - none
+      * ---------------------------------------------------------------- */
+  stopScan() {
+    if (this.noble === null) {
+      return
+    }
+
+    this.noble.removeAllListeners('discover')
+    this.noble.stopScanning()
+  }
+
+  /* ------------------------------------------------------------------
      * wait(msec) {
      * - Wait for the specified time (msec)
      *
