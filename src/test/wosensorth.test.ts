@@ -2,9 +2,8 @@ import type { meterPlusServiceData, meterServiceData } from '../types/bledevices
 
 import { Buffer } from 'node:buffer'
 
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
-// wosensorth.test.ts
 import { WoSensorTH } from '../device/wosensorth.js'
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
 describe('woSensorTH', () => {
   it('should parse service data correctly for Meter', async () => {
@@ -24,7 +23,7 @@ describe('woSensorTH', () => {
       battery: 127,
     }
 
-    const result = await WoSensorTH.parseServiceData(serviceData, undefined)
+    const result = await WoSensorTH.parseServiceData(serviceData)
     expect(result).toEqual(expectedData)
   })
 
@@ -45,7 +44,7 @@ describe('woSensorTH', () => {
       battery: 127,
     }
 
-    const result = await WoSensorTH.parseServiceData_Plus(serviceData, undefined)
+    const result = await WoSensorTH.parseServiceData_Plus(serviceData)
     expect(result).toEqual(expectedData)
   })
 
