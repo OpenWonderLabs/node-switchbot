@@ -44,10 +44,6 @@ describe('woHub2', () => {
       model: 'Hub2',
       modelName: 'Hub2',
       modelFriendlyName: 'Hub2',
-      temperature: {
-        c: 2.1,
-        f: 35.8,
-      },
       celsius: 2.1,
       fahrenheit: 35.8,
       fahrenheit_mode: true,

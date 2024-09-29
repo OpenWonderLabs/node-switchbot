@@ -28,10 +28,6 @@ describe('woIOSensorTH', () => {
       model: 'OutdoorMeter',
       modelName: 'OutdoorMeter',
       modelFriendlyName: 'OutdoorMeter',
-      temperature: {
-        c: 1.5,
-        f: 34.7,
-      },
       celsius: 1.5,
       fahrenheit: 34.7,
       fahrenheit_mode: true,

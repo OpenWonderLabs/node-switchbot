@@ -139,8 +139,7 @@ export type meterServiceData = serviceData & {
   model: SwitchBotBLEModel.Meter
   modelName: SwitchBotBLEModelName.Meter
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Meter
-  temperature: temperature
-  celcius: number
+  celsius: number
   fahrenheit: number
   fahrenheit_mode: boolean
   humidity: number
@@ -151,8 +150,7 @@ export type meterPlusServiceData = serviceData & {
   model: SwitchBotBLEModel.MeterPlus
   modelName: SwitchBotBLEModelName.MeterPlus
   modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterPlus
-  temperature: temperature
-  celcius: number
+  celsius: number
   fahrenheit: number
   fahrenheit_mode: boolean
   humidity: number
@@ -163,8 +161,7 @@ export type outdoorMeterServiceData = serviceData & {
   model: SwitchBotBLEModel.OutdoorMeter
   modelName: SwitchBotBLEModelName.OutdoorMeter
   modelFriendlyName: SwitchBotBLEModelFriendlyName.OutdoorMeter
-  temperature: temperature
-  celcius: number
+  celsius: number
   fahrenheit: number
   fahrenheit_mode: boolean
   humidity: number
@@ -262,8 +259,7 @@ export type hub2ServiceData = serviceData & {
   model: SwitchBotBLEModel.Hub2
   modelName: SwitchBotBLEModelName.Hub2
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Hub2
-  temperature: temperature
-  celcius: number
+  celsius: number
   fahrenheit: number
   fahrenheit_mode: boolean
   humidity: number
@@ -303,9 +299,4 @@ export type robotVacuumCleanerServiceData = serviceData & {
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Unknown
   state: string
   battery: number
-}
-
-export interface temperature {
-  c: number
-  f: number
 }

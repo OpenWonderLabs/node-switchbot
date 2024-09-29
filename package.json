@@ -27,6 +27,7 @@
     "Bluetooth"
   ],
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "engines": {
     "node": "^18 || ^20 || ^22"
   },
@@ -47,13 +48,14 @@
   },
   "readmeFilename": "README.md",
   "dependencies": {
+    "@stoprocent/noble": "^1.15.0",
     "@types/sinon": "^17.0.3",
     "async-mutex": "^0.5.0",
-    "sinon": "^19.0.2"
+    "sinon": "^19.0.2",
+    "undici": "^6.19.8"
   },
   "optionalDependencies": {
-    "@stoprocent/bluetooth-hci-socket": "^1.4.0",
-    "@stoprocent/noble": "^1.15.0"
+    "@stoprocent/bluetooth-hci-socket": "^1.4.0"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^3.7.3",

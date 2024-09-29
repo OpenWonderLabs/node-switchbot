@@ -183,3 +183,24 @@ export interface AdvertisementData {
   serviceData: Buffer | null
   manufacturerData: Buffer | null
 }
+
+/**
+ * Interface for API response.
+ */
+export interface ApiResponse {
+  statusCode?: number
+  message?: string
+  body?: {
+    urls?: string[]
+  }
+}
+
+/**
+ * Enum for log levels.
+ */
+export enum LogLevel {
+  ERROR = 'error',
+  WARN = 'warn',
+  INFO = 'info',
+  DEBUG = 'debug',
+}

@@ -38,12 +38,7 @@ export class WoSensorTH extends SwitchbotDevice {
       model: SwitchBotBLEModel.Meter,
       modelName: SwitchBotBLEModelName.Meter,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.Meter,
-      /**
-       * @deprecated The `temperature` object is deprecated and will be removed in future versions.
-       * Use the `celcius` and `fahrenheit` properties directly instead.
-       */
-      temperature: { c: tempC, f: tempF },
-      celcius: tempC,
+      celsius: tempC,
       fahrenheit: tempF,
       fahrenheit_mode: !!(byte5 & 0b10000000),
       humidity: byte5 & 0b01111111,
@@ -75,12 +70,7 @@ export class WoSensorTH extends SwitchbotDevice {
       model: SwitchBotBLEModel.MeterPlus,
       modelName: SwitchBotBLEModelName.MeterPlus,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterPlus,
-      /**
-       * @deprecated The `temperature` object is deprecated and will be removed in future versions.
-       * Use the `celcius` and `fahrenheit` properties directly instead.
-       */
-      temperature: { c: tempC, f: tempF },
-      celcius: tempC,
+      celsius: tempC,
       fahrenheit: tempF,
       fahrenheit_mode: !!(byte5 & 0b10000000),
       humidity: byte5 & 0b01111111,

@@ -1,6 +1,6 @@
 /* Copyright(C) 2017-2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
- * irdevicelist.ts: @switchbot/homebridge-switchbot platform class.
+ * irdevicelist.ts: ds7@switchbot/homebridge-switchbot platform class.
  */
 export interface infraredRemoteList {
   device: irdevice[]

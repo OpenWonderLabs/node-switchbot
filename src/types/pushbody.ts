@@ -2,7 +2,7 @@
  *
  * pushbody.ts: @switchbot/homebridge-switchbot platform class.
  */
-export interface body {
+export interface bodyChange {
   command: string
   parameter: string
   commandType: string
