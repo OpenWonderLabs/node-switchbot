@@ -170,7 +170,7 @@ export class SwitchBot {
             }
 
             this.noble.removeAllListeners('discover')
-            this.noble.stopScanning()
+            this.noble.stopScanningAsync()
 
             const device_list: SwitchbotDevice[] = []
             for (const addr in peripherals) {
@@ -198,19 +198,16 @@ export class SwitchBot {
             }
           })
           // Start scanning
-          this.noble.startScanning(
+          this.noble.startScanningAsync(
             this.PRIMARY_SERVICE_UUID_LIST,
             false,
-            (error?: Error) => {
-              if (error) {
-                reject(error)
-                return
-              }
-              timer = setTimeout(() => {
-                finishDiscovery()
-              }, p.duration)
-            },
-          )
+          ).then(() => {
+            timer = setTimeout(() => {
+              finishDiscovery()
+            }, p.duration)
+          }).catch((error: Error) => {
+            reject(error)
+          })
         })
         .catch((error) => {
           reject(error)
@@ -473,17 +470,14 @@ export class SwitchBot {
           })
 
           // Start scanning
-          this.noble.startScanning(
+          this.noble.startScanningAsync(
             this.PRIMARY_SERVICE_UUID_LIST,
             true,
-            (error?: Error) => {
-              if (error) {
-                reject(error)
-              } else {
-                resolve()
-              }
-            },
-          )
+          ).then(() => {
+            resolve()
+          }).catch((error: Error) => {
+            reject(error)
+          })
         })
         .catch((error) => {
           reject(error)
@@ -508,7 +502,7 @@ export class SwitchBot {
     }
 
     this.noble.removeAllListeners('discover')
-    this.noble.stopScanning()
+    this.noble.stopScanningAsync()
   }
 
   /* ------------------------------------------------------------------
