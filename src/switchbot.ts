@@ -26,6 +26,9 @@ import { WoStrip } from './device/wostrip.js'
 import { parameterChecker } from './parameter-checker.js'
 import { SwitchBotBLEModel } from './types/types.js'
 
+/**
+ * SwitchBot class to interact with SwitchBot devices.
+ */
 export class SwitchBot {
   private ready: Promise<void>
   noble!: typeof Noble
@@ -34,23 +37,25 @@ export class SwitchBot {
   onlog: ((message: string) => void) | undefined
   DEFAULT_DISCOVERY_DURATION = 5000
   PRIMARY_SERVICE_UUID_LIST = []
-  /* ------------------------------------------------------------------
-               * Constructor
-               *
-               * [Arguments]
-               * - params  | Object  | Optional |
-               *   - noble | Noble   | Optional | The Noble object created by the noble module.
-               *           |         |          | This parameter is optional.
-               *           |         |          | If you don't specify this parameter, this
-               *           |         |          | module automatically creates it.
-               * ---------------------------------------------------------------- */
 
+  /**
+   * Constructor
+   *
+   * @param {Params} [params] - Optional parameters
+   * @param {typeof Noble} [params.noble] - Optional noble instance
+   */
   constructor(params?: Params) {
     this.ready = this.init(params)
   }
 
-  // Check parameters
-  async init(params?: Params) {
+  /**
+   * Initializes the noble object.
+   *
+   * @param {Params} [params] - Optional parameters
+   * @param {typeof Noble} [params.noble] - Optional noble instance
+   * @returns {Promise<void>} - Resolves when initialization is complete
+   */
+  async init(params?: Params): Promise<void> {
     let noble: typeof Noble
     if (params && params.noble) {
       noble = params.noble
@@ -62,47 +67,14 @@ export class SwitchBot {
     this.noble = noble
   }
 
-  /* ------------------------------------------------------------------
-       * discover([params])
-       * - Discover switchbot devices
-       *
-       * [Arguments]
-       * - params     | Object  | Optional |
-       *   - duration | Integer | Optional | Duration for discovery process (msec).
-       *              |         |          | The value must be in the range of 1 to 60000.
-       *              |         |          | The default value is 5000 (msec).
-       *   - model    | String  | Optional | "H", "T", "e", "s", "d", "c", "{", "u", "g", "o", "i", or "r".
-       *              |         |          | If "H" is specified, this method will discover only Bots.
-       *              |         |          | If "T" is specified, this method will discover only Meters.
-       *              |         |          | If "e" is specified, this method will discover only Humidifiers.
-       *              |         |          | If "s" is specified, this method will discover only Motion Sensors.
-       *              |         |          | If "d" is specified, this method will discover only Contact Sensors.
-       *              |         |          | If "c" is specified, this method will discover only Curtains.
-       *              |         |          | If "{" is specified, this method will discover only Curtain 3.
-       *              |         |          | If "u" is specified, this method will discover only Color Bulbs.
-       *              |         |          | If "g" is specified, this method will discover only Plugs.
-       *              |         |          | If "o" is specified, this method will discover only Locks.
-       *              |         |          | If "$" is specified, this method will discover only Lock Pros.
-       *              |         |          | If "i" is specified, this method will discover only Meter Pluses.
-       *              |         |          | If "r" is specified, this method will discover only Locks.
-       *   - id       | String  | Optional | If this value is set, this method will discover
-       *              |         |          | only a device whose ID is as same as this value.
-       *              |         |          | The ID is identical to the MAC address.
-       *              |         |          | This parameter is case-insensitive, and
-       *              |         |          | colons are ignored.
-       *   - quick    | Boolean | Optional | If this value is true, this method finishes
-       *              |         |          | the discovery process when the first device
-       *              |         |          | is found, then calls the resolve() function
-       *              |         |          | without waiting the specified duration.
-       *              |         |          | The default value is false.
-       *
-       * [Return value]
-       * - Promise object
-       *   An array will be passed to the `resolve()`, which includes
-       *   `SwitchbotDevice` objects representing the found devices.
-       * ---------------------------------------------------------------- */
-  discover(params: Params = {}) {
-    const promise = new Promise((resolve, reject) => {
+  /**
+   * Discover SwitchBot devices based on the provided parameters.
+   *
+   * @param {Params} params - The parameters for discovery.
+   * @returns {Promise<SwitchbotDevice[]>} - A promise that resolves with a list of discovered devices.
+   */
+  async discover(params: Params = {}): Promise<SwitchbotDevice[]> {
+    const promise = new Promise<SwitchbotDevice[]>((resolve, reject) => {
       // Check the parameters
       const valid = parameterChecker.check(
         params as Record<string, unknown>,
@@ -216,7 +188,12 @@ export class SwitchBot {
     return promise
   }
 
-  async _init() {
+  /**
+   * Initializes the noble object and waits for it to be powered on.
+   *
+   * @returns {Promise<void>} - Resolves when the noble object is powered on.
+   */
+  async _init(): Promise<void> {
     await this.ready
     const promise = new Promise<void>((resolve, reject) => {
       let err
@@ -255,9 +232,17 @@ export class SwitchBot {
     return promise
   }
 
-  async getDeviceObject(peripheral: Noble.Peripheral, id: string, model: string) {
+  /**
+   * Gets the device object based on the peripheral, id, and model.
+   *
+   * @param {Noble.Peripheral} peripheral - The peripheral object.
+   * @param {string} id - The device id.
+   * @param {string} model - The device model.
+   * @returns {Promise<SwitchbotDevice | null>} - The device object or null.
+   */
+  async getDeviceObject(peripheral: Noble.Peripheral, id: string, model: string): Promise<SwitchbotDevice | null> {
     const ad = await Advertising.parse(peripheral, this.onlog)
-    if (ad && this.filterAdvertising(ad, id, model)) {
+    if (ad && await this.filterAdvertising(ad, id, model)) {
       let device
       if (ad && ad.serviceData && ad.serviceData.model) {
         switch (ad.serviceData.model) {
@@ -318,13 +303,21 @@ export class SwitchBot {
             device = new SwitchbotDevice(peripheral, this.noble)
         }
       }
-      return device
+      return device || null
     } else {
       return null
     }
   }
 
-  filterAdvertising(ad: Ad, id: string, model: string) {
+  /**
+   * Filters advertising data based on id and model.
+   *
+   * @param {Ad} ad - The advertising data.
+   * @param {string} id - The device id.
+   * @param {string} model - The device model.
+   * @returns {boolean} - True if the advertising data matches the id and model, false otherwise.
+   */
+  async filterAdvertising(ad: Ad, id: string, model: string): Promise<boolean> {
     if (!ad) {
       return false
     }
@@ -343,68 +336,13 @@ export class SwitchBot {
     return true
   }
 
-  /* ------------------------------------------------------------------
-     * startScan([params])
-     * - Start to monitor advertising packets coming from switchbot devices
-     *
-     * [Arguments]
-     *   - params   | Object  | Optional |
-     *   - model    | String  | Optional | "H", "T", "e", "s", "d", "c", "{", "u", "g", "o", "i", "x", or "r".
-     *              |         |          | If "H" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Bots.
-     *              |         |          | If "T" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Meters.
-     *              |         |          | If "e" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Humidifiers.
-     *              |         |          | If "s" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Motion Sensor.
-     *              |         |          | If "d" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Contact Sensor.
-     *              |         |          | If "c" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Curtains.
-     *              |         |          | If "{" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Curtain 3.
-     *              |         |          | If "x" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from BlindTilt.
-     *              |         |          | If "u" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Color Bulb.
-     *              |         |          | If "g" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Plug Mini.
-     *              |         |          | If "o" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Smart Lock.
-     *              |         |          | If "$" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Smart Lock Pro.
-     *              |         |          | If "i" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from Meter Plus.
-     *              |         |          | If "r" is specified, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from LED Strip Light.
-     *   - id       | String  | Optional | If this value is set, the `onadvertisement`
-     *              |         |          | event handler will be called only when advertising
-     *              |         |          | packets comes from devices whose ID is as same as
-     *              |         |          | this value.
-     *              |         |          | The ID is identical to the MAC address.
-     *              |         |          | This parameter is case-insensitive, and
-     *              |         |          | colons are ignored.
-     *
-     * [Return value]
-     * - Promise object
-     *   Nothing will be passed to the `resolve()`.
-     * ---------------------------------------------------------------- */
-  startScan(params: Params = {}) {
+  /**
+   * Starts scanning for SwitchBot devices.
+   *
+   * @param {Params} [params] - Optional parameters.
+   * @returns {Promise<void>} - Resolves when scanning starts successfully.
+   */
+  async startScan(params: Params = {}): Promise<void> {
     const promise = new Promise<void>((resolve, reject) => {
       // Check the parameters
       const valid = parameterChecker.check(
@@ -459,7 +397,7 @@ export class SwitchBot {
           // Set a handler for the 'discover' event
           this.noble.on('discover', async (peripheral: Noble.Peripheral) => {
             const ad = await Advertising.parse(peripheral, this.onlog)
-            if (ad && this.filterAdvertising(ad, p.id, p.model)) {
+            if (ad && await this.filterAdvertising(ad, p.id, p.model)) {
               if (
                 this.onadvertisement
                 && typeof this.onadvertisement === 'function'
@@ -486,17 +424,12 @@ export class SwitchBot {
     return promise
   }
 
-  /* ------------------------------------------------------------------
-     * stopScan()
-     * - Stop to monitor advertising packets coming from switchbot devices
-     *
-     * [Arguments]
-     * - none
-     *
-     * [Return value]
-     * - none
-     * ---------------------------------------------------------------- */
-  stopScan() {
+  /**
+   * Stops scanning for SwitchBot devices.
+   *
+   * @returns {Promise<void>} - Resolves when scanning stops successfully.
+   */
+  async stopScan(): Promise<void> {
     if (this.noble === null) {
       return
     }
@@ -505,22 +438,19 @@ export class SwitchBot {
     this.noble.stopScanningAsync()
   }
 
-  /* ------------------------------------------------------------------
-     * wait(msec) {
-     * - Wait for the specified time (msec)
-     *
-     * [Arguments]
-     * - msec | Integer | Required | Msec.
-     *
-     * [Return value]
-     * - Promise object
-     *   Nothing will be passed to the `resolve()`.
-     * ---------------------------------------------------------------- */
-  wait(msec: number) {
+  /**
+   * Waits for the specified time.
+   *
+   * @param {number} msec - The time to wait in milliseconds.
+   * @returns {Promise<void>} - Resolves after the specified time.
+   */
+  async wait(msec: number): Promise<void> {
     return new Promise((resolve, reject) => {
       // Check the parameters
       const valid = parameterChecker.check(
-        { msec },
+        {
+          msec,
+        },
         {
           msec: { required: true, type: 'integer', min: 0 },
         },
