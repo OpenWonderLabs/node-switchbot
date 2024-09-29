@@ -1,3 +1,7 @@
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * wohumi.test.ts: Switchbot BLE API registration.
+ */
 import { Buffer } from 'node:buffer'
 
 import * as Noble from '@stoprocent/noble'

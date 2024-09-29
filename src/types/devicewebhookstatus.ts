@@ -1,6 +1,6 @@
 /* Copyright(C) 2017-2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
- * devicestatus.ts: @switchbot/homebridge-switchbot platform class.
+ * devicewebhookstatus.ts: @switchbot/homebridge-switchbot platform class.
  */
 interface deviceWebhook {
   eventType: string

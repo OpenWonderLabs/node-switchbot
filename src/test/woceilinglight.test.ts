@@ -1,3 +1,7 @@
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * woceiling.test.ts: Switchbot BLE API registration.
+ */
 import { Buffer } from 'node:buffer'
 
 import { WoCeilingLight } from '../device/woceilinglight.js'

@@ -1,3 +1,7 @@
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * wocurtain.test.ts: Switchbot BLE API registration.
+ */
 import { Buffer } from 'node:buffer'
 
 import { WoCurtain } from '../device/wocurtain.js'

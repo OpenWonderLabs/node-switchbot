@@ -1,5 +1,3 @@
-import { Buffer } from 'node:buffer'
-
 /* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
  * device.ts: Switchbot BLE API registration.
@@ -7,6 +5,8 @@ import { Buffer } from 'node:buffer'
 import type * as Noble from '@stoprocent/noble'
 
 import type { Chars, SwitchBotBLEModel, SwitchBotBLEModelName } from './types/types.js'
+
+import { Buffer } from 'node:buffer'
 
 import { Advertising } from './advertising.js'
 import { parameterChecker } from './parameter-checker.js'

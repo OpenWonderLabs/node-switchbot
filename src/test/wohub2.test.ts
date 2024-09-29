@@ -1,3 +1,7 @@
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * wohub2.test.ts: Switchbot BLE API registration.
+ */
 import { Buffer } from 'node:buffer'
 
 import { WoHub2 } from '../device/wohub2.js'

@@ -1,3 +1,7 @@
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * wosensorth.test.ts: Switchbot BLE API registration.
+ */
 import type { meterPlusServiceData, meterServiceData } from '../types/bledevicestatus.js'
 
 import { Buffer } from 'node:buffer'

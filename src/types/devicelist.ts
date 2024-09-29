@@ -2,7 +2,6 @@
  *
  * devicelist.ts: @switchbot/homebridge-switchbot platform class.
  */
-
 export interface deviceList {
   device: device[]
 }

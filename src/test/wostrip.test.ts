@@ -1,3 +1,7 @@
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * wostrip.test.ts: Switchbot BLE API registration.
+ */
 import type * as Noble from '@stoprocent/noble'
 
 import { Buffer } from 'node:buffer'

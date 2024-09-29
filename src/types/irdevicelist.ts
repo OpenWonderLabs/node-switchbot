@@ -2,7 +2,6 @@
  *
  * irdevicelist.ts: @switchbot/homebridge-switchbot platform class.
  */
-// a list of virtual infrared remote devices that are linked to SwitchBot Hubs.
 export interface infraredRemoteList {
   device: irdevice[]
 }
