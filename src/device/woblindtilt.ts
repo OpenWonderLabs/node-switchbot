@@ -7,6 +7,10 @@ import { Buffer } from 'node:buffer'
 import { SwitchbotDevice } from '../device.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
+/**
+ * Class representing a WoBlindTilt device.
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/curtain.md
+ */
 export class WoBlindTilt extends SwitchbotDevice {
   private _reverse: boolean = false
   /**
