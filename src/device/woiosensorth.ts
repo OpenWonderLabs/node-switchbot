@@ -9,6 +9,7 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
 
 /**
  * Class representing a WoIOSensorTH device.
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/meter.md#outdoor-temperaturehumidity-sensor
  */
 export class WoIOSensorTH extends SwitchbotDevice {
   /**

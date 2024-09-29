@@ -10,7 +10,8 @@ import { SwitchbotDevice } from '../device.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
 /**
- * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/colorbulb.md
+ * Class representing a WoStrip device.
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/ledstriplight.md
  */
 export class WoStrip extends SwitchbotDevice {
   /**

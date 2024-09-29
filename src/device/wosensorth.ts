@@ -9,6 +9,10 @@ import type { meterPlusServiceData, meterServiceData } from '../types/bledevices
 import { SwitchbotDevice } from '../device.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
+/**
+ * Class representing a WoSensorTH device.
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/meter.md
+ */
 export class WoSensorTH extends SwitchbotDevice {
   /**
    * Parses the service data for WoSensorTH.

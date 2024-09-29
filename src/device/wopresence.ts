@@ -11,6 +11,7 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
 
 /**
  * Class representing a WoPresence device.
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/meter.md
  */
 export class WoPresence extends SwitchbotDevice {
   /**

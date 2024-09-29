@@ -9,6 +9,8 @@ import { SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/t
 
 /**
  * Class representing a WoCurtain device.
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/curtain.md
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/curtain3.md
  */
 export class WoCurtain extends SwitchbotDevice {
   /**

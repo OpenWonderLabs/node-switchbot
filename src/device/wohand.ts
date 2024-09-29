@@ -9,6 +9,7 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
 
 /**
  * Class representing a WoHand device.
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/bot.md
  */
 export class WoHand extends SwitchbotDevice {
   /**

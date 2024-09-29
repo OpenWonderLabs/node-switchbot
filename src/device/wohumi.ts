@@ -9,6 +9,7 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
 
 /**
  * Class representing a WoHumi device.
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/tree/latest/devicetypes
  */
 export class WoHumi extends SwitchbotDevice {
   /**

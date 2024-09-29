@@ -13,6 +13,10 @@ import { SwitchbotDevice } from '../device.js'
 import { WoSmartLockCommands } from '../settings.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
+/**
+ * Class representing a WoSmartLock device.
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/lock.md
+ */
 export class WoSmartLock extends SwitchbotDevice {
   public iv: Buffer | null = null
   public key_id: string = ''

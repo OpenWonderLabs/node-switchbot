@@ -9,6 +9,7 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
 
 /**
  * Class representing a WoHub2 device.
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/meter.md
  */
 export class WoHub2 extends SwitchbotDevice {
   /**
