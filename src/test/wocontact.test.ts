@@ -1,37 +1,39 @@
 import { Buffer } from 'node:buffer'
 
-/* eslint-disable no-console */
 import { WoContact } from '../device/wocontact.js'
 
 describe('woContact', () => {
-  it('parseServiceData should return null for incorrect buffer length', async () => {
-    const serviceData = Buffer.alloc(8) // Incorrect length
-    const result = await WoContact.parseServiceData(serviceData, console.log)
-    expect(result).toBeNull()
+  let onlog: jest.Mock
+
+  beforeEach(() => {
+    onlog = jest.fn()
   })
 
-  it('parseServiceData should return correct data for valid buffer', async () => {
-    const serviceData = Buffer.from([0, 0b11000000, 0b01111111, 0b00000111, 0, 0, 0, 0, 0b00001111])
-    const result = await WoContact.parseServiceData(serviceData, console.log)
+  it('should return null if serviceData length is not 9', async () => {
+    const serviceData = Buffer.alloc(8) // Invalid length
+    const result = await WoContact.parseServiceData(serviceData, onlog)
+    expect(result).toBeNull()
+    expect(onlog).toHaveBeenCalledWith('[parseServiceDataForWoContact] Buffer length 8 !== 9!')
+  })
+
+  it('should parse valid serviceData correctly', async () => {
+    const serviceData = Buffer.from([0x00, 0x80, 0x7F, 0x02, 0x00, 0x00, 0x00, 0x00, 0x0F]) // Example valid data
+    const result = await WoContact.parseServiceData(serviceData, onlog)
     expect(result).toEqual({
       model: 'ContactSensor',
       modelName: 'ContactSensor',
       modelFriendlyName: 'ContactSensor',
       movement: true,
-      tested: 128,
+      tested: true,
       battery: 127,
       contact_open: true,
-      contact_timeout: true,
-      lightLevel: 'bright',
+      contact_timeout: false,
+      lightLevel: 'dark',
       button_count: 15,
-      doorState: 'timeout no closed',
+      doorState: 'open',
     })
+    expect(onlog).not.toHaveBeenCalled()
   })
 
-  it('parseServiceData should log message for incorrect buffer length', async () => {
-    const serviceData = Buffer.alloc(8) // Incorrect length
-    const logSpy = jest.fn()
-    await WoContact.parseServiceData(serviceData, logSpy)
-    expect(logSpy).toHaveBeenCalledWith('[parseServiceDataForWoContact] Buffer length 8 !== 9!')
-  })
+  // Add more test cases as needed
 })
