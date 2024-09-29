@@ -2,8 +2,6 @@ import type * as Noble from '@stoprocent/noble'
 
 import { Buffer } from 'node:buffer'
 
-import { expect } from 'chai'
-
 import { WoStrip } from '../device/wostrip.js'
 
 describe('woStrip', () => {
@@ -11,13 +9,13 @@ describe('woStrip', () => {
     it('should return null if serviceData length is not 18', async () => {
       const serviceData = Buffer.alloc(10)
       const result = await WoStrip.parseServiceData(serviceData, () => {})
-      return expect(result).to.be.null
+      expect(result).toBeNull()
     })
 
     it('should parse serviceData correctly', async () => {
       const serviceData = Buffer.from([0, 0, 0, 255, 255, 255, 0, 128, 8, 127, 254, 0, 0, 0, 0, 0, 0, 0])
       const result = await WoStrip.parseServiceData(serviceData, () => {})
-      expect(result).to.deep.equal({
+      expect(result).toEqual({
         model: 'StripLight',
         modelName: 'StripLight',
         modelFriendlyName: 'StripLight',
@@ -43,7 +41,7 @@ describe('woStrip', () => {
       const woStrip = new WoStrip(peripheral, noble)
       woStrip.operateStripLight = async () => true
       const result = await woStrip.readState()
-      return expect(result).to.be.true
+      expect(result).toBe(true)
     })
   })
 
@@ -54,7 +52,7 @@ describe('woStrip', () => {
       const woStrip = new WoStrip(peripheral, noble)
       woStrip.setState = async () => true
       const result = await woStrip.turnOn()
-      return expect(result).to.be.true
+      expect(result).toBe(true)
     })
   })
 
@@ -65,7 +63,7 @@ describe('woStrip', () => {
       const woStrip = new WoStrip(peripheral, noble)
       woStrip.setState = async () => true
       const result = await woStrip.turnOff()
-      return expect(result).to.be.true
+      expect(result).toBe(true)
     })
   })
 
@@ -76,7 +74,7 @@ describe('woStrip', () => {
       const woStrip = new WoStrip(peripheral, noble)
       woStrip.setState = async () => true
       const result = await woStrip.setBrightness(50)
-      return expect(result).to.be.true
+      expect(result).toBe(true)
     })
 
     it('should throw an error if brightness is not a number', async () => {
@@ -87,7 +85,7 @@ describe('woStrip', () => {
         await woStrip.setBrightness('50' as any)
       } catch (error) {
         if (error instanceof Error) {
-          expect(error.message).to.equal('Invalid brightness value: 50')
+          expect(error.message).toBe('Invalid brightness value: 50')
         } else {
           throw error
         }
@@ -102,7 +100,7 @@ describe('woStrip', () => {
       const woStrip = new WoStrip(peripheral, noble)
       woStrip.setState = async () => true
       const result = await woStrip.setRGB(50, 255, 255, 255)
-      return expect(result).to.be.true
+      expect(result).toBe(true)
     })
 
     it('should throw an error if any RGB value is not a number', async () => {
@@ -113,7 +111,7 @@ describe('woStrip', () => {
         await woStrip.setRGB(50, '255' as any, 255, 255)
       } catch (error) {
         if (error instanceof Error) {
-          expect(error.message).to.equal('Invalid RGB or brightness value')
+          expect(error.message).toBe('Invalid RGB or brightness value')
         } else {
           throw error
         }
