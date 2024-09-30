@@ -5,7 +5,7 @@
 import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 
 import type { pushResponse } from './types/devicepush.js'
-import type { body } from './types/deviceresponse.js'
+import type { devices } from './types/deviceresponse.js'
 import type { deviceStatus } from './types/devicestatus.js'
 import type { deleteWebhookResponse, queryWebhookResponse, setupWebhookResponse, updateWebhookResponse } from './types/devicewebhookstatus.js'
 
@@ -89,10 +89,10 @@ export class SwitchBotOpenAPI extends EventEmitter {
    * @returns {Promise<{ response: body, statusCode: number }>} A promise that resolves to an object containing the API response.
    * @throws {Error} Throws an error if the request to get devices fails.
    */
-  async getDevices(): Promise<{ response: body, statusCode: number }> {
+  async getDevices(): Promise<{ response: devices, statusCode: number }> {
     try {
       const { body, statusCode } = await request(Devices, { headers: this.generateHeaders() })
-      const response = await body.json() as body
+      const response = await body.json() as devices
       this.emitLog('debug', `Got devices: ${JSON.stringify(response)}`)
       this.emitLog('debug', `statusCode: ${statusCode}`)
       return { response, statusCode }
