@@ -7,3 +7,11 @@ export interface bodyChange {
   parameter: string
   commandType: string
 }
+
+export interface pushResponse {
+  statusCode: number
+  body: {
+    commandId: string
+  }
+  message: string
+}

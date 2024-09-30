@@ -185,17 +185,6 @@ export interface AdvertisementData {
 }
 
 /**
- * Interface for API response.
- */
-export interface ApiResponse {
-  statusCode?: number
-  message?: string
-  body?: {
-    urls?: string[]
-  }
-}
-
-/**
  * Enum for log levels.
  */
 export enum LogLevel {

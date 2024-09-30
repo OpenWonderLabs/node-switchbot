@@ -4,7 +4,10 @@
  */
 import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 
-import type { ApiResponse } from './types/types.js'
+import type { pushResponse } from './types/devicepush.js'
+import type { body } from './types/deviceresponse.js'
+import type { deviceStatus } from './types/devicestatus.js'
+import type { deleteWebhookResponse, queryWebhookResponse, setupWebhookResponse, updateWebhookResponse } from './types/devicewebhookstatus.js'
 
 import { Buffer } from 'node:buffer'
 import crypto, { randomUUID } from 'node:crypto'
@@ -86,10 +89,10 @@ export class SwitchBotOpenAPI extends EventEmitter {
    * @returns {Promise<{ response: ApiResponse }>} A promise that resolves to an object containing the API response.
    * @throws {Error} Throws an error if the request to get devices fails.
    */
-  async getDevices(): Promise<{ response: ApiResponse }> {
+  async getDevices(): Promise<{ response: body }> {
     try {
       const { body, statusCode } = await request(Devices, { headers: this.generateHeaders() })
-      const response = await body.json() as ApiResponse
+      const response = await body.json() as body
       this.emitLog('debug', `Got devices: ${JSON.stringify(response)}`)
       this.emitLog('debug', `statusCode: ${statusCode}`)
       return { response }
@@ -149,7 +152,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
           commandType,
         }),
       })
-      const response = await body.json() as ApiResponse
+      const response = await body.json() as pushResponse['body']
       this.emitLog('debug', `Controlled device: ${deviceId} with command: ${command} and parameter: ${parameter}`)
       this.emitLog('debug', `statusCode: ${statusCode}`)
       return { response }
@@ -172,7 +175,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
         method: 'GET',
         headers: this.generateHeaders(),
       })
-      const response = await body.json() as ApiResponse
+      const response = await body.json() as deviceStatus
       this.emitLog('debug', `Got device status: ${deviceId}`)
       this.emitLog('debug', `statusCode: ${statusCode}`)
       return { response }
@@ -239,7 +242,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
           deviceList: 'ALL',
         }),
       })
-      const response: any = await body.json() as ApiResponse
+      const response: any = await body.json() as setupWebhookResponse['body']
       await this.emitLog('debug', `setupWebhook: url:${url}, body:${JSON.stringify(response)}, statusCode:${statusCode}`)
       if (statusCode !== 200 || response?.statusCode !== 100) {
         await this.emitLog('error', `Failed to configure webhook. Existing webhook well be overridden. HTTP:${statusCode} API:${response?.statusCode} message:${response?.message}`)
@@ -260,7 +263,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
           },
         }),
       })
-      const response: any = await body.json() as ApiResponse
+      const response: any = await body.json() as updateWebhookResponse['body']
       await this.emitLog('debug', `updateWebhook: url:${url}, body:${JSON.stringify(response)}, statusCode:${statusCode}`)
       if (statusCode !== 200 || response?.statusCode !== 100) {
         await this.emitLog('error', `Failed to update webhook. HTTP:${statusCode} API:${response?.statusCode} message:${response?.message}`)
@@ -277,7 +280,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
           action: 'queryUrl',
         }),
       })
-      const response: any = await body.json() as ApiResponse
+      const response: any = await body.json() as queryWebhookResponse['body']
       await this.emitLog('debug', `queryWebhook: body:${JSON.stringify(response)}, statusCode:${statusCode}`)
       if (statusCode !== 200 || response?.statusCode !== 100) {
         await this.emitLog('error', `Failed to query webhook. HTTP:${statusCode} API:${response?.statusCode} message:${response?.message}`)
@@ -307,7 +310,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
           url,
         }),
       })
-      const response: any = await body.json() as ApiResponse
+      const response: any = await body.json() as deleteWebhookResponse['body']
       await this.emitLog('debug', `deleteWebhook: url:${url}, body:${JSON.stringify(response)}, statusCode:${statusCode}`)
       if (statusCode !== 200 || response?.statusCode !== 100) {
         await this.emitLog('error', `Failed to delete webhook. HTTP:${statusCode} API:${response?.statusCode} message:${response?.message}`)

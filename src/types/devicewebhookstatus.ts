@@ -2,6 +2,44 @@
  *
  * devicewebhookstatus.ts: @switchbot/homebridge-switchbot platform class.
  */
+export interface webhookRequest {
+  action: string
+  url: string
+  deviceList: string
+}
+
+export interface setupWebhookResponse {
+  statusCode: number
+  body: object
+  message: string
+}
+
+export interface queryWebhookResponse {
+  statusCode: number
+  body: WebhookDetail[]
+  message: string
+}
+
+export interface WebhookDetail {
+  url: string
+  createTime: number
+  lastUpdateTime: number
+  deviceList: string
+  enable: boolean
+}
+
+export interface updateWebhookResponse {
+  statusCode: number
+  body: object
+  message: string
+}
+
+export interface deleteWebhookResponse {
+  statusCode: number
+  body: object
+  message: string
+}
+
 interface deviceWebhook {
   eventType: string
   eventVersion: string
