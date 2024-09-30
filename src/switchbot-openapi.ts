@@ -86,19 +86,73 @@ export class SwitchBotOpenAPI extends EventEmitter {
   /**
    * Retrieves the list of devices from the SwitchBot OpenAPI.
    *
-   * @returns {Promise<{ response: ApiResponse }>} A promise that resolves to an object containing the API response.
+   * @returns {Promise<{ response: body, statusCode: number }>} A promise that resolves to an object containing the API response.
    * @throws {Error} Throws an error if the request to get devices fails.
    */
-  async getDevices(): Promise<{ response: body }> {
+  async getDevices(): Promise<{ response: body, statusCode: number }> {
     try {
       const { body, statusCode } = await request(Devices, { headers: this.generateHeaders() })
       const response = await body.json() as body
       this.emitLog('debug', `Got devices: ${JSON.stringify(response)}`)
       this.emitLog('debug', `statusCode: ${statusCode}`)
-      return { response }
+      return { response, statusCode }
     } catch (error: any) {
       this.emitLog('error', `Failed to get devices: ${error.message}`)
       throw new Error(`Failed to get devices: ${error.message}`)
+    }
+  }
+
+  /**
+   * Controls a device by sending a command to the SwitchBot API.
+   *
+   * @param deviceId - The unique identifier of the device to control.
+   * @param command - The command to send to the device.
+   * @param parameter - The parameter for the command.
+   * @param commandType - The type of the command, defaults to 'command'.
+   * @returns {Promise<{ response: pushResponse['body'], statusCode: number }>} A promise that resolves to an object containing the API response.
+   * @throws An error if the device control fails.
+   */
+  async controlDevice(deviceId: string, command: string, parameter: string, commandType: string = 'command'): Promise<{ response: pushResponse['body'], statusCode: number }> {
+    try {
+      const { body, statusCode } = await request(`${this.baseURL}/devices/${deviceId}/commands`, {
+        method: 'POST',
+        headers: this.generateHeaders(),
+        body: JSON.stringify({
+          command,
+          parameter,
+          commandType,
+        }),
+      })
+      const response = await body.json() as pushResponse['body']
+      this.emitLog('debug', `Controlled device: ${deviceId} with command: ${command} and parameter: ${parameter}`)
+      this.emitLog('debug', `statusCode: ${statusCode}`)
+      return { response, statusCode }
+    } catch (error: any) {
+      this.emitLog('error', `Failed to control device: ${error.message}`)
+      throw new Error(`Failed to control device: ${error.message}`)
+    }
+  }
+
+  /**
+   * Retrieves the status of a specific device.
+   *
+   * @param deviceId - The unique identifier of the device.
+   * @returns {Promise<{ response: deviceStatus, statusCode: number }>} A promise that resolves to the device status.
+   * @throws An error if the request fails.
+   */
+  async getDeviceStatus(deviceId: string): Promise<{ response: deviceStatus, statusCode: number }> {
+    try {
+      const { body, statusCode } = await request(`${this.baseURL}/devices/${deviceId}/status`, {
+        method: 'GET',
+        headers: this.generateHeaders(),
+      })
+      const response = await body.json() as deviceStatus
+      this.emitLog('debug', `Got device status: ${deviceId}`)
+      this.emitLog('debug', `statusCode: ${statusCode}`)
+      return { response, statusCode }
+    } catch (error: any) {
+      this.emitLog('error', `Failed to get device status: ${error.message}`)
+      throw new Error(`Failed to get device status: ${error.message}`)
     }
   }
 
@@ -128,60 +182,6 @@ export class SwitchBotOpenAPI extends EventEmitter {
       'nonce': nonce,
       't': t,
       'Content-Type': 'application/json',
-    }
-  }
-
-  /**
-   * Controls a device by sending a command to the SwitchBot API.
-   *
-   * @param deviceId - The unique identifier of the device to control.
-   * @param command - The command to send to the device.
-   * @param parameter - The parameter for the command.
-   * @param commandType - The type of the command, defaults to 'command'.
-   * @returns A promise that resolves to the API response.
-   * @throws An error if the device control fails.
-   */
-  async controlDevice(deviceId: string, command: string, parameter: string, commandType: string = 'command'): Promise<any> {
-    try {
-      const { body, statusCode } = await request(`${this.baseURL}/devices/${deviceId}/commands`, {
-        method: 'POST',
-        headers: this.generateHeaders(),
-        body: JSON.stringify({
-          command,
-          parameter,
-          commandType,
-        }),
-      })
-      const response = await body.json() as pushResponse['body']
-      this.emitLog('debug', `Controlled device: ${deviceId} with command: ${command} and parameter: ${parameter}`)
-      this.emitLog('debug', `statusCode: ${statusCode}`)
-      return { response }
-    } catch (error: any) {
-      this.emitLog('error', `Failed to control device: ${error.message}`)
-      throw new Error(`Failed to control device: ${error.message}`)
-    }
-  }
-
-  /**
-   * Retrieves the status of a specific device.
-   *
-   * @param deviceId - The unique identifier of the device.
-   * @returns A promise that resolves to the device status.
-   * @throws An error if the request fails.
-   */
-  async getDeviceStatus(deviceId: string): Promise<any> {
-    try {
-      const { body, statusCode } = await request(`${this.baseURL}/devices/${deviceId}/status`, {
-        method: 'GET',
-        headers: this.generateHeaders(),
-      })
-      const response = await body.json() as deviceStatus
-      this.emitLog('debug', `Got device status: ${deviceId}`)
-      this.emitLog('debug', `statusCode: ${statusCode}`)
-      return { response }
-    } catch (error: any) {
-      this.emitLog('error', `Failed to get device status: ${error.message}`)
-      throw new Error(`Failed to get device status: ${error.message}`)
     }
   }
 
