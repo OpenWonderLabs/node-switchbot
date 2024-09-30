@@ -2,7 +2,7 @@
  *
  * switchbot-openapi.ts: Switchbot BLE API registration.
  */
-import type { IncomingMessage, ServerResponse } from 'node:http'
+import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 
 import type { ApiResponse } from './types/types.js'
 
@@ -16,15 +16,53 @@ import { request } from 'undici'
 import { deleteWebhook, Devices, queryWebhook, setupWebhook, updateWebhook } from './settings.js'
 
 /**
- * SwitchBotOpenAPI class to interact with SwitchBot devices via OpenAPI.
+ * The `SwitchBotOpenAPI` class provides methods to interact with the SwitchBot OpenAPI.
+ * It allows you to retrieve device information, control devices, and manage webhooks.
+ *
+ * @extends EventEmitter
+ *
+ * @example
+ * ```typescript
+ * const switchBotAPI = new SwitchBotOpenAPI('your-token', 'your-secret');
+ *
+ * // Get devices
+ * switchBotAPI.getDevices().then(response => {
+ *   console.log(response);
+ * }).catch(error => {
+ *   console.error(error);
+ * });
+ *
+ * // Control a device
+ * switchBotAPI.controlDevice('device-id', 'turnOn', 'default').then(response => {
+ *   console.log(response);
+ * }).catch(error => {
+ *   console.error(error);
+ * });
+ *
+ * // Setup webhook
+ * switchBotAPI.setupWebhook('http://your-webhook-url').then(() => {
+ *   console.log('Webhook setup successfully');
+ * }).catch(error => {
+ *   console.error(error);
+ * });
+ * ```
+ *
+ * @param {string} token - The API token used for authentication.
+ * @param {string} secret - The secret key used for signing requests.
  */
 export class SwitchBotOpenAPI extends EventEmitter {
   private token: string
   private secret: string
   private baseURL: string
 
-  webhookEventListener?: ReturnType<typeof createServer>
+  webhookEventListener?: Server | null = null
 
+  /**
+   * Creates an instance of the SwitchBot OpenAPI client.
+   *
+   * @param token - The API token used for authentication.
+   * @param secret - The secret key used for signing requests.
+   */
   constructor(token: string, secret: string) {
     super()
     this.token = token
@@ -33,18 +71,22 @@ export class SwitchBotOpenAPI extends EventEmitter {
   }
 
   /**
-   * Emit a log event.
-   * @param level The log level.
-   * @param message The log message.
+   * Emits a log event with the specified log level and message.
+   *
+   * @param level - The severity level of the log (e.g., 'info', 'warn', 'error').
+   * @param message - The log message to be emitted.
    */
-  private emitLog(level: string, message: string): void {
+  private async emitLog(level: string, message: string): Promise<void> {
     this.emit('log', { level, message })
   }
 
   /**
-   * Get a list of devices.
+   * Retrieves the list of devices from the SwitchBot OpenAPI.
+   *
+   * @returns {Promise<{ response: ApiResponse }>} A promise that resolves to an object containing the API response.
+   * @throws {Error} Throws an error if the request to get devices fails.
    */
-  async getDevices(): Promise<any> {
+  async getDevices(): Promise<{ response: ApiResponse }> {
     try {
       const { body, statusCode } = await request(Devices, { headers: this.generateHeaders() })
       const response = await body.json() as ApiResponse
@@ -57,7 +99,17 @@ export class SwitchBotOpenAPI extends EventEmitter {
     }
   }
 
-  private generateHeaders = () => {
+  /**
+   * Generates the headers required for authentication with the SwitchBot OpenAPI.
+   *
+   * @returns An object containing the following headers:
+   * - `Authorization`: The token used for authorization.
+   * - `sign`: The HMAC-SHA256 signature of the concatenated token, timestamp, and nonce.
+   * - `nonce`: A unique identifier for the request, formatted as a UUID.
+   * - `t`: The current timestamp in milliseconds since the Unix epoch.
+   * - `Content-Type`: The content type of the request, set to `application/json`.
+   */
+  private generateHeaders = (): { 'Authorization': string, 'sign': string, 'nonce': `${string}-${string}-${string}-${string}-${string}`, 't': string, 'Content-Type': string } => {
     const t = `${Date.now()}`
     const nonce = randomUUID()
     const data = this.token + t + nonce
@@ -77,11 +129,14 @@ export class SwitchBotOpenAPI extends EventEmitter {
   }
 
   /**
-   * Control a device.
-   * @param deviceId The ID of the device to control.
-   * @param command The command to send to the device.
-   * @param parameter The parameter for the command.
-   * @param commandType The type of command (e.g., "command", "customize").
+   * Controls a device by sending a command to the SwitchBot API.
+   *
+   * @param deviceId - The unique identifier of the device to control.
+   * @param command - The command to send to the device.
+   * @param parameter - The parameter for the command.
+   * @param commandType - The type of the command, defaults to 'command'.
+   * @returns A promise that resolves to the API response.
+   * @throws An error if the device control fails.
    */
   async controlDevice(deviceId: string, command: string, parameter: string, commandType: string = 'command'): Promise<any> {
     try {
@@ -105,8 +160,11 @@ export class SwitchBotOpenAPI extends EventEmitter {
   }
 
   /**
-   * Get the status of a device.
-   * @param deviceId The ID of the device.
+   * Retrieves the status of a specific device.
+   *
+   * @param deviceId - The unique identifier of the device.
+   * @returns A promise that resolves to the device status.
+   * @throws An error if the request fails.
    */
   async getDeviceStatus(deviceId: string): Promise<any> {
     try {
@@ -125,45 +183,53 @@ export class SwitchBotOpenAPI extends EventEmitter {
   }
 
   /**
-   * Setup webhook for receiving events.
-   * @param url The webhook URL.
+   * Sets up a webhook listener and configures the webhook on the server.
+   *
+   * This method performs the following steps:
+   * 1. Creates a local server to listen for incoming webhook events.
+   * 2. Sends a request to set up the webhook with the provided URL.
+   * 3. Sends a request to update the webhook configuration.
+   * 4. Sends a request to query the current webhook URL.
+   *
+   * @param url - The URL to which the webhook events will be sent.
+   * @returns A promise that resolves when the webhook setup is complete.
+   *
+   * @throws Will log an error if any step in the webhook setup process fails.
    */
   async setupWebhook(url: string): Promise<void> {
     try {
       const xurl = new URL(url)
-      const port = Number(xurl.port) || 80
+      const port = Number(xurl.port)
       const path = xurl.pathname
-
-      this.webhookEventListener = createServer((request: IncomingMessage, response: ServerResponse) => {
-        if (request.url === path && request.method === 'POST') {
-          let data = ''
-
-          request.on('data', (chunk) => {
-            data += chunk
-          })
-
-          request.on('end', async () => {
-            try {
-              const body = JSON.parse(data)
-              this.emitLog('debug', `Received Webhook: ${JSON.stringify(body)}`)
-
-              // Emit the webhook event
-              this.emit('webhookEvent', body)
-
-              response.writeHead(200, { 'Content-Type': 'text/plain' })
-              response.end('OK')
-            } catch (e: any) {
-              this.emitLog('error', `Failed to handle webhook event. Error: ${e.message}`)
-              response.writeHead(500, { 'Content-Type': 'text/plain' })
-              response.end('Internal Server Error')
-            }
-          })
-        } else {
-          response.writeHead(403, { 'Content-Type': 'text/plain' })
-          response.end('NG')
+      this.webhookEventListener = createServer(async (request: IncomingMessage, response: ServerResponse) => {
+        try {
+          if (request.url === path && request.method === 'POST') {
+            request.on('data', async (data) => {
+              try {
+                const body = JSON.parse(data)
+                await this.emitLog('debug', `Received Webhook: ${JSON.stringify(body)}`)
+                this.emit('webhookEvent', body)
+              } catch (e: any) {
+                await this.emitLog('error', `Failed to handle webhook event data. Error:${e}`)
+              }
+            })
+            response.writeHead(200, { 'Content-Type': 'text/plain' })
+            response.end('OK')
+          } else {
+            await this.emitLog('error', `Invalid request received. URL:${request.url}, Method:${request.method}`)
+            response.writeHead(403, { 'Content-Type': 'text/plain' })
+            response.end(`NG`)
+          }
+        } catch (e: any) {
+          await this.emitLog('error', `Failed to handle webhook event. Error:${e}`)
         }
-      }).listen(port)
+      }).listen(port || 80)
+    } catch (e: any) {
+      await this.emitLog('error', `Failed to create webhook listener. Error:${e.message}`)
+      return
+    }
 
+    try {
       const { body, statusCode } = await request(setupWebhook, {
         method: 'POST',
         headers: this.generateHeaders(),
@@ -173,21 +239,15 @@ export class SwitchBotOpenAPI extends EventEmitter {
           deviceList: 'ALL',
         }),
       })
-      const response = await body.json() as ApiResponse
-      this.emitLog('debug', `setupWebhook: url:${url}, body:${JSON.stringify(response)}, statusCode:${statusCode}`)
+      const response: any = await body.json() as ApiResponse
+      await this.emitLog('debug', `setupWebhook: url:${url}, body:${JSON.stringify(response)}, statusCode:${statusCode}`)
       if (statusCode !== 200 || response?.statusCode !== 100) {
-        this.emitLog('error', `Failed to configure webhook. HTTP:${statusCode} API:${response?.statusCode} message:${response?.message}`)
+        await this.emitLog('error', `Failed to configure webhook. Existing webhook well be overridden. HTTP:${statusCode} API:${response?.statusCode} message:${response?.message}`)
       }
     } catch (e: any) {
-      this.emitLog('error', `Failed to configure webhook. Error: ${e.message}`)
+      await this.emitLog('error', `Failed to configure webhook. Error: ${e.message}`)
     }
-  }
 
-  /**
-   * Update webhook configuration.
-   * @param url The webhook URL.
-   */
-  async updateWebhook(url: string): Promise<void> {
     try {
       const { body, statusCode } = await request(updateWebhook, {
         method: 'POST',
@@ -200,20 +260,15 @@ export class SwitchBotOpenAPI extends EventEmitter {
           },
         }),
       })
-      const response = await body.json() as ApiResponse
-      this.emitLog('debug', `updateWebhook: url:${url}, body:${JSON.stringify(response)}, statusCode:${statusCode}`)
+      const response: any = await body.json() as ApiResponse
+      await this.emitLog('debug', `updateWebhook: url:${url}, body:${JSON.stringify(response)}, statusCode:${statusCode}`)
       if (statusCode !== 200 || response?.statusCode !== 100) {
-        this.emitLog('error', `Failed to update webhook. HTTP:${statusCode} API:${response?.statusCode} message:${response?.message}`)
+        await this.emitLog('error', `Failed to update webhook. HTTP:${statusCode} API:${response?.statusCode} message:${response?.message}`)
       }
     } catch (e: any) {
-      this.emitLog('error', `Failed to update webhook. Error: ${e.message}`)
+      await this.emitLog('error', `Failed to update webhook. Error:${e.message}`)
     }
-  }
 
-  /**
-   * Query webhook configuration.
-   */
-  async queryWebhook(): Promise<void> {
     try {
       const { body, statusCode } = await request(queryWebhook, {
         method: 'POST',
@@ -222,22 +277,25 @@ export class SwitchBotOpenAPI extends EventEmitter {
           action: 'queryUrl',
         }),
       })
-      const response = await body.json() as ApiResponse
-      this.emitLog('debug', `queryWebhook: body:${JSON.stringify(response)}`)
-      this.emitLog('debug', `queryWebhook: statusCode:${statusCode}`)
+      const response: any = await body.json() as ApiResponse
+      await this.emitLog('debug', `queryWebhook: body:${JSON.stringify(response)}, statusCode:${statusCode}`)
       if (statusCode !== 200 || response?.statusCode !== 100) {
-        this.emitLog('error', `Failed to query webhook. HTTP:${statusCode} API:${response?.statusCode} message:${response?.message}`)
+        await this.emitLog('error', `Failed to query webhook. HTTP:${statusCode} API:${response?.statusCode} message:${response?.message}`)
       } else {
-        this.emitLog('info', `Listening webhook on ${response?.body?.urls?.[0]}`)
+        await this.emitLog('info', `Listening webhook on ${response?.body?.urls[0]}`)
       }
     } catch (e: any) {
-      this.emitLog('error', `Failed to query webhook. Error: ${e.message}`)
+      await this.emitLog('error', `Failed to query webhook. Error:${e}`)
     }
   }
 
   /**
-   * Delete webhook configuration.
-   * @param url The webhook URL.
+   * Deletes a webhook by sending a request to the specified URL.
+   *
+   * @param url - The URL of the webhook to be deleted.
+   * @returns A promise that resolves when the webhook is successfully deleted.
+   *
+   * @throws Will log an error if the deletion fails.
    */
   async deleteWebhook(url: string): Promise<void> {
     try {
@@ -249,16 +307,15 @@ export class SwitchBotOpenAPI extends EventEmitter {
           url,
         }),
       })
-      const response = await body.json() as ApiResponse
-      this.emitLog('debug', `deleteWebhook: url:${url}, body:${JSON.stringify(response)}`)
-      this.emitLog('debug', `statusCode: ${statusCode}`)
+      const response: any = await body.json() as ApiResponse
+      await this.emitLog('debug', `deleteWebhook: url:${url}, body:${JSON.stringify(response)}, statusCode:${statusCode}`)
       if (statusCode !== 200 || response?.statusCode !== 100) {
-        this.emitLog('error', `Failed to delete webhook. HTTP:${statusCode} API:${response?.statusCode} message:${response?.message}`)
+        await this.emitLog('error', `Failed to delete webhook. HTTP:${statusCode} API:${response?.statusCode} message:${response?.message}`)
       } else {
-        this.emitLog('info', 'Unregistered webhook to close listening.')
+        await this.emitLog('info', 'Unregistered webhook to close listening.')
       }
     } catch (e: any) {
-      this.emitLog('error', `Failed to delete webhook. Error: ${e.message}`)
+      await this.emitLog('error', `Failed to delete webhook. Error:${e.message}`)
     }
   }
 }
