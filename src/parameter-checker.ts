@@ -17,7 +17,7 @@ interface Rule {
   type?: 'float' | 'integer' | 'boolean' | 'array' | 'object' | 'string'
 }
 
-class ParameterChecker {
+export class ParameterChecker {
   private _error: ErrorObject | null = null
 
   /**

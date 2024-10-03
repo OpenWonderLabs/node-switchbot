@@ -148,7 +148,7 @@ export class SwitchbotDevice {
    * Retrieves the device characteristics.
    * @returns A Promise that resolves with the device characteristics.
    */
-  private async getCharacteristics(): Promise<Chars> {
+  public async getCharacteristics(): Promise<Chars> {
     const timer = setTimeout(() => {
       throw new Error('Failed to discover services and characteristics: TIMEOUT')
     }, 5000)
@@ -186,7 +186,7 @@ export class SwitchbotDevice {
    * Discovers the device services.
    * @returns A Promise that resolves with the list of services.
    */
-  private async discoverServices(): Promise<Noble.Service[]> {
+  public async discoverServices(): Promise<Noble.Service[]> {
     const services = await this._peripheral.discoverServicesAsync([])
     const primaryServices = services.filter(s => s.uuid === SERV_UUID_PRIMARY)
     if (primaryServices.length === 0) {

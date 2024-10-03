@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [3.0.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.0.0) (2024-10-03)
+
+### What's Changed
+#### ⚠️ Breaking Changes
+- Have added OpenAPI Functionality into `node-switchbot`, so now it is able to handle both APIs with just one module.
+  - There are now two different Classes `SwitchBotBLE` and `SwitchBotOpenAPI` that can be used interact with the two different APIs
+    - You will need to update your current setup from`SwitchBot` to `SwitchBotBLE` to be able to interact with the BLE API
+- Updated the documents to explain both the `BLE` and the `OpenAPI` Functionality within `node-switchbot`
+
+#### Other Changes
+- Housekeeping and update dependencies
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v2.4.0...v3.0.0
+
 ## [2.4.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v2.4.0) (2024-09-13)
 
 ### What's Changed

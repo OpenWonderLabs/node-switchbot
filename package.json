@@ -41,8 +41,8 @@
     "prepublishOnly": "npm run lint && npm run build",
     "postpublish": "npm run clean",
     "clean": "shx rm -rf ./dist",
-    "test-coverage": "jest --coverage --forceExit --detectOpenHandles",
-    "test": "npm run lint",
+    "test": "vitest run",
+    "test-coverage": "npm run test -- --coverage",
     "docs": "typedoc",
     "lint-docs": "typedoc --emit none --treatWarningsAsErrors"
   },

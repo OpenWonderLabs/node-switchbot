@@ -29,7 +29,7 @@ import { SwitchBotBLEModel } from './types/types.js'
 /**
  * SwitchBot class to interact with SwitchBot devices.
  */
-export class SwitchBot {
+export class SwitchBotBLE {
   private ready: Promise<void>
   noble!: typeof Noble
   ondiscover?: (device: SwitchbotDevice) => void
