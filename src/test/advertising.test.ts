@@ -70,7 +70,7 @@ describe('advertising', () => {
       const mockLog = vi.fn()
       vi.spyOn(Advertising as any, 'parseServiceData').mockResolvedValue(null)
 
-      const result = await Advertising.parse(peripheral, mockLog)
+      const result = await Advertising.parse(peripheral)
       expect(result).toBeNull()
       expect(mockLog).toHaveBeenCalledWith('[parseAdvertising.test-id.\x01] return null, parsed serviceData empty!')
     })

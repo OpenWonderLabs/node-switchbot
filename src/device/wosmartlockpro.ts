@@ -4,6 +4,7 @@
  */
 import type * as Noble from '@stoprocent/noble'
 
+import type { SwitchBotBLE } from '../switchbot-ble.js'
 import type { lockProServiceData } from '../types/bledevicestatus.js'
 
 import { Buffer } from 'node:buffer'
@@ -18,6 +19,7 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/lock.md
  */
 export class WoSmartLockPro extends SwitchbotDevice {
+  static switchBotBLE: SwitchBotBLE
   public iv: Buffer | null = null
   public key_id: string = ''
   public encryption_key: Buffer | null = null
@@ -54,10 +56,9 @@ export class WoSmartLockPro extends SwitchbotDevice {
   static async parseServiceData(
     serviceData: Buffer,
     manufacturerData: Buffer,
-    onlog?: (message: string) => void,
   ): Promise<lockProServiceData | null> {
     if (manufacturerData.length < 11) {
-      onlog?.(`[parseServiceDataForWoSmartLockPro] Buffer length ${manufacturerData.length} is too short!`)
+      this.switchBotBLE.emitLog('error', `[parseServiceDataForWoSmartLockPro] Buffer length ${manufacturerData.length} is too short!`)
       return null
     }
 

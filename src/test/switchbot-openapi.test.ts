@@ -1,4 +1,5 @@
 import { request } from 'undici'
+import { describe, expect, it } from 'vitest'
 
 import { SwitchBotOpenAPI } from '../switchbot-openapi.js'
 

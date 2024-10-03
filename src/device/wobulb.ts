@@ -2,6 +2,8 @@
  *
  * wobulb.ts: Switchbot BLE API registration.
  */
+import type { SwitchBotBLE } from '../switchbot-ble.js'
+
 import { Buffer } from 'node:buffer'
 
 import { SwitchbotDevice } from '../device.js'
@@ -12,24 +14,23 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/colorbulb.md
  */
 export class WoBulb extends SwitchbotDevice {
+  static switchBotBLE: SwitchBotBLE
   /**
    * Parses the service data for WoBulb.
    * @param {Buffer} serviceData - The service data buffer.
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
-   * @param {Function} [onlog] - Optional logging function.
    * @returns {Promise<object | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     serviceData: Buffer,
     manufacturerData: Buffer,
-    onlog?: (message: string) => void,
   ): Promise<object | null> {
     if (serviceData.length !== 18) {
-      onlog?.(`[parseServiceDataForWoBulb] Buffer length ${serviceData.length} !== 18!`)
+      this.switchBotBLE.emitLog('error', `[parseServiceDataForWoBulb] Buffer length ${serviceData.length} !== 18!`)
       return null
     }
     if (manufacturerData.length !== 13) {
-      onlog?.(`[parseServiceDataForWoBulb] Buffer length ${manufacturerData.length} !== 13!`)
+      this.switchBotBLE.emitLog('error', `[parseServiceDataForWoBulb] Buffer length ${manufacturerData.length} !== 13!`)
       return null
     }
 

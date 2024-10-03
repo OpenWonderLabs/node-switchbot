@@ -6,6 +6,9 @@ import type * as Noble from '@stoprocent/noble'
 
 import type { Ad, Params } from './types/types.js'
 
+import { error } from 'node:console'
+import { EventEmitter } from 'node:events'
+
 import { Advertising } from './advertising.js'
 import { SwitchbotDevice } from './device.js'
 import { WoBlindTilt } from './device/woblindtilt.js'
@@ -25,16 +28,14 @@ import { WoSmartLockPro } from './device/wosmartlockpro.js'
 import { WoStrip } from './device/wostrip.js'
 import { parameterChecker } from './parameter-checker.js'
 import { SwitchBotBLEModel } from './types/types.js'
-
 /**
  * SwitchBot class to interact with SwitchBot devices.
  */
-export class SwitchBotBLE {
+export class SwitchBotBLE extends EventEmitter {
   private ready: Promise<void>
   noble!: typeof Noble
   ondiscover?: (device: SwitchbotDevice) => void
   onadvertisement?: (ad: Ad) => void
-  onlog: ((message: string) => void) | undefined
   DEFAULT_DISCOVERY_DURATION = 5000
   PRIMARY_SERVICE_UUID_LIST = []
 
@@ -45,7 +46,18 @@ export class SwitchBotBLE {
    * @param {typeof Noble} [params.noble] - Optional noble instance
    */
   constructor(params?: Params) {
+    super()
     this.ready = this.init(params)
+  }
+
+  /**
+   * Emits a log event with the specified log level and message.
+   *
+   * @param level - The severity level of the log (e.g., 'info', 'warn', 'error').
+   * @param message - The log message to be emitted.
+   */
+  public async emitLog(level: string, message: string): Promise<void> {
+    this.emit('log', { level, message })
   }
 
   /**
@@ -112,6 +124,7 @@ export class SwitchBotBLE {
       )
 
       if (!valid) {
+        this.emitLog('error', `parameterChecker: ${JSON.stringify(parameterChecker.error!.message)}`)
         reject(new Error(parameterChecker.error!.message))
         return
       }
@@ -241,7 +254,7 @@ export class SwitchBotBLE {
    * @returns {Promise<SwitchbotDevice | null>} - The device object or null.
    */
   async getDeviceObject(peripheral: Noble.Peripheral, id: string, model: string): Promise<SwitchbotDevice | null> {
-    const ad = await Advertising.parse(peripheral, this.onlog)
+    const ad = await Advertising.parse(peripheral)
     if (ad && await this.filterAdvertising(ad, id, model)) {
       let device
       if (ad && ad.serviceData && ad.serviceData.model) {
@@ -378,6 +391,7 @@ export class SwitchBotBLE {
         false,
       )
       if (!valid) {
+        this.emitLog('error', `parameterChecker: ${JSON.stringify(parameterChecker.error!.message)}`)
         reject(new Error(parameterChecker.error!.message))
         return
       }
@@ -396,7 +410,7 @@ export class SwitchBotBLE {
 
           // Set a handler for the 'discover' event
           this.noble.on('discover', async (peripheral: Noble.Peripheral) => {
-            const ad = await Advertising.parse(peripheral, this.onlog)
+            const ad = await Advertising.parse(peripheral)
             if (ad && await this.filterAdvertising(ad, p.id, p.model)) {
               if (
                 this.onadvertisement
@@ -414,10 +428,12 @@ export class SwitchBotBLE {
           ).then(() => {
             resolve()
           }).catch((error: Error) => {
+            this.emitLog('error', `startScanning error: ${JSON.stringify(error!.message)}`)
             reject(error)
           })
         })
         .catch((error) => {
+          this.emitLog('error', `startScanning error: ${JSON.stringify(error!.message)}`)
           reject(error)
         })
     })
@@ -436,6 +452,7 @@ export class SwitchBotBLE {
 
     this.noble.removeAllListeners('discover')
     this.noble.stopScanningAsync()
+    this.emitLog('debug', 'Stops scanning for SwitchBot BLE devices.')
   }
 
   /**
@@ -458,6 +475,7 @@ export class SwitchBotBLE {
       )
 
       if (!valid) {
+        this.emitLog('error', `parameterChecker: ${JSON.stringify(parameterChecker.error!.message)}`)
         reject(new Error(parameterChecker.error!.message))
         return
       }

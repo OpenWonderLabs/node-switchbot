@@ -6,12 +6,12 @@ The `SwitchBotOpenAPI` class allows you to interact with SwitchBot devices using
 
 - [OpenAPI](#openapi)
   - [Importing and Setting Up](#importing-and-setting-up)
-  - [SwitchBotOpenAPI Object](#switchbotopenapi-object)
-    - [getDevices() Method](#getdevices-method)
-    - [controlDevice() Method](#controldevice-method)
-    - [getDeviceStatus() Method](#getdevicestatus-method)
-    - [setupWebhook() Method](#setupwebhook-method)
-    - [deleteWebhook() Method](#deletewebhook-method)
+  - [`SwitchBotOpenAPI` Object](#switchbotopenapi-object)
+    - [`getDevices()` Method](#getdevices-method)
+    - [`controlDevice()` Method](#controldevice-method)
+    - [`getDeviceStatus()` Method](#getdevicestatus-method)
+    - [`setupWebhook()` Method](#setupwebhook-method)
+    - [`deleteWebhook()` Method](#deletewebhook-method)
   - [Logging](#logging)
   - [Supported Devices](#supported-devices)
 

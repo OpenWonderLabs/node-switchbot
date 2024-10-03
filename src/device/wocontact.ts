@@ -4,6 +4,8 @@
  */
 import type { Buffer } from 'node:buffer'
 
+import type { SwitchBotBLE } from '../switchbot-ble.js'
+
 import { SwitchbotDevice } from '../device.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
@@ -12,18 +14,17 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/contactsensor.md
  */
 export class WoContact extends SwitchbotDevice {
+  static switchBotBLE: SwitchBotBLE
   /**
    * Parses the service data for WoContact.
    * @param {Buffer} serviceData - The service data buffer.
-   * @param {Function} [onlog] - Optional logging function.
    * @returns {Promise<object | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     serviceData: Buffer,
-    onlog?: (message: string) => void,
   ): Promise<object | null> {
     if (serviceData.length !== 9) {
-      onlog?.(`[parseServiceDataForWoContact] Buffer length ${serviceData.length} !== 9!`)
+      this.switchBotBLE.emitLog('error', `[parseServiceDataForWoContact] Buffer length ${serviceData.length} !== 9!`)
       return null
     }
 

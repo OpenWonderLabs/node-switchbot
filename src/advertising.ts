@@ -4,6 +4,7 @@
  */
 import type * as Noble from '@stoprocent/noble'
 
+import type { SwitchBotBLE } from './switchbot-ble.js'
 import type { Ad, ServiceData } from './types/types.js'
 
 import { Buffer } from 'node:buffer'
@@ -29,6 +30,7 @@ import { SwitchBotBLEModel } from './types/types.js'
  * Represents the advertising data parser for SwitchBot devices.
  */
 export class Advertising {
+  static switchBotBLE: SwitchBotBLE
   constructor() {}
 
   /**
@@ -38,12 +40,10 @@ export class Advertising {
    * and extracts relevant information based on the device type.
    *
    * @param {Noble.Peripheral} peripheral - The peripheral device object from noble.
-   * @param {(message: string) => void} [onlog] - A logging function for debugging purposes.
    * @returns {Promise<Ad | null>} - An object containing parsed data specific to the SwitchBot device type, or `null` if the device is not recognized.
    */
   static async parse(
     peripheral: Noble.Peripheral,
-    onlog?: (message: string) => void,
   ): Promise<Ad | null> {
     const ad = peripheral.advertisement
     if (!ad || !ad.serviceData) {
@@ -58,9 +58,9 @@ export class Advertising {
     }
 
     const model = serviceData.subarray(0, 1).toString('utf8')
-    const sd = await Advertising.parseServiceData(model, serviceData, manufacturerData, onlog)
+    const sd = await Advertising.parseServiceData(model, serviceData, manufacturerData)
     if (!sd) {
-      onlog?.(`[parseAdvertising.${peripheral.id}.${model}] return null, parsed serviceData empty!`)
+      this.switchBotBLE.emitLog('error', `[parseAdvertising.${peripheral.id}.${model}] return null, parsed serviceData empty!`)
       return null
     }
 
@@ -72,7 +72,7 @@ export class Advertising {
       serviceData: { model, ...sd } as ServiceData,
     }
 
-    onlog?.(`[parseAdvertising.${peripheral.id}.${model}] return ${JSON.stringify(data)}`)
+    this.switchBotBLE.emitLog('debug', `[parseAdvertising.${peripheral.id}.${model}] return ${JSON.stringify(data)}`)
     return data
   }
 
@@ -92,55 +92,53 @@ export class Advertising {
    * @param {string} model - The device model.
    * @param {Buffer} serviceData - The service data buffer.
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
-   * @param {(message: string) => void} [onlog] - A logging function for debugging purposes.
    * @returns {Promise<any>} - The parsed service data.
    */
   private static async parseServiceData(
     model: string,
     serviceData: Buffer,
     manufacturerData: Buffer,
-    onlog?: (message: string) => void,
   ): Promise<any> {
     switch (model) {
       case SwitchBotBLEModel.Bot:
-        return WoHand.parseServiceData(serviceData, onlog)
+        return WoHand.parseServiceData(serviceData)
       case SwitchBotBLEModel.Curtain:
       case SwitchBotBLEModel.Curtain3:
-        return WoCurtain.parseServiceData(serviceData, manufacturerData, onlog)
+        return WoCurtain.parseServiceData(serviceData, manufacturerData)
       case SwitchBotBLEModel.Humidifier:
-        return WoHumi.parseServiceData(serviceData, onlog)
+        return WoHumi.parseServiceData(serviceData)
       case SwitchBotBLEModel.Meter:
-        return WoSensorTH.parseServiceData(serviceData, onlog)
+        return WoSensorTH.parseServiceData(serviceData)
       case SwitchBotBLEModel.MeterPlus:
-        return WoSensorTH.parseServiceData_Plus(serviceData, onlog)
+        return WoSensorTH.parseServiceData_Plus(serviceData)
       case SwitchBotBLEModel.Hub2:
-        return WoHub2.parseServiceData(manufacturerData, onlog)
+        return WoHub2.parseServiceData(manufacturerData)
       case SwitchBotBLEModel.OutdoorMeter:
-        return WoIOSensorTH.parseServiceData(serviceData, manufacturerData, onlog)
+        return WoIOSensorTH.parseServiceData(serviceData, manufacturerData)
       case SwitchBotBLEModel.MotionSensor:
-        return WoPresence.parseServiceData(serviceData, onlog)
+        return WoPresence.parseServiceData(serviceData)
       case SwitchBotBLEModel.ContactSensor:
-        return WoContact.parseServiceData(serviceData, onlog)
+        return WoContact.parseServiceData(serviceData)
       case SwitchBotBLEModel.ColorBulb:
-        return WoBulb.parseServiceData(serviceData, manufacturerData, onlog)
+        return WoBulb.parseServiceData(serviceData, manufacturerData)
       case SwitchBotBLEModel.CeilingLight:
-        return WoCeilingLight.parseServiceData(manufacturerData, onlog)
+        return WoCeilingLight.parseServiceData(manufacturerData)
       case SwitchBotBLEModel.CeilingLightPro:
-        return WoCeilingLight.parseServiceData_Pro(manufacturerData, onlog)
+        return WoCeilingLight.parseServiceData_Pro(manufacturerData)
       case SwitchBotBLEModel.StripLight:
-        return WoStrip.parseServiceData(serviceData, onlog)
+        return WoStrip.parseServiceData(serviceData)
       case SwitchBotBLEModel.PlugMiniUS:
-        return WoPlugMini.parseServiceData_US(manufacturerData, onlog)
+        return WoPlugMini.parseServiceData_US(manufacturerData)
       case SwitchBotBLEModel.PlugMiniJP:
-        return WoPlugMini.parseServiceData_JP(manufacturerData, onlog)
+        return WoPlugMini.parseServiceData_JP(manufacturerData)
       case SwitchBotBLEModel.Lock:
-        return WoSmartLock.parseServiceData(serviceData, manufacturerData, onlog)
+        return WoSmartLock.parseServiceData(serviceData, manufacturerData)
       case SwitchBotBLEModel.LockPro:
-        return WoSmartLockPro.parseServiceData(serviceData, manufacturerData, onlog)
+        return WoSmartLockPro.parseServiceData(serviceData, manufacturerData)
       case SwitchBotBLEModel.BlindTilt:
-        return WoBlindTilt.parseServiceData(serviceData, manufacturerData, onlog)
+        return WoBlindTilt.parseServiceData(serviceData, manufacturerData)
       default:
-        onlog?.(`[parseAdvertising.${model}] return null, model "${model}" not available!`)
+        this.switchBotBLE.emitLog('debug', `[parseAdvertising.${model}] return null, model "${model}" not available!`)
         return null
     }
   }

@@ -1,6 +1,6 @@
 # SwitchBot BLE Documentation
 
-The `SwitchBot` class allows you to interact with SwitchBot devices using the SwitchBot BLE. This documentation provides an overview of how to install, set up, and use the various methods available in the `SwitchBot` class.
+The `SwitchBot` class allows you to interact with SwitchBot devices using the SwitchBot BLE. This documentation provides an overview of how to install, set up, and use the various methods available in the `SwitchBotBLE` class.
 
 ## Table of Contents
 
@@ -8,7 +8,7 @@ The `SwitchBot` class allows you to interact with SwitchBot devices using the Sw
   - [Supported OS](#supported-os)
   - [Dependencies](#dependencies)
   - [Importing and Setting Up](#importing-and-setting-up)
-  - [`SwitchBot` Object](#switchbot-object)
+  - [`SwitchBotBLE` Object](#switchbot-object)
     - [`discover()` method](#discover-method)
     - [`ondiscover` event handler](#ondiscover-event-handler)
     - [`startScan()` method](#startscan-method)
@@ -69,10 +69,10 @@ The node-switchbot supports only Linux-based OSes, such as Raspbian, Ubuntu, and
 
 ### Importing and Setting Up
 
-To use the `SwitchBot` class in `node-switchbot`, you need to import it and create an instance.
+To use the `SwitchBotBLE` class in `node-switchbot`, you need to import it and create an instance.
 
 ```typescript
-import { SwitchBot } from 'node-switchbot'
+import { SwitchBotBLE } from 'node-switchbot'
 
 // Example usage
 const switchbot = new SwitchBotBLE()
@@ -84,9 +84,9 @@ try {
 }
 ```
 
-### `SwitchBot` Object
+### `SwitchBotBLE` Object
 
-The `SwitchBot` constructor takes an argument optionally. It must be a hash object containing the properties as follows:
+The `SwitchBotBLE` constructor takes an argument optionally. It must be a hash object containing the properties as follows:
 
 | Property | Type  | Required | Description                                                                             |
 | :------- | :---- | :------- | :-------------------------------------------------------------------------------------- |
@@ -103,7 +103,7 @@ const noble = require('@stoprocent/noble');
 const switchbot = new SwitchBotBLE({ 'noble': Noble })
 ```
 
-In the code snippet above, the variable `switchbot` is an `SwitchBot` object. The `SwitchBot` object has a lot of methods as described in sections below.
+In the code snippet above, the variable `switchbot` is an `SwitchBotBLE` object. The `SwitchBotBLE` object has a lot of methods as described in sections below.
 
 #### `discover()` method
 
@@ -767,7 +767,7 @@ After the [`startScan()`](#startscan-method) method is invoked, the [`onadvertis
 
 ```Typescript
 // Load the node-switchbot and get a `Switchbot` constructor object
-import { SwitchBot } from 'node-switchbot';
+import { SwitchBotBLE } from 'node-switchbot';
 // Create a `Switchbot` object
 const switchbot = new SwitchBotBLE();
 
@@ -1060,7 +1060,7 @@ This sample discovers a Bot (WoHand), then put the Bot's arm down, finally put i
 
 ```Typescript
 // Load the node-switchbot and get a `Switchbot` constructor object
-import { SwitchBot } from 'node-switchbot';
+import { SwitchBotBLE } from 'node-switchbot';
 // Create a `Switchbot` object
 const switchbot = new SwitchBotBLE();
 
@@ -1106,4 +1106,4 @@ The following devices are supported.
 
 ### Summary
 
-The `SwitchBot` class provides a powerful way to interact with your SwitchBot devices through BLE. By following the examples provided, you can easily integrate SwitchBot device control and monitoring into your applications.
+The `SwitchBotBLE` class provides a powerful way to interact with your SwitchBot devices through BLE. By following the examples provided, you can easily integrate SwitchBot device control and monitoring into your applications.

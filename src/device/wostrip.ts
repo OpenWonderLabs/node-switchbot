@@ -2,6 +2,7 @@
  *
  * wostrip.ts: Switchbot BLE API registration.
  */
+import type { SwitchBotBLE } from '../switchbot-ble.js'
 import type { stripLightServiceData } from '../types/bledevicestatus.js'
 
 import { Buffer } from 'node:buffer'
@@ -14,18 +15,17 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/ledstriplight.md
  */
 export class WoStrip extends SwitchbotDevice {
+  static switchBotBLE: SwitchBotBLE
   /**
    * Parses the service data from the SwitchBot Strip Light.
    * @param {Buffer} serviceData - The service data buffer.
-   * @param {(message: string) => void} [onlog] - Optional logging function.
    * @returns {Promise<stripLightServiceData | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     serviceData: Buffer,
-    onlog?: (message: string) => void,
   ): Promise<stripLightServiceData | null> {
     if (serviceData.length !== 18) {
-      onlog?.(`[parseServiceDataForWoStrip] Buffer length ${serviceData.length} !== 18!`)
+      this.switchBotBLE.emitLog('error', `[parseServiceDataForWoStrip] Buffer length ${serviceData.length} !== 18!`)
       return null
     }
 
