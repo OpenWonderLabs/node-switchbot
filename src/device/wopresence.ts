@@ -4,7 +4,6 @@
  */
 import type { Buffer } from 'node:buffer'
 
-import type { SwitchBotBLE } from '../switchbot-ble.js'
 import type { motionSensorServiceData } from '../types/bledevicestatus.js'
 
 import { SwitchbotDevice } from '../device.js'
@@ -15,17 +14,18 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/meter.md
  */
 export class WoPresence extends SwitchbotDevice {
-  static switchBotBLE: SwitchBotBLE
   /**
    * Parses the service data for WoPresence.
    * @param {Buffer} serviceData - The service data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<motionSensorServiceData | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     serviceData: Buffer,
+    emitLog: (level: string, message: string) => void,
   ): Promise<motionSensorServiceData | null> {
     if (serviceData.length !== 6) {
-      WoPresence.switchBotBLE.emitLog('error', `[parseServiceDataForWoPresence] Buffer length ${serviceData.length} !== 6!`)
+      emitLog('error', `[parseServiceDataForWoPresence] Buffer length ${serviceData.length} !== 6!`)
       return null
     }
 

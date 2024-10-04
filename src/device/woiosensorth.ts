@@ -4,8 +4,6 @@
  */
 import type { Buffer } from 'node:buffer'
 
-import type { SwitchBotBLE } from '../switchbot-ble.js'
-
 import { SwitchbotDevice } from '../device.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
@@ -14,23 +12,24 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/meter.md#outdoor-temperaturehumidity-sensor
  */
 export class WoIOSensorTH extends SwitchbotDevice {
-  static switchBotBLE: SwitchBotBLE
   /**
    * Parses the service data for WoIOSensorTH.
    * @param {Buffer} serviceData - The service data buffer.
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<object | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     serviceData: Buffer,
     manufacturerData: Buffer,
+    emitLog: (level: string, message: string) => void,
   ): Promise<object | null> {
     if (serviceData.length !== 3) {
-      WoIOSensorTH.switchBotBLE.emitLog('error', `[parseServiceDataForWoIOSensorTH] Service Data Buffer length ${serviceData.length} !== 3!`)
+      emitLog('error', `[parseServiceDataForWoIOSensorTH] Service Data Buffer length ${serviceData.length} !== 3!`)
       return null
     }
     if (manufacturerData.length !== 14) {
-      WoIOSensorTH.switchBotBLE.emitLog('error', `[parseServiceDataForWoIOSensorTH] Manufacturer Data Buffer length ${manufacturerData.length} !== 14!`)
+      emitLog('error', `[parseServiceDataForWoIOSensorTH] Manufacturer Data Buffer length ${manufacturerData.length} !== 14!`)
       return null
     }
 

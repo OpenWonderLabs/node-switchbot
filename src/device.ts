@@ -7,6 +7,7 @@ import type * as Noble from '@stoprocent/noble'
 import type { Chars, SwitchBotBLEModel, SwitchBotBLEModelName } from './types/types.js'
 
 import { Buffer } from 'node:buffer'
+import { EventEmitter } from 'node:events'
 
 import { Advertising } from './advertising.js'
 import { parameterChecker } from './parameter-checker.js'
@@ -14,16 +15,16 @@ import {
   CHAR_UUID_DEVICE,
   CHAR_UUID_NOTIFY,
   CHAR_UUID_WRITE,
-  COMMAND_TIMEOUT_MSEC,
   READ_TIMEOUT_MSEC,
   SERV_UUID_PRIMARY,
   WRITE_TIMEOUT_MSEC,
 } from './settings.js'
+import { SwitchBotBLE } from './switchbot-ble.js'
 
 /**
  * Represents a Switchbot Device.
  */
-export class SwitchbotDevice {
+export class SwitchbotDevice extends EventEmitter {
   private _noble: typeof Noble
   private _peripheral: Noble.Peripheral
   private _characteristics: Chars | null = null
@@ -34,6 +35,7 @@ export class SwitchbotDevice {
   private _explicitly = false
   private _connected = false
   private onnotify_internal: (buf: Buffer) => void = () => {}
+
   private ondisconnect_internal: () => Promise<void> = async () => {}
   private onconnect_internal: () => Promise<void> = async () => {}
 
@@ -43,15 +45,26 @@ export class SwitchbotDevice {
    * @param noble The Noble object.
    */
   constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+    super()
     this._peripheral = peripheral
     this._noble = noble
 
-    Advertising.parse(peripheral).then((ad) => {
+    Advertising.parse(peripheral, this.emitLog.bind(this)).then((ad) => {
       this._id = ad?.id ?? ''
       this._address = ad?.address ?? ''
       this._model = ad?.serviceData.model as SwitchBotBLEModel ?? ''
       this._modelName = ad?.serviceData.modelName as SwitchBotBLEModelName ?? ''
     })
+  }
+
+  /**
+   * Emits a log event with the specified log level and message.
+   *
+   * @param level - The severity level of the log (e.g., 'info', 'warn', 'error').
+   * @param message - The log message to be emitted.
+   */
+  public async emitLog(level: string, message: string): Promise<void> {
+    this.emit('log', { level, message })
   }
 
   // Getters

@@ -2,7 +2,6 @@
  *
  * woplugmini.ts: Switchbot BLE API registration.
  */
-import type { SwitchBotBLE } from '../switchbot-ble.js'
 
 import { Buffer } from 'node:buffer'
 
@@ -14,41 +13,46 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/plugmini.md
  */
 export class WoPlugMini extends SwitchbotDevice {
-  static switchBotBLE: SwitchBotBLE
   /**
    * Parses the service data for WoPlugMini US.
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<object | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData_US(
     manufacturerData: Buffer,
+    emitLog: (level: string, message: string) => void,
   ): Promise<object | null> {
-    return this.parseServiceData(manufacturerData, SwitchBotBLEModel.PlugMiniUS)
+    return this.parseServiceData(manufacturerData, SwitchBotBLEModel.PlugMiniUS, emitLog)
   }
 
   /**
    * Parses the service data for WoPlugMini JP.
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<object | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData_JP(
     manufacturerData: Buffer,
+    emitLog: (level: string, message: string) => void,
   ): Promise<object | null> {
-    return this.parseServiceData(manufacturerData, SwitchBotBLEModel.PlugMiniJP)
+    return this.parseServiceData(manufacturerData, SwitchBotBLEModel.PlugMiniJP, emitLog)
   }
 
   /**
    * Parses the service data for WoPlugMini.
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
    * @param {SwitchBotBLEModel} model - The model of the plug mini.
+   * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<object | null>} - Parsed service data or null if invalid.
    */
   private static async parseServiceData(
     manufacturerData: Buffer,
     model: SwitchBotBLEModel,
+    emitLog: (level: string, message: string) => void,
   ): Promise<object | null> {
     if (manufacturerData.length !== 14) {
-      WoPlugMini.switchBotBLE.emitLog('error', `[parseServiceDataForWoPlugMini] Buffer length ${manufacturerData.length} should be 14`)
+      emitLog('error', `[parseServiceDataForWoPlugMini] Buffer length ${manufacturerData.length} should be 14`)
       return null
     }
 

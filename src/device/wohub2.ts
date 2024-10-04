@@ -4,8 +4,6 @@
  */
 import type { Buffer } from 'node:buffer'
 
-import type { SwitchBotBLE } from '../switchbot-ble.js'
-
 import { SwitchbotDevice } from '../device.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
@@ -14,17 +12,18 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/meter.md
  */
 export class WoHub2 extends SwitchbotDevice {
-  static switchBotBLE: SwitchBotBLE
   /**
    * Parses the service data for WoHub2.
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<object | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     manufacturerData: Buffer,
+    emitLog: (level: string, message: string) => void,
   ): Promise<object | null> {
     if (manufacturerData.length !== 16) {
-      WoHub2.switchBotBLE.emitLog('error', `[parseServiceDataForWoHub2] Buffer length ${manufacturerData.length} !== 16!`)
+      emitLog('error', `[parseServiceDataForWoHub2] Buffer length ${manufacturerData.length} !== 16!`)
       return null
     }
 

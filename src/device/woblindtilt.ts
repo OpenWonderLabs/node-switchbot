@@ -2,8 +2,6 @@
  *
  * woblindtilt.ts: Switchbot BLE API registration.
  */
-import type { SwitchBotBLE } from '../switchbot-ble.js'
-
 import { Buffer } from 'node:buffer'
 
 import { SwitchbotDevice } from '../device.js'
@@ -15,22 +13,23 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
  */
 export class WoBlindTilt extends SwitchbotDevice {
   private _reverse: boolean = false
-  static switchBotBLE: SwitchBotBLE
 
   /**
    * Parses the service data and manufacturer data for the WoBlindTilt device.
    * @param {Buffer} serviceData - The service data buffer.
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
    * @param {boolean} [reverse] - Whether to reverse the tilt percentage.
    * @returns {Promise<object | null>} - The parsed data object or null if the data is invalid.
    */
   static async parseServiceData(
     serviceData: Buffer,
     manufacturerData: Buffer,
+    emitLog: (level: string, message: string) => void,
     reverse: boolean = false,
   ): Promise<object | null> {
     if (![5, 6].includes(manufacturerData.length)) {
-      WoBlindTilt.switchBotBLE.emitLog('error', `[parseServiceDataForWoBlindTilt] Buffer length ${manufacturerData.length} !== 5 or 6!`)
+      emitLog('error', `[parseServiceDataForWoBlindTilt] Buffer length ${manufacturerData.length} !== 5 or 6!`)
       return null
     }
 
@@ -193,7 +192,7 @@ export class WoBlindTilt extends SwitchbotDevice {
    * @returns {Promise<void>}
    * @private
    */
-  private async operateBlindTilt(bytes: number[]): Promise<void> {
+  public async operateBlindTilt(bytes: number[]): Promise<void> {
     const reqBuf = Buffer.from(bytes)
     const resBuf = await this.command(reqBuf)
     if (resBuf.length !== 3 || resBuf.readUInt8(0) !== 0x01) {

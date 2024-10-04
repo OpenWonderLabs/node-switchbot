@@ -2,8 +2,6 @@
  *
  * woceilinglight.ts: Switchbot BLE API registration.
  */
-import type { SwitchBotBLE } from '../switchbot-ble.js'
-
 import { Buffer } from 'node:buffer'
 
 import { SwitchbotDevice } from '../device.js'
@@ -14,17 +12,18 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/colorbulb.md
  */
 export class WoCeilingLight extends SwitchbotDevice {
-  static switchBotBLE: SwitchBotBLE
   /**
    * Parses the service data for WoCeilingLight.
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<object | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     manufacturerData: Buffer,
+    emitLog: (level: string, message: string) => void,
   ): Promise<object | null> {
     if (manufacturerData.length !== 13) {
-      WoCeilingLight.switchBotBLE.emitLog('error', `[parseServiceDataForWoCeilingLight] Buffer length ${manufacturerData.length} !== 13!`)
+      emitLog('error', `[parseServiceDataForWoCeilingLight] Buffer length ${manufacturerData.length} !== 13!`)
       return null
     }
 
@@ -62,13 +61,15 @@ export class WoCeilingLight extends SwitchbotDevice {
   /**
    * Parses the service data for WoCeilingLight Pro.
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<object | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData_Pro(
     manufacturerData: Buffer,
+    emitLog: (level: string, message: string) => void,
   ): Promise<object | null> {
     if (manufacturerData.length !== 13) {
-      WoCeilingLight.switchBotBLE.emitLog('error', `[parseServiceDataForWoCeilingLightPro] Buffer length ${manufacturerData.length} !== 13!`)
+      emitLog('error', `[parseServiceDataForWoCeilingLightPro] Buffer length ${manufacturerData.length} !== 13!`)
       return null
     }
 

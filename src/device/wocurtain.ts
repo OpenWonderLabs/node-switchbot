@@ -2,8 +2,6 @@
  *
  * wocurtain.ts: Switchbot BLE API registration.
  */
-import type { SwitchBotBLE } from '../switchbot-ble.js'
-
 import { Buffer } from 'node:buffer'
 
 import { SwitchbotDevice } from '../device.js'
@@ -15,21 +13,22 @@ import { SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/t
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/curtain3.md
  */
 export class WoCurtain extends SwitchbotDevice {
-  static switchBotBLE: SwitchBotBLE
   /**
    * Parses the service data for WoCurtain.
    * @param {Buffer} serviceData - The service data buffer.
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
    * @param {boolean} [reverse] - Whether to reverse the position.
    * @returns {Promise<object | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     serviceData: Buffer,
     manufacturerData: Buffer,
+    emitLog: (level: string, message: string) => void,
     reverse: boolean = false,
   ): Promise<object | null> {
     if (![5, 6].includes(serviceData.length)) {
-      WoCurtain.switchBotBLE.emitLog('error', `[parseServiceDataForWoCurtain] Buffer length ${serviceData.length} !== 5 or 6!`)
+      emitLog('error', `[parseServiceDataForWoCurtain] Buffer length ${serviceData.length} !== 5 or 6!`)
       return null
     }
 

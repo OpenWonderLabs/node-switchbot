@@ -4,7 +4,6 @@
  */
 import type * as Noble from '@stoprocent/noble'
 
-import type { SwitchBotBLE } from './switchbot-ble.js'
 import type { Ad, ServiceData } from './types/types.js'
 
 import { Buffer } from 'node:buffer'
@@ -30,7 +29,6 @@ import { SwitchBotBLEModel } from './types/types.js'
  * Represents the advertising data parser for SwitchBot devices.
  */
 export class Advertising {
-  static switchBotBLE: SwitchBotBLE
   constructor() {}
 
   /**
@@ -40,10 +38,12 @@ export class Advertising {
    * and extracts relevant information based on the device type.
    *
    * @param {Noble.Peripheral} peripheral - The peripheral device object from noble.
+   * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<Ad | null>} - An object containing parsed data specific to the SwitchBot device type, or `null` if the device is not recognized.
    */
   static async parse(
     peripheral: Noble.Peripheral,
+    emitLog: (level: string, message: string) => void,
   ): Promise<Ad | null> {
     const ad = peripheral.advertisement
     if (!ad || !ad.serviceData) {
@@ -58,9 +58,9 @@ export class Advertising {
     }
 
     const model = serviceData.subarray(0, 1).toString('utf8')
-    const sd = await Advertising.parseServiceData(model, serviceData, manufacturerData)
+    const sd = await Advertising.parseServiceData(model, serviceData, manufacturerData, emitLog)
     if (!sd) {
-      this.switchBotBLE.emitLog('error', `[parseAdvertising.${peripheral.id}.${model}] return null, parsed serviceData empty!`)
+      emitLog('error', `[parseAdvertising.${peripheral.id}.${model}] return null, parsed serviceData empty!`)
       return null
     }
 
@@ -72,7 +72,7 @@ export class Advertising {
       serviceData: { model, ...sd } as ServiceData,
     }
 
-    this.switchBotBLE.emitLog('debug', `[parseAdvertising.${peripheral.id}.${model}] return ${JSON.stringify(data)}`)
+    emitLog('debug', `[parseAdvertising.${peripheral.id}.${model}] return ${JSON.stringify(data)}`)
     return data
   }
 
@@ -92,53 +92,55 @@ export class Advertising {
    * @param {string} model - The device model.
    * @param {Buffer} serviceData - The service data buffer.
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<any>} - The parsed service data.
    */
   private static async parseServiceData(
     model: string,
     serviceData: Buffer,
     manufacturerData: Buffer,
+    emitLog: (level: string, message: string) => void,
   ): Promise<any> {
     switch (model) {
       case SwitchBotBLEModel.Bot:
-        return WoHand.parseServiceData(serviceData)
+        return WoHand.parseServiceData(serviceData, emitLog)
       case SwitchBotBLEModel.Curtain:
       case SwitchBotBLEModel.Curtain3:
-        return WoCurtain.parseServiceData(serviceData, manufacturerData)
+        return WoCurtain.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.Humidifier:
-        return WoHumi.parseServiceData(serviceData)
+        return WoHumi.parseServiceData(serviceData, emitLog)
       case SwitchBotBLEModel.Meter:
-        return WoSensorTH.parseServiceData(serviceData)
+        return WoSensorTH.parseServiceData(serviceData, emitLog)
       case SwitchBotBLEModel.MeterPlus:
-        return WoSensorTH.parseServiceData_Plus(serviceData)
+        return WoSensorTH.parseServiceData_Plus(serviceData, emitLog)
       case SwitchBotBLEModel.Hub2:
-        return WoHub2.parseServiceData(manufacturerData)
+        return WoHub2.parseServiceData(manufacturerData, emitLog)
       case SwitchBotBLEModel.OutdoorMeter:
-        return WoIOSensorTH.parseServiceData(serviceData, manufacturerData)
+        return WoIOSensorTH.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.MotionSensor:
-        return WoPresence.parseServiceData(serviceData)
+        return WoPresence.parseServiceData(serviceData, emitLog)
       case SwitchBotBLEModel.ContactSensor:
-        return WoContact.parseServiceData(serviceData)
+        return WoContact.parseServiceData(serviceData, emitLog)
       case SwitchBotBLEModel.ColorBulb:
-        return WoBulb.parseServiceData(serviceData, manufacturerData)
+        return WoBulb.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.CeilingLight:
-        return WoCeilingLight.parseServiceData(manufacturerData)
+        return WoCeilingLight.parseServiceData(manufacturerData, emitLog)
       case SwitchBotBLEModel.CeilingLightPro:
-        return WoCeilingLight.parseServiceData_Pro(manufacturerData)
+        return WoCeilingLight.parseServiceData_Pro(manufacturerData, emitLog)
       case SwitchBotBLEModel.StripLight:
-        return WoStrip.parseServiceData(serviceData)
+        return WoStrip.parseServiceData(serviceData, emitLog)
       case SwitchBotBLEModel.PlugMiniUS:
-        return WoPlugMini.parseServiceData_US(manufacturerData)
+        return WoPlugMini.parseServiceData_US(manufacturerData, emitLog)
       case SwitchBotBLEModel.PlugMiniJP:
-        return WoPlugMini.parseServiceData_JP(manufacturerData)
+        return WoPlugMini.parseServiceData_JP(manufacturerData, emitLog)
       case SwitchBotBLEModel.Lock:
-        return WoSmartLock.parseServiceData(serviceData, manufacturerData)
+        return WoSmartLock.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.LockPro:
-        return WoSmartLockPro.parseServiceData(serviceData, manufacturerData)
+        return WoSmartLockPro.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.BlindTilt:
-        return WoBlindTilt.parseServiceData(serviceData, manufacturerData)
+        return WoBlindTilt.parseServiceData(serviceData, manufacturerData, emitLog)
       default:
-        this.switchBotBLE.emitLog('debug', `[parseAdvertising.${model}] return null, model "${model}" not available!`)
+        emitLog('debug', `[parseAdvertising.${model}] return null, model "${model}" not available!`)
         return null
     }
   }

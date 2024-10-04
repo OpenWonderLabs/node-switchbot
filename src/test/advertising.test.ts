@@ -13,7 +13,8 @@ describe('advertising', () => {
         advertisement: null,
       } as unknown as Noble.Peripheral
 
-      const result = await Advertising.parse(peripheral)
+      const mockLog = vi.fn()
+      const result = await Advertising.parse(peripheral, mockLog)
       expect(result).toBeNull()
     })
 
@@ -25,7 +26,8 @@ describe('advertising', () => {
         },
       } as unknown as Noble.Peripheral
 
-      const result = await Advertising.parse(peripheral)
+      const mockLog = vi.fn()
+      const result = await Advertising.parse(peripheral, mockLog)
       expect(result).toBeNull()
     })
 
@@ -42,10 +44,11 @@ describe('advertising', () => {
         address: '00:11:22:33:44:55',
       } as unknown as Noble.Peripheral
 
+      const mockLog = vi.fn()
       const mockParseServiceData = vi.fn().mockResolvedValue({ key: 'value' })
       vi.spyOn(Advertising as any, 'parseServiceData').mockImplementation(mockParseServiceData)
 
-      const result = await Advertising.parse(peripheral)
+      const result = await Advertising.parse(peripheral, mockLog)
       expect(result).toEqual({
         id: 'test-id',
         address: '00:11:22:33:44:55',
@@ -70,7 +73,7 @@ describe('advertising', () => {
       const mockLog = vi.fn()
       vi.spyOn(Advertising as any, 'parseServiceData').mockResolvedValue(null)
 
-      const result = await Advertising.parse(peripheral)
+      const result = await Advertising.parse(peripheral, mockLog)
       expect(result).toBeNull()
       expect(mockLog).toHaveBeenCalledWith('[parseAdvertising.test-id.\x01] return null, parsed serviceData empty!')
     })

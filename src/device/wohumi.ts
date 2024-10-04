@@ -2,8 +2,6 @@
  *
  * wohumi.ts: Switchbot BLE API registration.
  */
-import type { SwitchBotBLE } from '../switchbot-ble.js'
-
 import { Buffer } from 'node:buffer'
 
 import { SwitchbotDevice } from '../device.js'
@@ -14,17 +12,18 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/tree/latest/devicetypes
  */
 export class WoHumi extends SwitchbotDevice {
-  static switchBotBLE: SwitchBotBLE
   /**
    * Parses the service data for WoHumi.
    * @param {Buffer} serviceData - The service data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<object | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     serviceData: Buffer,
+    emitLog: (level: string, message: string) => void,
   ): Promise<object | null> {
     if (serviceData.length !== 8) {
-      WoHumi.switchBotBLE.emitLog('error', `[parseServiceDataForWoHumi] Buffer length ${serviceData.length} !== 8!`)
+      emitLog('error', `[parseServiceDataForWoHumi] Buffer length ${serviceData.length} !== 8!`)
       return null
     }
 

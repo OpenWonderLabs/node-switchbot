@@ -4,7 +4,6 @@
  */
 import type { Buffer } from 'node:buffer'
 
-import type { SwitchBotBLE } from '../switchbot-ble.js'
 import type { meterPlusServiceData, meterServiceData } from '../types/bledevicestatus.js'
 
 import { SwitchbotDevice } from '../device.js'
@@ -15,17 +14,18 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/meter.md
  */
 export class WoSensorTH extends SwitchbotDevice {
-  static switchBotBLE: SwitchBotBLE
   /**
    * Parses the service data for WoSensorTH.
    * @param {Buffer} serviceData - The service data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<meterServiceData | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     serviceData: Buffer,
+    emitLog: (level: string, message: string) => void,
   ): Promise<meterServiceData | null> {
     if (serviceData.length !== 6) {
-      WoSensorTH.switchBotBLE.emitLog('error', `[parseServiceDataForWoSensorTH] Buffer length ${serviceData.length} !== 6!`)
+      emitLog('error', `[parseServiceDataForWoSensorTH] Buffer length ${serviceData.length} !== 6!`)
       return null
     }
 
@@ -49,13 +49,15 @@ export class WoSensorTH extends SwitchbotDevice {
   /**
    * Parses the service data for WoSensorTH Plus.
    * @param {Buffer} serviceData - The service data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<meterPlusServiceData | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData_Plus(
     serviceData: Buffer,
+    emitLog: (level: string, message: string) => void,
   ): Promise<meterPlusServiceData | null> {
     if (serviceData.length !== 6) {
-      WoSensorTH.switchBotBLE.emitLog('error', `[parseServiceDataForWoSensorTHPlus] Buffer length ${serviceData.length} !== 6!`)
+      emitLog('error', `[parseServiceDataForWoSensorTHPlus] Buffer length ${serviceData.length} !== 6!`)
       return null
     }
 

@@ -6,7 +6,6 @@ import type * as Noble from '@stoprocent/noble'
 
 import type { Ad, Params } from './types/types.js'
 
-import { error } from 'node:console'
 import { EventEmitter } from 'node:events'
 
 import { Advertising } from './advertising.js'
@@ -254,7 +253,7 @@ export class SwitchBotBLE extends EventEmitter {
    * @returns {Promise<SwitchbotDevice | null>} - The device object or null.
    */
   async getDeviceObject(peripheral: Noble.Peripheral, id: string, model: string): Promise<SwitchbotDevice | null> {
-    const ad = await Advertising.parse(peripheral)
+    const ad = await Advertising.parse(peripheral, this.emitLog.bind(this))
     if (ad && await this.filterAdvertising(ad, id, model)) {
       let device
       if (ad && ad.serviceData && ad.serviceData.model) {
@@ -410,7 +409,7 @@ export class SwitchBotBLE extends EventEmitter {
 
           // Set a handler for the 'discover' event
           this.noble.on('discover', async (peripheral: Noble.Peripheral) => {
-            const ad = await Advertising.parse(peripheral)
+            const ad = await Advertising.parse(peripheral, this.emitLog.bind(this))
             if (ad && await this.filterAdvertising(ad, p.id, p.model)) {
               if (
                 this.onadvertisement
