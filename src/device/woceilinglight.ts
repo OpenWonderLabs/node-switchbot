@@ -24,7 +24,7 @@ export class WoCeilingLight extends SwitchbotDevice {
     manufacturerData: Buffer,
   ): Promise<object | null> {
     if (manufacturerData.length !== 13) {
-      this.switchBotBLE.emitLog('error', `[parseServiceDataForWoCeilingLight] Buffer length ${manufacturerData.length} !== 13!`)
+      WoCeilingLight.switchBotBLE.emitLog('error', `[parseServiceDataForWoCeilingLight] Buffer length ${manufacturerData.length} !== 13!`)
       return null
     }
 
@@ -68,7 +68,7 @@ export class WoCeilingLight extends SwitchbotDevice {
     manufacturerData: Buffer,
   ): Promise<object | null> {
     if (manufacturerData.length !== 13) {
-      this.switchBotBLE.emitLog('error', `[parseServiceDataForWoCeilingLightPro] Buffer length ${manufacturerData.length} !== 13!`)
+      WoCeilingLight.switchBotBLE.emitLog('error', `[parseServiceDataForWoCeilingLightPro] Buffer length ${manufacturerData.length} !== 13!`)
       return null
     }
 

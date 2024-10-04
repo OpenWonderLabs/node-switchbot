@@ -48,7 +48,7 @@ export class WoPlugMini extends SwitchbotDevice {
     model: SwitchBotBLEModel,
   ): Promise<object | null> {
     if (manufacturerData.length !== 14) {
-      this.switchBotBLE.emitLog('error', `[parseServiceDataForWoPlugMini] Buffer length ${manufacturerData.length} should be 14`)
+      WoPlugMini.switchBotBLE.emitLog('error', `[parseServiceDataForWoPlugMini] Buffer length ${manufacturerData.length} should be 14`)
       return null
     }
 

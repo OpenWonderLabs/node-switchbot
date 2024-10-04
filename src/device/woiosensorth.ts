@@ -26,11 +26,11 @@ export class WoIOSensorTH extends SwitchbotDevice {
     manufacturerData: Buffer,
   ): Promise<object | null> {
     if (serviceData.length !== 3) {
-      this.switchBotBLE.emitLog('error', `[parseServiceDataForWoIOSensorTH] Service Data Buffer length ${serviceData.length} !== 3!`)
+      WoIOSensorTH.switchBotBLE.emitLog('error', `[parseServiceDataForWoIOSensorTH] Service Data Buffer length ${serviceData.length} !== 3!`)
       return null
     }
     if (manufacturerData.length !== 14) {
-      this.switchBotBLE.emitLog('error', `[parseServiceDataForWoIOSensorTH] Manufacturer Data Buffer length ${manufacturerData.length} !== 14!`)
+      WoIOSensorTH.switchBotBLE.emitLog('error', `[parseServiceDataForWoIOSensorTH] Manufacturer Data Buffer length ${manufacturerData.length} !== 14!`)
       return null
     }
 

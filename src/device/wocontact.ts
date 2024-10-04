@@ -24,7 +24,7 @@ export class WoContact extends SwitchbotDevice {
     serviceData: Buffer,
   ): Promise<object | null> {
     if (serviceData.length !== 9) {
-      this.switchBotBLE.emitLog('error', `[parseServiceDataForWoContact] Buffer length ${serviceData.length} !== 9!`)
+      WoContact.switchBotBLE.emitLog('error', `[parseServiceDataForWoContact] Buffer length ${serviceData.length} !== 9!`)
       return null
     }
 

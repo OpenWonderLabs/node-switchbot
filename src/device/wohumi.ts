@@ -24,7 +24,7 @@ export class WoHumi extends SwitchbotDevice {
     serviceData: Buffer,
   ): Promise<object | null> {
     if (serviceData.length !== 8) {
-      this.switchBotBLE.emitLog('error', `[parseServiceDataForWoHumi] Buffer length ${serviceData.length} !== 8!`)
+      WoHumi.switchBotBLE.emitLog('error', `[parseServiceDataForWoHumi] Buffer length ${serviceData.length} !== 8!`)
       return null
     }
 

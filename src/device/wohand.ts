@@ -24,7 +24,7 @@ export class WoHand extends SwitchbotDevice {
     serviceData: Buffer,
   ): Promise<object | null> {
     if (serviceData.length !== 3) {
-      this.switchBotBLE.emitLog('error', `[parseServiceData] Buffer length ${serviceData.length} !== 3!`)
+      WoHand.switchBotBLE.emitLog('error', `[parseServiceData] Buffer length ${serviceData.length} !== 3!`)
       return null
     }
 

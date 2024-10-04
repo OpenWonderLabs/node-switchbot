@@ -24,7 +24,7 @@ export class WoHub2 extends SwitchbotDevice {
     manufacturerData: Buffer,
   ): Promise<object | null> {
     if (manufacturerData.length !== 16) {
-      this.switchBotBLE.emitLog('error', `[parseServiceDataForWoHub2] Buffer length ${manufacturerData.length} !== 16!`)
+      WoHub2.switchBotBLE.emitLog('error', `[parseServiceDataForWoHub2] Buffer length ${manufacturerData.length} !== 16!`)
       return null
     }
 

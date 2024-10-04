@@ -58,7 +58,7 @@ export class WoSmartLockPro extends SwitchbotDevice {
     manufacturerData: Buffer,
   ): Promise<lockProServiceData | null> {
     if (manufacturerData.length < 11) {
-      this.switchBotBLE.emitLog('error', `[parseServiceDataForWoSmartLockPro] Buffer length ${manufacturerData.length} is too short!`)
+      WoSmartLockPro.switchBotBLE.emitLog('error', `[parseServiceDataForWoSmartLockPro] Buffer length ${manufacturerData.length} is too short!`)
       return null
     }
 

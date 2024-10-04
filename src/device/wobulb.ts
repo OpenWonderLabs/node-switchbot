@@ -26,11 +26,11 @@ export class WoBulb extends SwitchbotDevice {
     manufacturerData: Buffer,
   ): Promise<object | null> {
     if (serviceData.length !== 18) {
-      this.switchBotBLE.emitLog('error', `[parseServiceDataForWoBulb] Buffer length ${serviceData.length} !== 18!`)
+      WoBulb.switchBotBLE.emitLog('error', `[parseServiceDataForWoBulb] Buffer length ${serviceData.length} !== 18!`)
       return null
     }
     if (manufacturerData.length !== 13) {
-      this.switchBotBLE.emitLog('error', `[parseServiceDataForWoBulb] Buffer length ${manufacturerData.length} !== 13!`)
+      WoBulb.switchBotBLE.emitLog('error', `[parseServiceDataForWoBulb] Buffer length ${manufacturerData.length} !== 13!`)
       return null
     }
 
