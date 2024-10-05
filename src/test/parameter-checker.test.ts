@@ -49,10 +49,10 @@ describe('parameterChecker', () => {
       const validObj = { age: 25, name: 'John' }
       const invalidObj = { age: 17, name: 'John' }
 
-      expect(await checker.check(validObj, rules)).toBe(true)
+      expect(await checker.check(validObj, rules, true)).toBe(true)
       expect(checker.error).toBeNull()
 
-      expect(await checker.check(invalidObj, rules)).toBe(false)
+      expect(await checker.check(invalidObj, rules, true)).toBe(false)
       expect(checker.error).toEqual({ code: 'VALUE_UNDERFLOW', message: 'The `age` must be greater than or equal to 18.' })
     })
   })

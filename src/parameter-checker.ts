@@ -1,26 +1,24 @@
+import type { ErrorObject, Rule } from './types/types.js'
+
+import { Buffer } from 'node:buffer'
 /* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
  * parameter-checker.ts: Switchbot BLE API registration.
  */
-import type { ErrorObject } from './types/types.js'
+import { EventEmitter } from 'node:events'
 
-import { Buffer } from 'node:buffer'
-
-import { emitLog } from './logger.js'
-
-interface Rule {
-  required?: boolean
-  min?: number
-  max?: number
-  minBytes?: number
-  maxBytes?: number
-  pattern?: RegExp
-  enum?: unknown[]
-  type?: 'float' | 'integer' | 'boolean' | 'array' | 'object' | 'string'
-}
-
-export class ParameterChecker {
+export class ParameterChecker extends EventEmitter {
   private _error: ErrorObject | null = null
+
+  /**
+   * Emits a log event with the specified log level and message.
+   *
+   * @param level - The severity level of the log (e.g., 'info', 'warn', 'error').
+   * @param message - The log message to be emitted.
+   */
+  private async emitLog(level: string, message: string): Promise<void> {
+    this.emit('log', { level, message })
+  }
 
   /**
    * Gets the current error object.
@@ -51,7 +49,7 @@ export class ParameterChecker {
    */
   async check(obj: Record<string, unknown>, rules: Record<string, Rule>, required: boolean = false): Promise<boolean> {
     this._error = null
-    emitLog('debug', `Using rules: ${JSON.stringify(rules)}`)
+    this.emitLog('debug', `Using rules: ${JSON.stringify(rules)}`)
 
     if (required && !this.isSpecified(obj)) {
       this._error = { code: 'MISSING_REQUIRED', message: 'The first argument is missing.' }

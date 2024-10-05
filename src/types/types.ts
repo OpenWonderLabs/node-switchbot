@@ -184,6 +184,17 @@ export interface AdvertisementData {
   manufacturerData: Buffer | null
 }
 
+export interface Rule {
+  required?: boolean
+  min?: number
+  max?: number
+  minBytes?: number
+  maxBytes?: number
+  pattern?: RegExp
+  enum?: unknown[]
+  type?: 'float' | 'integer' | 'boolean' | 'array' | 'object' | 'string'
+}
+
 /**
  * Enum for log levels.
  */

@@ -25,7 +25,6 @@ import { WoSensorTH } from './device/wosensorth.js'
 import { WoSmartLock } from './device/wosmartlock.js'
 import { WoSmartLockPro } from './device/wosmartlockpro.js'
 import { WoStrip } from './device/wostrip.js'
-// import { Logger } from './logger.js'
 import { parameterChecker } from './parameter-checker.js'
 import { SwitchBotBLEModel } from './types/types.js'
 /**
