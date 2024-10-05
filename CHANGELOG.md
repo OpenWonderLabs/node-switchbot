@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [3.0.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.0.1) (2024-10-05)
+
+### What's Changed
+- Hot Fix for `baseURL` which is used for sending `OpenAPI` commands 
+- Housekeeping and update dependencies
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v3.0.0...v3.0.1
+
 ## [3.0.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.0.0) (2024-10-05)
 
 ### What's Changed

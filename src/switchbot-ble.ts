@@ -26,6 +26,7 @@ import { WoSmartLock } from './device/wosmartlock.js'
 import { WoSmartLockPro } from './device/wosmartlockpro.js'
 import { WoStrip } from './device/wostrip.js'
 import { parameterChecker } from './parameter-checker.js'
+import { DEFAULT_DISCOVERY_DURATION, PRIMARY_SERVICE_UUID_LIST } from './settings.js'
 import { SwitchBotBLEModel } from './types/types.js'
 /**
  * SwitchBot class to interact with SwitchBot devices.
@@ -35,8 +36,6 @@ export class SwitchBotBLE extends EventEmitter {
   noble!: typeof Noble
   ondiscover?: (device: SwitchbotDevice) => void
   onadvertisement?: (ad: Ad) => void
-  DEFAULT_DISCOVERY_DURATION = 5000
-  PRIMARY_SERVICE_UUID_LIST = []
 
   /**
    * Constructor
@@ -132,9 +131,9 @@ export class SwitchBotBLE extends EventEmitter {
 
       // Determine the values of the parameters
       const p = {
-        duration: params.duration || this.DEFAULT_DISCOVERY_DURATION,
-        model: params.model || '',
-        id: params.id || '',
+        duration: params.duration ?? DEFAULT_DISCOVERY_DURATION,
+        model: params.model ?? '',
+        id: params.id ?? '',
         quick: !!params.quick,
       }
 
@@ -181,7 +180,7 @@ export class SwitchBotBLE extends EventEmitter {
           })
           // Start scanning
           this.noble.startScanningAsync(
-            this.PRIMARY_SERVICE_UUID_LIST,
+            PRIMARY_SERVICE_UUID_LIST,
             false,
           ).then(() => {
             timer = setTimeout(() => {
@@ -420,7 +419,7 @@ export class SwitchBotBLE extends EventEmitter {
 
           // Start scanning
           this.noble.startScanningAsync(
-            this.PRIMARY_SERVICE_UUID_LIST,
+            PRIMARY_SERVICE_UUID_LIST,
             true,
           ).then(() => {
             this.emitLog('info', 'Started Scanning for SwitchBot BLE devices.')

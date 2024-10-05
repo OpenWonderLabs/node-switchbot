@@ -75,10 +75,10 @@ To use the `SwitchBotBLE` class in `node-switchbot`, you need to import it and c
 import { SwitchBotBLE } from 'node-switchbot'
 
 // Example usage
-const switchbot = new SwitchBotBLE()
+const switchBotBLE = new SwitchBotBLE()
 
 try {
-  await switchbot.startScan()
+  await switchBotBLE.startScan()
 } catch (e: any) {
   console.error(`Failed to start BLE scanning. Error:${e}`)
 }
@@ -100,7 +100,7 @@ The sample code below shows how to pass a `Noble` object to the `Switchbot` cons
 // Create a Noble object
 const noble = require('@stoprocent/noble');
 
-const switchbot = new SwitchBotBLE({ 'noble': Noble })
+const switchBotBLE = new SwitchBotBLE({ 'noble': Noble })
 ```
 
 In the code snippet above, the variable `switchbot` is an `SwitchBotBLE` object. The `SwitchBotBLE` object has a lot of methods as described in sections below.
@@ -119,7 +119,7 @@ The `discover` method finds devices. This method returns a `Promise` object. Thi
 In the code snippet below, no parameter is passed to the method:
 
 ```Typescript
-switchbot.discover().then((device_list) => {
+switchBotBLE.discover().then((device_list) => {
   // Do something...
 }).catch((error) => {
   console.error(error);
@@ -131,7 +131,7 @@ If no parameter is passed to the method as the code above, an `Array` object wil
 If you want a quick response, you can set the `quick` property to `true`.
 
 ```Typescript
-switchbot.discover({
+switchBotBLE.discover({
   duration: 5000,
   quick: true
 }).then((device_list) => {
@@ -148,11 +148,11 @@ As the `quick` property is set to `true`, the `resolve()` function will be calle
 The `ondiscover` property on the [`Switchbot`](#Switchbot-object) object is an event handler called whenever a device is newly found in the discovery process. A [`SwitchbotDevice`](#SwitchbotDevice-object) object is passed to the callback function set to the `ondiscover` property.
 
 ```Typescript
-switchbot.ondiscover = (device) => {
+switchBotBLE.ondiscover = (device) => {
   console.log(device.id + ' (' + device.modelName + ')');
 };
 
-switchbot.discover().then(() => {
+switchBotBLE.discover().then(() => {
   console.log('The discovery process was finished.');
 }).catch((error) => {
   console.error(error);
@@ -180,19 +180,19 @@ Whenever a packet is received, the callback function set to the [`onadvertisemen
 
 ```Typescript
 // Set a callback function called when a packet is received
-switchbot.onadvertisement = (ad) => {
+switchBotBLE.onadvertisement = (ad) => {
   console.log(ad);
 };
 
 // Start to scan advertising packets
-switchbot.startScan({
+switchBotBLE.startScan({
   id: 'cb:4e:b9:03:c9:6d',
 }).then(() => {
   // Wait for 30 seconds
-  return switchbot.wait(30000);
+  return switchBotBLE.wait(30000);
 }).then(() => {
   // Stop to scan
-  switchbot.stopScan();
+  switchBotBLE.stopScan();
   process.exit();
 }).catch((error) => {
   console.error(error);
@@ -226,7 +226,7 @@ The `serviceData` property depends on the model of the device. See the section "
 If a callback function is set to the `onadvertisement` property, the callback function will be called whenever an advertising packet is received from a device during the scan is active (from the moment when the [`startScan()`](#startscan-method) method is called, to the moment when the [`stopScan()`](#Switchbot-stopScan-method) method is called).
 
 ```typescript
-switchbot.onadvertisement = async (ad: any) => {
+switchBotBLE.onadvertisement = async (ad: any) => {
   try {
     this.bleEventHandler[ad.address]?.(ad.serviceData)
   } catch (e: any) {
@@ -243,7 +243,7 @@ The `stopScan()` method stops to scan advertising packets coming from devices. T
 
 ```typescript
 try {
-  switchbot.stopScan()
+  switchBotBLE.stopScan()
   console.log('Stopped BLE scanning to close listening.')
 } catch (e: any) {
   console.error(`Failed to stop BLE scanning, error:${e.message}`)
@@ -257,12 +257,12 @@ The `wait()` method waits for the specified milliseconds. This method takes an i
 This method has nothing to do with Switchbot devices. It's just a utility method. See the section "[Quick Start](#Quick-Start)" for details of the usage of this method.
 
 ```typescript
-await switchbot.wait(1000)
+await switchBotBLE.wait(1000)
 ```
 
 ### `SwitchBotDevice` Object
 
-The `SwitchbotDevice` object represents a Switchbot device (Bot, Meter, Curtain, Contact or Motion), which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
+The `SwitchbotDevice` object represents a Switchbot device (Bot, Meter, Curtain, Contact or Motion), which is created through the discovery process triggered by the [`switchBotBLE.discover()`](#discover-method) method.
 
 Actually, the `SwitchbotDevice` object is a super class of the [`WoHand`](#SwitchbotDeviceWoHand-object) and `WoSensorTH` objects. The [`WoHand`](#SwitchbotDeviceWoHand-object) object represents a Bot, the `WoSensorTH` object represents a Meter.
 
@@ -367,7 +367,7 @@ switchbot
   })
   .then(() => {
     console.log("Waiting for 5 seconds...");
-    return switchbot.wait(5000);
+    return switchBotBLE.wait(5000);
   })
   .then(() => {
     console.log("Putting the arm up...");
@@ -461,7 +461,7 @@ The `ondisconnect` event handler will be called when the connection with the dev
 
 ### `WoHand` Object
 
-The `WoHand` object represents a Bot, which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
+The `WoHand` object represents a Bot, which is created through the discovery process triggered by the [`switchBotBLE.discover()`](#discover-method) method.
 
 Actually, the `WoHand` is an object inherited from the [`SwitchbotDevice`](#SwitchbotDevice-object). You can use not only the method described in this section but also the properties and methods implemented in the [`SwitchbotDevice`](#SwitchbotDevice-object) object.
 
@@ -589,7 +589,7 @@ switchbot
 
 ### `WoCurtain` Object
 
-The `WoCurtain` object represents a Curtain, which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
+The `WoCurtain` object represents a Curtain, which is created through the discovery process triggered by the [`switchBotBLE.discover()`](#discover-method) method.
 
 Actually, the `WoCurtain` is an object inherited from the [`SwitchbotDevice`](#SwitchbotDevice-object). You can use not only the method described in this section but also the properties and methods implemented in the [`SwitchbotDevice`](#SwitchbotDevice-object) object.
 
@@ -698,7 +698,7 @@ switchbot
 
 ### `WoPlugMini` Object
 
-The `WoPlugMini ` object represents a PlugMini, which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
+The `WoPlugMini ` object represents a PlugMini, which is created through the discovery process triggered by the [`switchBotBLE.discover()`](#discover-method) method.
 
 Actually, the `WoPlugMini ` is an object inherited from the [`SwitchbotDevice`](#SwitchbotDevice-object). You can use not only the method described in this section but also the properties and methods implemented in the [`SwitchbotDevice`](#SwitchbotDevice-object) object.
 
@@ -722,7 +722,7 @@ If no connection is established with the device, this method automatically estab
 
 ### `WoSmartLock` Object
 
-The `WoSmartLock ` object represents a SmartLock, which is created through the discovery process triggered by the [`Switchbot.discover()`](#Switchbot-discover-method) method.
+The `WoSmartLock ` object represents a SmartLock, which is created through the discovery process triggered by the [`switchBotBLE.discover()`](#discover-method) method.
 
 Actually, the `WoSmartLock ` is an object inherited from the [`SwitchbotDevice`](#SwitchbotDevice-object). You can use not only the method described in this section but also the properties and methods implemented in the [`SwitchbotDevice`](#SwitchbotDevice-object) object.
 
@@ -769,19 +769,19 @@ After the [`startScan()`](#startscan-method) method is invoked, the [`onadvertis
 // Load the node-switchbot and get a `Switchbot` constructor object
 import { SwitchBotBLE } from 'node-switchbot';
 // Create a `Switchbot` object
-const switchbot = new SwitchBotBLE();
+const switchBotBLE = new SwitchBotBLE();
 
 (async () => {
   // Start to monitor advertisement packets
-  await switchbot.startScan();
+  await switchBotBLE.startScan();
   // Set an event handler
-  switchbot.onadvertisement = (ad) => {
+  switchBotBLE.onadvertisement = (ad) => {
     console.log(JSON.stringify(ad, null, '  '));
   };
   // Wait 10 seconds
-  await switchbot.wait(10000);
+  await switchBotBLE.wait(10000);
   // Stop to monitor
-  switchbot.stopScan();
+  switchBotBLE.stopScan();
   process.exit();
 })();
 ```
@@ -1062,11 +1062,11 @@ This sample discovers a Bot (WoHand), then put the Bot's arm down, finally put i
 // Load the node-switchbot and get a `Switchbot` constructor object
 import { SwitchBotBLE } from 'node-switchbot';
 // Create a `Switchbot` object
-const switchbot = new SwitchBotBLE();
+const switchBotBLE = new SwitchBotBLE();
 
 (async () => {
   // Find a Bot (WoHand)
-  const bot_list = await switchbot.discover({ model: "H", quick: true });
+  const bot_list = await switchBotBLE.discover({ model: "H", quick: true });
   if (bot_list.length === 0) {
     throw new Error("No device was found.");
   }
@@ -1075,16 +1075,51 @@ const switchbot = new SwitchBotBLE();
   // Put the Bot's arm down (stretch the arm)
   await device.down();
   // Wait for 5 seconds
-  await switchbot.wait(5000);
+  await switchBotBLE.wait(5000);
   // Put the Bot's arm up (retract the arm)
   await device.up();
   process.exit();
 })();
 ```
 
-In order to manipulate the arm of your Bot, you have to discover your Bot using the [`discover()`](#Switchbot-discover-method) method. The object `{ model: 'H' }` passed to the method means that only Bots will be discovered. That is, Meters will be ignored.
+In order to manipulate the arm of your Bot, you have to discover your Bot using the [`discover()`](#discover-method) method. The object `{ model: 'H' }` passed to the method means that only Bots will be discovered. That is, Meters will be ignored.
 
 In this code, you can get a [`WoHand`](#SwitchbotDeviceWoHand-object) object representing the found Bot. Using the [`down()`](#SwitchbotDeviceWoHand-down-method) and [`up()`](#SwitchbotDeviceWoHand-up-method) methods of the object, you can move the arm. In addition to these methods, you can use the [`press()`](#SwitchbotDeviceWoHand-press-method), [`turnOn()`](#SwitchbotDeviceWoHand-turnOn-method), and [`turnOff()`](#SwitchbotDeviceWoHand-turnOff-method) methods as well.
+
+### Logging
+
+To be able to receive logging that this module is pushing out you will need to subscribt to the events.
+
+```typescript
+this.switchBotBLE.on('log', (log) => {
+  switch (log.level) {
+    case LogLevel.SUCCESS:
+      this.successLog(log.message)
+      break
+    case LogLevel.DEBUGSUCCESS:
+      this.debugSuccessLog(log.message)
+      break
+    case LogLevel.WARN:
+      this.warnLog(log.message)
+      break
+    case LogLevel.DEBUGWARN:
+      this.debugWarnLog(log.message)
+      break
+    case LogLevel.ERROR:
+      this.errorLog(log.message)
+      break
+    case LogLevel.DEBUGERROR:
+      this.debugErrorLog(log.message)
+      break
+    case LogLevel.DEBUG:
+      this.debugLog(log.message)
+      break
+    case LogLevel.INFO:
+    default:
+      this.infoLog(log.message)
+  }
+})
+```
 
 ### Supported Devices
 

@@ -16,7 +16,7 @@ import { createServer } from 'node:http'
 
 import { request } from 'undici'
 
-import { deleteWebhook, Devices, queryWebhook, setupWebhook, updateWebhook } from './settings.js'
+import { baseURL, deleteWebhook, devicesURL, queryWebhook, setupWebhook, updateWebhook } from './settings.js'
 
 /**
  * The `SwitchBotOpenAPI` class provides methods to interact with the SwitchBot OpenAPI.
@@ -70,7 +70,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
     super()
     this.token = token
     this.secret = secret
-    this.baseURL = 'https://api.switch-bot.com/v1.0'
+    this.baseURL = baseURL
   }
 
   /**
@@ -91,7 +91,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
    */
   async getDevices(): Promise<{ response: devices, statusCode: number }> {
     try {
-      const { body, statusCode } = await request(Devices, { headers: this.generateHeaders() })
+      const { body, statusCode } = await request(devicesURL, { headers: this.generateHeaders() })
       const response = await body.json() as devices
       this.emitLog('debug', `Got devices: ${JSON.stringify(response)}`)
       this.emitLog('debug', `statusCode: ${statusCode}`)

@@ -3,11 +3,15 @@
  *
  * © 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  */
+/**
+ * This is the main url used to scan for Devices SwitchBot API
+ */
+export const baseURL = 'https://api.switch-bot.com/v1.1'
 
 /**
- * This is the main url used to access SwitchBot API
+ * This is the main url used to scan for Devices SwitchBot API
  */
-export const Devices = 'https://api.switch-bot.com/v1.1/devices'
+export const devicesURL = 'https://api.switch-bot.com/v1.1/devices'
 
 /**
  * This is the updateWebhook url used to access SwitchBot API
@@ -40,6 +44,9 @@ export const CHAR_UUID_DEVICE = '2a00'
 export const READ_TIMEOUT_MSEC = 3000
 export const WRITE_TIMEOUT_MSEC = 3000
 export const COMMAND_TIMEOUT_MSEC = 3000
+
+export const DEFAULT_DISCOVERY_DURATION = 5000
+export const PRIMARY_SERVICE_UUID_LIST = []
 
 export enum WoSmartLockProCommands {
   GET_CKIV = '570f2103',

@@ -151,7 +151,7 @@ export interface Params {
   duration?: number
   model?: string
   id?: string
-  quick?: false
+  quick?: boolean
   noble?: typeof Noble
 }
 

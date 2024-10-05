@@ -6,7 +6,7 @@ import {
   CHAR_UUID_WRITE,
   COMMAND_TIMEOUT_MSEC,
   deleteWebhook,
-  Devices,
+  devicesURL,
   queryWebhook,
   READ_TIMEOUT_MSEC,
   SERV_UUID_PRIMARY,
@@ -19,7 +19,7 @@ import {
 
 describe('switchBot API Settings', () => {
   it('should have correct Devices URL', () => {
-    expect(Devices).toBe('https://api.switch-bot.com/v1.1/devices')
+    expect(devicesURL).toBe('https://api.switch-bot.com/v1.1/devices')
   })
 
   it('should have correct setupWebhook URL', () => {
