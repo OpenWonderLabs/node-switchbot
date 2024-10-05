@@ -423,6 +423,7 @@ export class SwitchBotBLE extends EventEmitter {
             this.PRIMARY_SERVICE_UUID_LIST,
             true,
           ).then(() => {
+            this.emitLog('info', 'Starts scanning for SwitchBot BLE devices.')
             resolve()
           }).catch((error: Error) => {
             this.emitLog('error', `startScanning error: ${JSON.stringify(error!.message)}`)
@@ -449,7 +450,7 @@ export class SwitchBotBLE extends EventEmitter {
 
     this.noble.removeAllListeners('discover')
     this.noble.stopScanningAsync()
-    this.emitLog('debug', 'Stops scanning for SwitchBot BLE devices.')
+    this.emitLog('info', 'Stops scanning for SwitchBot BLE devices.')
   }
 
   /**
