@@ -6,6 +6,8 @@ import type { ErrorObject } from './types/types.js'
 
 import { Buffer } from 'node:buffer'
 
+import { emitLog } from './logger.js'
+
 interface Rule {
   required?: boolean
   min?: number
@@ -47,8 +49,9 @@ export class ParameterChecker {
    * @param {boolean} [required] - Flag whether the `obj` is required or not.
    * @returns {Promise<boolean>} - Resolves to true if the value is valid, false otherwise.
    */
-  async check(obj: Record<string, unknown>, rules: Record<string, Rule>, required = false): Promise<boolean> {
+  async check(obj: Record<string, unknown>, rules: Record<string, Rule>, required: boolean = false): Promise<boolean> {
     this._error = null
+    emitLog('debug', `Using rules: ${JSON.stringify(rules)}`)
 
     if (required && !this.isSpecified(obj)) {
       this._error = { code: 'MISSING_REQUIRED', message: 'The first argument is missing.' }
@@ -106,7 +109,7 @@ export class ParameterChecker {
    * @param {string} [name] - The parameter name.
    * @returns {Promise<boolean>} - Resolves to true if the value is valid, false otherwise.
    */
-  async isFloat(value: unknown, rule: Rule, name = 'value'): Promise<boolean> {
+  async isFloat(value: unknown, rule: Rule, name: string = 'value'): Promise<boolean> {
     this._error = null
 
     if (!rule.required && !this.isSpecified(value)) {
@@ -144,7 +147,7 @@ export class ParameterChecker {
    * @param {string} [name] - The parameter name.
    * @returns {Promise<boolean>} - Resolves to true if the value is valid, false otherwise.
    */
-  async isInteger(value: unknown, rule: Rule, name = 'value'): Promise<boolean> {
+  async isInteger(value: unknown, rule: Rule, name: string = 'value'): Promise<boolean> {
     this._error = null
 
     if (!rule.required && !this.isSpecified(value)) {
@@ -167,7 +170,7 @@ export class ParameterChecker {
    * @param {string} [name] - The parameter name.
    * @returns {Promise<boolean>} - Resolves to true if the value is valid, false otherwise.
    */
-  async isBoolean(value: unknown, rule: Rule, name = 'value'): Promise<boolean> {
+  async isBoolean(value: unknown, rule: Rule, name: string = 'value'): Promise<boolean> {
     this._error = null
 
     if (!rule.required && !this.isSpecified(value)) {
@@ -190,7 +193,7 @@ export class ParameterChecker {
    * @param {string} [name] - The parameter name.
    * @returns {Promise<boolean>} - Resolves to true if the value is valid, false otherwise.
    */
-  async isObject(value: unknown, rule: Rule, name = 'value'): Promise<boolean> {
+  async isObject(value: unknown, rule: Rule, name: string = 'value'): Promise<boolean> {
     this._error = null
 
     if (!rule.required && !this.isSpecified(value)) {
@@ -213,7 +216,7 @@ export class ParameterChecker {
    * @param {string} [name] - The parameter name.
    * @returns {Promise<boolean>} - Resolves to true if the value is valid, false otherwise.
    */
-  async isArray(value: unknown, rule: Rule, name = 'value'): Promise<boolean> {
+  async isArray(value: unknown, rule: Rule, name: string = 'value'): Promise<boolean> {
     this._error = null
 
     if (!rule.required && !this.isSpecified(value)) {
@@ -246,7 +249,7 @@ export class ParameterChecker {
    * @param {string} [name] - The parameter name.
    * @returns {Promise<boolean>} - Resolves to true if the value is valid, false otherwise.
    */
-  async isString(value: unknown, rule: Rule, name = 'value'): Promise<boolean> {
+  async isString(value: unknown, rule: Rule, name: string = 'value'): Promise<boolean> {
     this._error = null
 
     if (!rule.required && !this.isSpecified(value)) {
