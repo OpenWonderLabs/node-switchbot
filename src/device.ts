@@ -19,7 +19,6 @@ import {
   SERV_UUID_PRIMARY,
   WRITE_TIMEOUT_MSEC,
 } from './settings.js'
-import { SwitchBotBLE } from './switchbot-ble.js'
 
 /**
  * Represents a Switchbot Device.

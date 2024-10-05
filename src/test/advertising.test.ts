@@ -75,7 +75,7 @@ describe('advertising', () => {
 
       const result = await Advertising.parse(peripheral, mockLog)
       expect(result).toBeNull()
-      expect(mockLog).toHaveBeenCalledWith('[parseAdvertising.test-id.\x01] return null, parsed serviceData empty!')
+      expect(mockLog).toHaveBeenCalledWith('debugerror', '[parseAdvertising.test-id.\x01] return null, parsed serviceData empty!')
     })
   })
 
@@ -86,10 +86,10 @@ describe('advertising', () => {
       expect(result).toBe(true)
     })
 
-    it('should return false for invalid buffer', () => {
+    it('should return null for invalid buffer', () => {
       const buffer = null
       const result = (Advertising as any).validateBuffer(buffer)
-      expect(result).toBe(false)
+      expect(result).toBe(null)
     })
   })
 

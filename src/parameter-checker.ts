@@ -49,7 +49,15 @@ export class ParameterChecker extends EventEmitter {
    */
   async check(obj: Record<string, unknown>, rules: Record<string, Rule>, required: boolean = false): Promise<boolean> {
     this._error = null
-    this.emitLog('debug', `Using rules: ${JSON.stringify(rules)}`)
+    // eslint-disable-next-line no-console
+    console.log('Checking object:', obj)
+    // eslint-disable-next-line no-console
+    console.log('With rules:', rules)
+    // eslint-disable-next-line no-console
+    console.log('Is required:', required)
+    this.emitLog('debug', `Checking object: ${JSON.stringify(obj)}`)
+    this.emitLog('debug', `With rules: ${JSON.stringify(rules)}`)
+    this.emitLog('debug', `Is required: ${JSON.stringify(required)}`)
 
     if (required && !this.isSpecified(obj)) {
       this._error = { code: 'MISSING_REQUIRED', message: 'The first argument is missing.' }
@@ -96,6 +104,7 @@ export class ParameterChecker extends EventEmitter {
       }
     }
 
+    this.emitLog('debug', 'All checks passed.')
     return true
   }
 
