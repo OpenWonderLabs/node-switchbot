@@ -5,130 +5,93 @@
 import { Buffer } from 'node:buffer'
 
 import { SwitchbotDevice } from '../device.js'
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js'
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
+/**
+ * Class representing a WoHand device.
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/bot.md
+ */
 export class WoHand extends SwitchbotDevice {
-  static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
-    if (buf.length !== 3) {
-      if (onlog && typeof onlog === 'function') {
-        onlog(
-          `[parseServiceData] Buffer length ${buf.length} !== 3!`,
-        )
-      }
+  /**
+   * Parses the service data for WoHand.
+   * @param {Buffer} serviceData - The service data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
+   * @returns {Promise<object | null>} - Parsed service data or null if invalid.
+   */
+  static async parseServiceData(
+    serviceData: Buffer,
+    emitLog: (level: string, message: string) => void,
+  ): Promise<object | null> {
+    if (serviceData.length !== 3) {
+      emitLog('debugerror', `[parseServiceData] Buffer length ${serviceData.length} !== 3!`)
       return null
     }
-    const byte1 = buf.readUInt8(1)
-    const byte2 = buf.readUInt8(2)
 
-    const mode = !!(byte1 & 0b10000000) // Whether the light switch Add-on is used or not. 0 = press, 1 = switch
-    const state = !(byte1 & 0b01000000) // Whether the switch status is ON or OFF. 0 = on, 1 = off
-    const battery = byte2 & 0b01111111 // %
+    const byte1 = serviceData.readUInt8(1)
+    const byte2 = serviceData.readUInt8(2)
 
-    const data = {
+    return {
       model: SwitchBotBLEModel.Bot,
       modelName: SwitchBotBLEModelName.Bot,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.Bot,
-      mode,
-      state,
-      battery,
+      mode: !!(byte1 & 0b10000000), // Whether the light switch Add-on is used or not. 0 = press, 1 = switch
+      state: !(byte1 & 0b01000000), // Whether the switch status is ON or OFF. 0 = on, 1 = off
+      battery: byte2 & 0b01111111, // %
     }
-    return data
   }
 
-  /* ------------------------------------------------------------------
-   * press()
-   * - Press
-   *
-   * [Arguments]
-   * - none
-   *
-   * [Return value]
-   * - Promise object
-   *   Nothing will be passed to the `resolve()`.
-   * ---------------------------------------------------------------- */
-  press() {
-    return this._operateBot([0x57, 0x01, 0x00])
+  /**
+   * Sends a command to the bot.
+   * @param {number[]} bytes - The command bytes.
+   * @returns {Promise<void>}
+   */
+  private async operateBot(bytes: number[]): Promise<void> {
+    const reqBuf = Buffer.from(bytes)
+    const resBuf = await this.command(reqBuf)
+    const code = resBuf.readUInt8(0)
+
+    if (resBuf.length !== 3 || (code !== 0x01 && code !== 0x05)) {
+      throw new Error(`The device returned an error: 0x${resBuf.toString('hex')}`)
+    }
   }
 
-  /* ------------------------------------------------------------------
-   * turnOn()
-   * - Turn on
-   *
-   * [Arguments]
-   * - none
-   *
-   * [Return value]
-   * - Promise object
-   *   Nothing will be passed to the `resolve()`.
-   * ---------------------------------------------------------------- */
-  turnOn() {
-    return this._operateBot([0x57, 0x01, 0x01])
+  /**
+   * Presses the bot.
+   * @returns {Promise<void>}
+   */
+  async press(): Promise<void> {
+    await this.operateBot([0x57, 0x01, 0x00])
   }
 
-  /* ------------------------------------------------------------------
-   * turnOff()
-   * - Turn off
-   *
-   * [Arguments]
-   * - none
-   *
-   * [Return value]
-   * - Promise object
-   *   Nothing will be passed to the `resolve()`.
-   * ---------------------------------------------------------------- */
-  turnOff() {
-    return this._operateBot([0x57, 0x01, 0x02])
+  /**
+   * Turns on the bot.
+   * @returns {Promise<void>}
+   */
+  async turnOn(): Promise<void> {
+    await this.operateBot([0x57, 0x01, 0x01])
   }
 
-  /* ------------------------------------------------------------------
-   * down()
-   * - Down
-   *
-   * [Arguments]
-   * - none
-   *
-   * [Return value]
-   * - Promise object
-   *   Nothing will be passed to the `resolve()`.
-   * ---------------------------------------------------------------- */
-  down() {
-    return this._operateBot([0x57, 0x01, 0x03])
+  /**
+   * Turns off the bot.
+   * @returns {Promise<void>}
+   */
+  async turnOff(): Promise<void> {
+    await this.operateBot([0x57, 0x01, 0x02])
   }
 
-  /* ------------------------------------------------------------------
-   * up()
-   * - Up
-   *
-   * [Arguments]
-   * - none
-   *
-   * [Return value]
-   * - Promise object
-   *   Nothing will be passed to the `resolve()`.
-   * ---------------------------------------------------------------- */
-  up() {
-    return this._operateBot([0x57, 0x01, 0x04])
+  /**
+   * Moves the bot down.
+   * @returns {Promise<void>}
+   */
+  async down(): Promise<void> {
+    await this.operateBot([0x57, 0x01, 0x03])
   }
 
-  _operateBot(bytes: number[]) {
-    return new Promise<void>((resolve, reject) => {
-      const req_buf = Buffer.from(bytes)
-      this._command(req_buf)
-        .then((res_buf) => {
-          const code = res_buf.readUInt8(0)
-          if (res_buf.length === 3 && (code === 0x01 || code === 0x05)) {
-            resolve()
-          } else {
-            reject(
-              new Error(
-                `The device returned an error: 0x${res_buf.toString('hex')}`,
-              ),
-            )
-          }
-        })
-        .catch((error) => {
-          reject(error)
-        })
-    })
+  /**
+   * Moves the bot up.
+   * @returns {Promise<void>}
+   */
+  async up(): Promise<void> {
+    await this.operateBot([0x57, 0x01, 0x04])
   }
 }

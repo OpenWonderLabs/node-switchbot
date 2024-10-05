@@ -1,27 +1,26 @@
 /*
- * wosmartlock.ts: Switchbot BLE API registration.
+ * wosmartlockpro.ts: Switchbot BLE API registration.
  * adapted off the work done by [pySwitchbot](https://github.com/Danielhiversen/pySwitchbot)
  */
-import type Noble from '@stoprocent/noble'
+import type * as Noble from '@stoprocent/noble'
+
+import type { lockProServiceData } from '../types/bledevicestatus.js'
 
 import { Buffer } from 'node:buffer'
 import * as Crypto from 'node:crypto'
 
 import { SwitchbotDevice } from '../device.js'
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js'
+import { WoSmartLockProCommands } from '../settings.js'
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
+/**
+ * Class representing a WoSmartLockPro device.
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/lock.md
+ */
 export class WoSmartLockPro extends SwitchbotDevice {
-  _iv: Buffer | null
-  _key_id: string
-  _encryption_key: Buffer | null
-
-  static COMMAND_GET_CK_IV = '570f2103'
-  static COMMAND_LOCK_INFO = '570f4f8102'
-  static COMMAND_UNLOCK = '570f4e0101000080'
-  static COMMAND_UNLOCK_NO_UNLATCH = '570f4e01010000a0'
-  static COMMAND_LOCK = '570f4e0101000000'
-  static COMMAND_ENABLE_NOTIFICATIONS = '570e01001e00008101'
-  static COMMAND_DISABLE_NOTIFICATIONS = '570e00'
+  public iv: Buffer | null = null
+  public key_id: string = ''
+  public encryption_key: Buffer | null = null
 
   static Result = {
     ERROR: 0x00,
@@ -29,84 +28,66 @@ export class WoSmartLockPro extends SwitchbotDevice {
     SUCCESS_LOW_BATTERY: 0x06,
   }
 
-  static validateResponse(res: Buffer) {
+  static async validateResponse(res: Buffer) {
     if (res.length >= 3) {
-      switch (res.readUInt8(0)) {
-        case WoSmartLockPro.Result.SUCCESS:
-          return WoSmartLockPro.Result.SUCCESS
-        case WoSmartLockPro.Result.SUCCESS_LOW_BATTERY:
-          return WoSmartLockPro.Result.SUCCESS_LOW_BATTERY
+      const result = res.readUInt8(0)
+      if (result === WoSmartLockPro.Result.SUCCESS || result === WoSmartLockPro.Result.SUCCESS_LOW_BATTERY) {
+        return result
       }
     }
     return WoSmartLockPro.Result.ERROR
   }
 
   static getLockStatus(code: number) {
-    switch (code) {
-      case 0b0000000:
-        return 'LOCKED'
-      case 0b0010000:
-        return 'UNLOCKED'
-      case 0b0100000:
-        return 'LOCKING'
-      case 0b0110000:
-        return 'UNLOCKING'
-      case 0b1000000:
-        return 'LOCKING_STOP'
-      case 0b1010000:
-        return 'UNLOCKING_STOP'
-      case 0b01100000: // Only EU lock type
-        return 'NOT_FULLY_LOCKED'
-      default:
-        return 'UNKNOWN'
+    const statusMap: { [key: number]: string } = {
+      0b0000000: 'LOCKED',
+      0b0010000: 'UNLOCKED',
+      0b0100000: 'LOCKING',
+      0b0110000: 'UNLOCKING',
+      0b1000000: 'LOCKING_STOP',
+      0b1010000: 'UNLOCKING_STOP',
+      0b01100000: 'NOT_FULLY_LOCKED', // Only EU lock type
     }
+    return statusMap[code] || 'UNKNOWN'
   }
 
-  static parseServiceData(serviceData: Buffer, manufacturerData: Buffer, onlog: ((message: string) => void) | undefined) {
+  /**
+   * Parses the service data from the SwitchBot Strip Light.
+   * @param {Buffer} serviceData - The service data buffer.
+   * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
+   * @returns {Promise<lockProServiceData | null>} - Parsed service data or null if invalid.
+   */
+  static async parseServiceData(
+    serviceData: Buffer,
+    manufacturerData: Buffer,
+    emitLog: (level: string, message: string) => void,
+  ): Promise<lockProServiceData | null> {
     if (manufacturerData.length < 11) {
-      if (onlog && typeof onlog === 'function') {
-        onlog(
-          `[parseServiceDataForWoSmartLockPro] Buffer length ${manufacturerData.length} is too short!`,
-        )
-      }
+      emitLog('debugerror', `[parseServiceDataForWoSmartLockPro] Buffer length ${manufacturerData.length} is too short!`)
       return null
     }
 
-    // adv data needs both service data and manufacturer data
-    // byte var names based on documentation
     const byte2 = serviceData.readUInt8(2)
     const byte7 = manufacturerData.readUInt8(7)
     const byte8 = manufacturerData.readUInt8(8)
     const byte9 = manufacturerData.readUInt8(9)
     const byte11 = manufacturerData.readUInt8(11)
 
-    const battery = byte2 & 0b01111111 // %
-    const calibration = !!(byte7 & 0b10000000)
-    const status = WoSmartLockPro.getLockStatus((byte7 & 0b00111000) >> 3)
-    const door_open = !!(byte8 & 0b01100000)
-    // Double lock mode is not supported on Lock Pro
-    const update_from_secondary_lock = false // byte7 & 0b00001000 ? true : false;
-    const double_lock_mode = false // byte8 & 0b10000000 ? true : false;
-    const unclosed_alarm = !!(byte11 & 0b10000000)
-    const unlocked_alarm = !!(byte11 & 0b01000000)
-    const auto_lock_paused = !!(byte8 & 0b100000)
-    const night_latch = !!(byte9 & 0b00000001)
-    // const manual = byte7 & 0b100000;
-
-    const data = {
+    const data: lockProServiceData = {
       model: SwitchBotBLEModel.LockPro,
       modelName: SwitchBotBLEModelName.LockPro,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.LockPro,
-      battery,
-      calibration,
-      status,
-      update_from_secondary_lock,
-      door_open,
-      double_lock_mode,
-      unclosed_alarm,
-      unlocked_alarm,
-      auto_lock_paused,
-      night_latch,
+      battery: byte2 & 0b01111111,
+      calibration: !!(byte7 & 0b10000000),
+      status: WoSmartLockPro.getLockStatus((byte7 & 0b00111000) >> 3),
+      door_open: !!(byte8 & 0b01100000),
+      update_from_secondary_lock: false,
+      double_lock_mode: false,
+      unclosed_alarm: !!(byte11 & 0b10000000),
+      unlocked_alarm: !!(byte11 & 0b01000000),
+      auto_lock_paused: !!(byte8 & 0b100000),
+      night_latch: !!(byte9 & 0b00000001),
     }
 
     return data
@@ -114,187 +95,141 @@ export class WoSmartLockPro extends SwitchbotDevice {
 
   constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
     super(peripheral, noble)
-    this._iv = null
-    this._key_id = ''
-    this._encryption_key = null
   }
 
-  /* ------------------------------------------------------------------
-   * setKey()
-   * - initialise the encryption key info for valid lock communication, this currently must be retrived externally
-   *
-   * [Arguments]
-   * - keyId, encryptionKey
-   *
-   * [Return value]
-   * - void
-   * ---------------------------------------------------------------- */
-  setKey(keyId: string, encryptionKey: string) {
-    this._iv = null
-    this._key_id = keyId
-    this._encryption_key = Buffer.from(encryptionKey, 'hex')
+  /**
+   * Initializes the encryption key info for valid lock communication.
+   * @param {string} keyId - The key ID.
+   * @param {string} encryptionKey - The encryption key.
+   */
+  async setKey(keyId: string, encryptionKey: string) {
+    this.iv = null
+    this.key_id = keyId
+    this.encryption_key = Buffer.from(encryptionKey, 'hex')
   }
 
-  /* ------------------------------------------------------------------
-   * unlock()
-   * - Unlock the Smart Lock
-   *
-   * [Arguments]
-   * - none
-   *
-   * [Return value]
-   * - Promise object
-   *   WoSmartLockPro.LockResult will be passed to the `resolve()`.
-   * ---------------------------------------------------------------- */
-  unlock() {
-    return new Promise<number>((resolve, reject) => {
-      this._operateLock(WoSmartLockPro.COMMAND_UNLOCK)
-        .then((resBuf) => {
-          resolve(WoSmartLockPro.validateResponse(resBuf))
-        })
-        .catch((error) => {
-          reject(error)
-        })
-    })
+  /**
+   * Unlocks the Smart Lock.
+   * @returns {Promise<number>} - The result of the unlock operation.
+   */
+  async unlock(): Promise<number> {
+    const resBuf = await this.operateLockPro(WoSmartLockProCommands.UNLOCK)
+    return resBuf ? WoSmartLockPro.validateResponse(resBuf) : WoSmartLockPro.Result.ERROR
   }
 
-  /* ------------------------------------------------------------------
-   * unlockNoUnlatch()
-   * - Unlock the Smart Lock without unlatching door
-   *
-   * [Arguments]
-   * - none
-   *
-   * [Return value]
-   * - Promise object
-   *   WoSmartLockPro.LockResult will be passed to the `resolve()`.
-   * ---------------------------------------------------------------- */
-  unlockNoUnlatch() {
-    return new Promise<number>((resolve, reject) => {
-      this._operateLock(WoSmartLockPro.COMMAND_UNLOCK_NO_UNLATCH)
-        .then((resBuf) => {
-          resolve(WoSmartLockPro.validateResponse(resBuf))
-        })
-        .catch((error) => {
-          reject(error)
-        })
-    })
+  /**
+   * Unlocks the Smart Lock without unlatching the door.
+   * @returns {Promise<number>} - The result of the unlock operation.
+   */
+  async unlockNoUnlatch(): Promise<number> {
+    const resBuf = await this.operateLockPro(WoSmartLockProCommands.UNLOCK_NO_UNLATCH)
+    return resBuf ? WoSmartLockPro.validateResponse(resBuf) : WoSmartLockPro.Result.ERROR
   }
 
-  /* ------------------------------------------------------------------
-   * lock()
-   * - Lock the Smart Lock
-   *
-   * [Arguments]
-   * - none
-   *
-   * [Return value]
-   * - Promise object
-   *   WoSmartLockPro.LockResult will be passed to the `resolve()`.
-   * ---------------------------------------------------------------- */
-  lock() {
-    return new Promise<number>((resolve, reject) => {
-      this._operateLock(WoSmartLockPro.COMMAND_LOCK)
-        .then((resBuf) => {
-          resolve(WoSmartLockPro.validateResponse(resBuf))
-        })
-        .catch((error) => {
-          reject(error)
-        })
-    })
+  /**
+   * Locks the Smart Lock.
+   * @returns {Promise<number>} - The result of the lock operation.
+   */
+  async lock(): Promise<number> {
+    const resBuf = await this.operateLockPro(WoSmartLockProCommands.LOCK)
+    return resBuf ? WoSmartLockPro.validateResponse(resBuf) : WoSmartLockPro.Result.ERROR
   }
 
-  /* ------------------------------------------------------------------
-   * info()
-   * - Get general state info from the Smart Lock
-   *
-   * [Arguments]
-   * - none
-   *
-   * [Return value]
-   * - Promise object
-   *   state object will be passed to the `resolve()`
-   * ---------------------------------------------------------------- */
-  info() {
-    return new Promise((resolve, reject) => {
-      this._operateLock(WoSmartLockPro.COMMAND_LOCK_INFO)
-        .then((resBuf) => {
-          const data = {
-            calibration: Boolean(resBuf[0] & 0b10000000),
-            status: WoSmartLockPro.getLockStatus((resBuf[0] & 0b01110000) >> 4),
-            door_open: Boolean(resBuf[0] & 0b00000100),
-            unclosed_alarm: Boolean(resBuf[1] & 0b00100000),
-            unlocked_alarm: Boolean(resBuf[1] & 0b00010000),
-          }
-          resolve(data)
-        })
-        .catch((error) => {
-          reject(error)
-        })
-    })
+  /**
+   * Gets general state info from the Smart Lock.
+   * @returns {Promise<object | null>} - The state object or null if an error occurred.
+   */
+  async info(): Promise<object | null> {
+    const resBuf = await this.operateLockPro(WoSmartLockProCommands.LOCK_INFO)
+    if (resBuf) {
+      return {
+        calibration: Boolean(resBuf[0] & 0b10000000),
+        status: WoSmartLockPro.getLockStatus((resBuf[0] & 0b01110000) >> 4),
+        door_open: Boolean(resBuf[0] & 0b00000100),
+        unclosed_alarm: Boolean(resBuf[1] & 0b00100000),
+        unlocked_alarm: Boolean(resBuf[1] & 0b00010000),
+      }
+    }
+    return null
   }
 
-  _encrypt(str: string) {
-    const cipher = Crypto.createCipheriv('aes-128-ctr', this._encryption_key!, this._iv)
+  /**
+   * Encrypts a string using AES-128-CTR.
+   * @param {string} str - The string to encrypt.
+   * @returns {Promise<string>} - The encrypted string in hex format.
+   */
+  async encrypt(str: string): Promise<string> {
+    const cipher = Crypto.createCipheriv('aes-128-ctr', this.encryption_key!, this.iv)
     return Buffer.concat([cipher.update(str, 'hex'), cipher.final()]).toString('hex')
   }
 
-  _decrypt(data: Buffer) {
-    const decipher = Crypto.createDecipheriv('aes-128-ctr', this._encryption_key!, this._iv)
+  /**
+   * Decrypts a buffer using AES-128-CTR.
+   * @param {Buffer} data - The data to decrypt.
+   * @returns {Promise<Buffer>} - The decrypted data.
+   */
+  async decrypt(data: Buffer): Promise<Buffer> {
+    const decipher = Crypto.createDecipheriv('aes-128-ctr', this.encryption_key!, this.iv)
     return Buffer.concat([decipher.update(data), decipher.final()])
   }
 
-  async _getIv(): Promise<Buffer> {
-    if (this._iv === null) {
-      const res = await this._operateLock(WoSmartLockPro.COMMAND_GET_CK_IV + this._key_id, false)
-      this._iv = res.subarray(4)
+  /**
+   * Retrieves the IV from the device.
+   * @returns {Promise<Buffer>} - The IV buffer.
+   */
+  async getIv(): Promise<Buffer> {
+    if (!this.iv) {
+      const res = await this.operateLockPro(WoSmartLockProCommands.GET_CKIV + this.key_id, false)
+      if (res) {
+        this.iv = res.subarray(4)
+      } else {
+        throw new Error('Failed to retrieve IV from the device.')
+      }
     }
-    return this._iv
+    return this.iv
   }
 
-  async _encryptedCommand(key: string) {
-    const iv = await this._getIv()
+  /**
+   * Sends an encrypted command to the device.
+   * @param {string} key - The command key.
+   * @returns {Promise<Buffer>} - The response buffer.
+   */
+  async encryptedCommand(key: string): Promise<Buffer> {
+    const iv = await this.getIv()
     const req = Buffer.from(
-      key.substring(0, 2) + this._key_id + Buffer.from(iv.subarray(0, 2)).toString('hex') + this._encrypt(key.substring(2))
-      , 'hex',
+      key.substring(0, 2) + this.key_id + Buffer.from(iv.subarray(0, 2)).toString('hex') + await this.encrypt(key.substring(2)),
+      'hex',
     )
 
-    const bytes: unknown = await this._command(req)
+    const bytes = await this.command(req)
     const buf = Buffer.from(bytes as Uint8Array)
     const code = WoSmartLockPro.validateResponse(buf)
 
-    if (code !== WoSmartLockPro.Result.ERROR) {
-      return Buffer.concat([buf.subarray(0, 1), this._decrypt(buf.subarray(4))])
+    if (await code !== WoSmartLockPro.Result.ERROR) {
+      return Buffer.concat([buf.subarray(0, 1), await this.decrypt(buf.subarray(4))])
     } else {
-      throw (
-        new Error(`The device returned an error: 0x${buf.toString('hex')}`,
-        )
-      )
+      throw new Error(`The device returned an error: 0x${buf.toString('hex')}`)
     }
   }
 
-  _operateLock(key: string, encrypt: boolean = true): Promise<Buffer> {
-    // encrypted command
+  /**
+   * Operates the lock with the given command.
+   * @param {string} key - The command key.
+   * @param {boolean} [encrypt] - Whether to encrypt the command.
+   * @returns {Promise<Buffer>} - The response buffer.
+   */
+  async operateLockPro(key: string, encrypt: boolean = true): Promise<Buffer> {
     if (encrypt) {
-      return this._encryptedCommand(key)
+      return this.encryptedCommand(key)
     }
+    const req = Buffer.from(`${key.substring(0, 2)}000000${key.substring(2)}`, 'hex')
+    const bytes = await this.command(req)
+    const buf = Buffer.from(bytes as Uint8Array)
+    const code = WoSmartLockPro.validateResponse(buf)
 
-    // unencypted command
-    return new Promise((resolve, reject) => {
-      const req = Buffer.from(`${key.substring(0, 2)}000000${key.substring(2)}`, 'hex')
-
-      this._command(req).then((bytes) => {
-        const buf = Buffer.from(bytes as Uint8Array)
-        const code = WoSmartLockPro.validateResponse(buf)
-
-        if (code === WoSmartLockPro.Result.ERROR) {
-          reject(new Error(`The device returned an error: 0x${buf.toString('hex')}`))
-        } else {
-          resolve(buf)
-        }
-      }).catch((error) => {
-        reject(error)
-      })
-    })
+    if (await code === WoSmartLockPro.Result.ERROR) {
+      throw new Error(`The device returned an error: 0x${buf.toString('hex')}`)
+    }
+    return buf
   }
 }

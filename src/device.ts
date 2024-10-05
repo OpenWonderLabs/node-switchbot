@@ -2,566 +2,399 @@
  *
  * device.ts: Switchbot BLE API registration.
  */
-import type Noble from '@stoprocent/noble'
+import type * as Noble from '@stoprocent/noble'
+
+import type { Chars, SwitchBotBLEModel, SwitchBotBLEModelName } from './types/types.js'
 
 import { Buffer } from 'node:buffer'
+import { EventEmitter } from 'node:events'
 
 import { Advertising } from './advertising.js'
 import { parameterChecker } from './parameter-checker.js'
+import {
+  CHAR_UUID_DEVICE,
+  CHAR_UUID_NOTIFY,
+  CHAR_UUID_WRITE,
+  READ_TIMEOUT_MSEC,
+  SERV_UUID_PRIMARY,
+  WRITE_TIMEOUT_MSEC,
+} from './settings.js'
+import { SwitchBotBLE } from './switchbot-ble.js'
 
-type Chars = {
-  write: Noble.Characteristic | null
-  notify: Noble.Characteristic | null
-  device: Noble.Characteristic | null
-} | null
+/**
+ * Represents a Switchbot Device.
+ */
+export class SwitchbotDevice extends EventEmitter {
+  private _noble: typeof Noble
+  private _peripheral: Noble.Peripheral
+  private _characteristics: Chars | null = null
+  private _id!: string
+  private _address!: string
+  private _model!: SwitchBotBLEModel
+  private _modelName!: SwitchBotBLEModelName
+  private _explicitly = false
+  private _connected = false
+  private onnotify_internal: (buf: Buffer) => void = () => {}
 
-export class SwitchbotDevice {
-  _peripheral
-  _noble
-  _chars: Chars
-  _SERV_UUID_PRIMARY = 'cba20d00224d11e69fb80002a5d5c51b'
-  _CHAR_UUID_WRITE = 'cba20002224d11e69fb80002a5d5c51b'
-  _CHAR_UUID_NOTIFY = 'cba20003224d11e69fb80002a5d5c51b'
-  _CHAR_UUID_DEVICE = '2a00'
-  _READ_TIMEOUT_MSEC = 3000
-  _WRITE_TIMEOUT_MSEC = 3000
-  _COMMAND_TIMEOUT_MSEC = 3000
-  _id
-  _address
-  _model
-  _modelName
-  _was_connected_explicitly
-  _connected
-  _onconnect: () => void
-  _ondisconnect: () => void
-  _ondisconnect_internal: () => void
-  _onnotify_internal: (buf: Buffer) => void
-  /* ------------------------------------------------------------------
-   * Constructor
-   *
-   * [Arguments]
-   * - peripheral | Object | Required | The `peripheral` object of noble,
-   *              |        |          | which represents this device
-   * - noble      | Noble  | Required | The Noble object created by the noble module.
-   * ---------------------------------------------------------------- */
+  private ondisconnect_internal: () => Promise<void> = async () => {}
+  private onconnect_internal: () => Promise<void> = async () => {}
+
+  /**
+   * Initializes a new instance of the SwitchbotDevice class.
+   * @param peripheral The peripheral object from noble.
+   * @param noble The Noble object.
+   */
   constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+    super()
     this._peripheral = peripheral
     this._noble = noble
-    this._chars = null
 
-    // Save the device information
-    const ad = Advertising.parse(peripheral)
-    this._id = ad ? ad.id : null
-    this._address = ad ? ad.address : null
-    this._model = ad ? ad.serviceData.model : null
-    this._modelName = ad ? ad.serviceData.modelName : null
+    Advertising.parse(peripheral, this.emitLog.bind(this)).then((ad) => {
+      this._id = ad?.id ?? ''
+      this._address = ad?.address ?? ''
+      this._model = ad?.serviceData.model as SwitchBotBLEModel ?? ''
+      this._modelName = ad?.serviceData.modelName as SwitchBotBLEModelName ?? ''
+    })
+  }
 
-    this._was_connected_explicitly = false
-    this._connected = false
-
-    this._onconnect = () => { }
-    this._ondisconnect = () => { }
-    this._ondisconnect_internal = () => { }
-    this._onnotify_internal = () => { }
+  /**
+   * Emits a log event with the specified log level and message.
+   *
+   * @param level - The severity level of the log (e.g., 'info', 'warn', 'error').
+   * @param message - The log message to be emitted.
+   */
+  public async emitLog(level: string, message: string): Promise<void> {
+    this.emit('log', { level, message })
   }
 
   // Getters
-  get id() {
+  get id(): string {
     return this._id
   }
 
-  get address() {
+  get address(): string {
     return this._address
   }
 
-  get model() {
+  get model(): SwitchBotBLEModel {
     return this._model
   }
 
-  get modelName() {
+  get modelName(): SwitchBotBLEModelName {
     return this._modelName
   }
 
-  get connectionState() {
-    if (!this._connected && this._peripheral.state === 'disconnecting') {
-      return 'disconnected'
-    } else {
-      return this._peripheral.state
+  get connectionState(): string {
+    return this._connected ? 'connected' : this._peripheral.state
+  }
+
+  get onconnect(): () => Promise<void> {
+    return this.onconnect_internal
+  }
+
+  set onconnect(func: () => Promise<void>) {
+    if (typeof func !== 'function') {
+      throw new TypeError('The `onconnect` must be a function that returns a Promise<void>.')
+    }
+    this.onconnect_internal = async () => {
+      await func()
     }
   }
 
-  // Setters
-  get onconnect() {
-    return this._onconnect
+  get ondisconnect(): () => Promise<void> {
+    return this.ondisconnect_internal
   }
 
-  set onconnect(func: () => void) {
-    if (!func || typeof func !== 'function') {
-      throw new Error('The `onconnect` must be a function.')
+  set ondisconnect(func: () => Promise<void>) {
+    if (typeof func !== 'function') {
+      throw new TypeError('The `ondisconnect` must be a function that returns a Promise<void>.')
     }
-    this._onconnect = func
-  }
-
-  get ondisconnect() {
-    return this._ondisconnect
-  }
-
-  set ondisconnect(func: () => void) {
-    if (!func || typeof func !== 'function') {
-      throw new Error('The `ondisconnect` must be a function.')
+    this.ondisconnect_internal = async () => {
+      await func()
     }
-    this._ondisconnect = func
   }
 
-  /* ------------------------------------------------------------------
-   * connect()
-   * - Connect the device
-   *
-   * [Arguments]
-   * -  none
-   *
-   * [Return value]
-   * - Promise object
-   *   Nothing will be passed to the `resolve()`.
-   * ---------------------------------------------------------------- */
-  connect() {
-    this._was_connected_explicitly = true
-    return this._connect()
+  /**
+   * Connects to the device.
+   * @returns A Promise that resolves when the connection is complete.
+   */
+  async connect(): Promise<void> {
+    this._explicitly = true
+    await this.connect_internal()
   }
 
-  _connect() {
-    return new Promise<void>((resolve, reject) => {
-      // Check the bluetooth state
-      if (this._noble._state !== 'poweredOn') {
-        reject(
-          new Error(
-            `The Bluetooth status is ${this._noble._state}, not poweredOn.`,
-          ),
-        )
-        return
-      }
+  /**
+   * Internal method to handle the connection process.
+   * @returns A Promise that resolves when the connection is complete.
+   */
+  private async connect_internal(): Promise<void> {
+    if (this._noble._state !== 'poweredOn') {
+      throw new Error(`The Bluetooth status is ${this._noble._state}, not poweredOn.`)
+    }
 
-      // Check the connection state
-      const state = this.connectionState
-      if (state === 'connected') {
-        resolve()
-        return
-      } else if (state === 'connecting' || state === 'disconnecting') {
-        reject(
-          new Error(`Now ${state}. Wait for a few seconds then try again.`),
-        )
-        return
-      }
+    const state = this.connectionState
+    if (state === 'connected') {
+      return
+    }
+    if (state === 'connecting' || state === 'disconnecting') {
+      throw new Error(`Now ${state}. Wait for a few seconds then try again.`)
+    }
 
-      // Set event handlers for events fired on the `Peripheral` object
-      this._peripheral.once('connect', () => {
-        this._connected = true
-        this._onconnect()
-      })
-
-      this._peripheral.once('disconnect', () => {
-        this._connected = false
-        this._chars = null
-        this._peripheral.removeAllListeners()
-        this._ondisconnect_internal()
-        this._ondisconnect()
-      })
-
-      // Connect
-      this._peripheral.connect((error) => {
-        if (error) {
-          reject(error)
-          return
-        }
-        this._getCharacteristics()
-          .then((chars) => {
-            this._chars = chars
-            return this._subscribe()
-          })
-          .then(() => {
-            resolve()
-          })
-          .catch((error) => {
-            this._peripheral.disconnect()
-            reject(error)
-          })
-      })
+    this._peripheral.once('connect', async () => {
+      this._connected = true
+      await this.onconnect()
     })
+
+    this._peripheral.once('disconnect', async () => {
+      this._connected = false
+      this._characteristics = null
+      this._peripheral.removeAllListeners()
+      await this.ondisconnect_internal()
+    })
+
+    await this._peripheral.connectAsync()
+    this._characteristics = await this.getCharacteristics()
+    await this.subscribe()
   }
 
-  _getCharacteristics(): Promise<Chars> {
-    return new Promise((resolve, reject) => {
-      // Set timeout timer
-      let timer: NodeJS.Timeout | null = setTimeout(() => {
-        this._ondisconnect_internal = () => { }
-        timer = null
-        reject(
-          new Error('Failed to discover services and characteristics: TIMEOUT'),
-        )
-      }, 5000)
+  /**
+   * Retrieves the device characteristics.
+   * @returns A Promise that resolves with the device characteristics.
+   */
+  public async getCharacteristics(): Promise<Chars> {
+    const timer = setTimeout(() => {
+      throw new Error('Failed to discover services and characteristics: TIMEOUT')
+    }, 5000)
 
-      // Watch the connection state
-      this._ondisconnect_internal = () => {
+    try {
+      const services = await this.discoverServices()
+      const chars: Chars = { write: null, notify: null, device: null }
+
+      for (const service of services) {
+        const characteristics = await this.discoverCharacteristics(service)
+        for (const char of characteristics) {
+          if (char.uuid === CHAR_UUID_WRITE) {
+            chars.write = char
+          }
+          if (char.uuid === CHAR_UUID_NOTIFY) {
+            chars.notify = char
+          }
+          if (char.uuid === CHAR_UUID_DEVICE) {
+            chars.device = char
+          }
+        }
+      }
+
+      if (!chars.write || !chars.notify) {
+        throw new Error('No characteristic was found.')
+      }
+
+      return chars
+    } finally {
+      clearTimeout(timer)
+    }
+  }
+
+  /**
+   * Discovers the device services.
+   * @returns A Promise that resolves with the list of services.
+   */
+  public async discoverServices(): Promise<Noble.Service[]> {
+    const services = await this._peripheral.discoverServicesAsync([])
+    const primaryServices = services.filter(s => s.uuid === SERV_UUID_PRIMARY)
+    if (primaryServices.length === 0) {
+      throw new Error('No service was found.')
+    }
+    return primaryServices
+  }
+
+  /**
+   * Discovers the characteristics of a service.
+   * @param service The service to discover characteristics for.
+   * @returns A Promise that resolves with the list of characteristics.
+   */
+  private async discoverCharacteristics(service: Noble.Service): Promise<Noble.Characteristic[]> {
+    return await service.discoverCharacteristicsAsync([])
+  }
+
+  /**
+   * Subscribes to the notify characteristic.
+   * @returns A Promise that resolves when the subscription is complete.
+   */
+  private async subscribe(): Promise<void> {
+    const char = this._characteristics?.notify
+    if (!char) {
+      throw new Error('No notify characteristic was found.')
+    }
+    await char.subscribeAsync()
+    char.on('data', this.onnotify_internal)
+  }
+
+  /**
+   * Unsubscribes from the notify characteristic.
+   * @returns A Promise that resolves when the unsubscription is complete.
+   */
+  async unsubscribe(): Promise<void> {
+    const char = this._characteristics?.notify
+    if (!char) {
+      return
+    }
+    char.removeAllListeners()
+    await char.unsubscribeAsync()
+  }
+
+  /**
+   * Disconnects from the device.
+   * @returns A Promise that resolves when the disconnection is complete.
+   */
+  async disconnect(): Promise<void> {
+    this._explicitly = false
+    const state = this._peripheral.state
+
+    if (state === 'disconnected') {
+      return
+    }
+    if (state === 'connecting' || state === 'disconnecting') {
+      throw new Error(`Now ${state}. Wait for a few seconds then try again.`)
+    }
+
+    await this.unsubscribe()
+    await this._peripheral.disconnectAsync()
+  }
+
+  /**
+   * Internal method to handle disconnection if not explicitly initiated.
+   * @returns A Promise that resolves when the disconnection is complete.
+   */
+  private async disconnect_internal(): Promise<void> {
+    if (!this._explicitly) {
+      await this.disconnect()
+      this._explicitly = true
+    }
+  }
+
+  /**
+   * Retrieves the device name.
+   * @returns A Promise that resolves with the device name.
+   */
+  async getDeviceName(): Promise<string> {
+    await this.connect_internal()
+    if (!this._characteristics?.device) {
+      throw new Error(`The device does not support the characteristic UUID 0x${CHAR_UUID_DEVICE}.`)
+    }
+    const buf = await this.read(this._characteristics.device)
+    await this.disconnect_internal()
+    return buf.toString('utf8')
+  }
+
+  /**
+   * Sets the device name.
+   * @param name The new device name.
+   * @returns A Promise that resolves when the name is set.
+   */
+  async setDeviceName(name: string): Promise<void> {
+    const valid = parameterChecker.check(
+      { name },
+      { name: { required: true, type: 'string', minBytes: 1, maxBytes: 100 } },
+      true,
+    )
+
+    if (!valid) {
+      throw new Error(parameterChecker.error!.message)
+    }
+
+    const buf = Buffer.from(name, 'utf8')
+    await this.connect_internal()
+    if (!this._characteristics?.device) {
+      throw new Error(`The device does not support the characteristic UUID 0x${CHAR_UUID_DEVICE}.`)
+    }
+    await this.write(this._characteristics.device, buf)
+    await this.disconnect_internal()
+  }
+
+  /**
+   * Sends a command to the device and awaits a response.
+   * @param req_buf The command buffer.
+   * @returns A Promise that resolves with the response buffer.
+   */
+  async command(req_buf: Buffer): Promise<Buffer> {
+    if (!Buffer.isBuffer(req_buf)) {
+      throw new TypeError('The specified data is not acceptable for writing.')
+    }
+
+    await this.connect_internal()
+    if (!this._characteristics?.write) {
+      throw new Error('No characteristics available.')
+    }
+
+    await this.write(this._characteristics.write, req_buf)
+    const res_buf = await this._waitCommandResponseAsync()
+    await this.disconnect_internal()
+
+    return res_buf
+  }
+
+  /**
+   * Waits for a response from the device after sending a command.
+   * @returns A Promise that resolves with the response buffer.
+   */
+  private async _waitCommandResponseAsync(): Promise<Buffer> {
+    const timeout = READ_TIMEOUT_MSEC
+    let timer: NodeJS.Timeout | null = null
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error('READ_TIMEOUT')), timeout)
+    })
+
+    const readPromise = new Promise<Buffer>((resolve) => {
+      this.onnotify_internal = (buf: Buffer) => {
         if (timer) {
           clearTimeout(timer)
-          timer = null
-          this._ondisconnect_internal = () => { }
         }
-        reject(
-          new Error(
-            'Failed to discover services and characteristics: DISCONNECTED',
-          ),
-        )
-      };
-
-      // Discover services and characteristics
-      (async () => {
-        const service_list = await this._discoverServices()
-        if (!timer) {
-          throw new Error('Service discovery timeout or disconnection occurred.')
-        }
-
-        const chars: Chars = {
-          write: null,
-          notify: null,
-          device: null,
-        }
-
-        for (const service of service_list) {
-          const char_list = await this._discoverCharacteristics(service)
-          for (const char of char_list) {
-            if (char.uuid === this._CHAR_UUID_WRITE) {
-              chars.write = char
-            } else if (char.uuid === this._CHAR_UUID_NOTIFY) {
-              chars.notify = char
-            } else if (char.uuid === this._CHAR_UUID_DEVICE) {
-              // Some models of Bot don't seem to support this characteristic UUID
-              chars.device = char
-            }
-          }
-        }
-
-        if (chars.write && chars.notify) {
-          resolve(chars)
-        } else {
-          reject(new Error('No characteristic was found.'))
-        }
-      })().catch((error) => {
-        if (timer) {
-          clearTimeout(timer)
-          timer = null
-          this._ondisconnect_internal = () => { }
-          reject(error)
-        } else {
-          // Do nothing
-        }
-      })
-    })
-  }
-
-  _discoverServices(): Promise<Noble.Service[]> {
-    return new Promise((resolve, reject) => {
-      this._peripheral.discoverServices([], (error, service_list) => {
-        if (error) {
-          reject(error)
-          return
-        }
-
-        let service = null
-        for (const s of service_list) {
-          if (s.uuid === this._SERV_UUID_PRIMARY) {
-            service = s
-            break
-          }
-        }
-        if (service) {
-          resolve(service_list)
-        } else {
-          reject(new Error('No service was found.'))
-        }
-      })
-    })
-  }
-
-  _discoverCharacteristics(service: Noble.Service): Promise<Noble.Characteristic[]> {
-    return new Promise((resolve, reject) => {
-      service.discoverCharacteristics([], (error, char_list) => {
-        if (error) {
-          reject(error)
-        } else {
-          resolve(char_list)
-        }
-      })
-    })
-  }
-
-  _subscribe() {
-    return new Promise<void>((resolve, reject) => {
-      const char = this._chars ? this._chars.notify : null
-      if (!char) {
-        reject(new Error('No notify characteristic was found.'))
-        return
-      }
-      char.subscribe((error) => {
-        if (error) {
-          reject(error)
-          return
-        }
-        char.on('data', (buf) => { // Remove the argument passed to the _onnotify_internal function
-          this._onnotify_internal(buf)
-        })
-        resolve()
-      })
-    })
-  }
-
-  _unsubscribe() {
-    return new Promise<void>((resolve) => {
-      const char = this._chars ? this._chars.notify : null
-      if (!char) {
-        resolve()
-        return
-      }
-      char.removeAllListeners()
-      char.unsubscribe(() => {
-        resolve()
-      })
-    })
-  }
-
-  /* ------------------------------------------------------------------
-   * disconnect()
-   * - Disconnect the device
-   *
-   * [Arguments]
-   * -  none
-   *
-   * [Return value]
-   * - Promise object
-   *   Nothing will be passed to the `resolve()`.
-   * ---------------------------------------------------------------- */
-  disconnect() {
-    return new Promise<void>((resolve, reject) => {
-      this._was_connected_explicitly = false
-      // Check the connection state
-      const state = this._peripheral.state
-      if (state === 'disconnected') {
-        resolve()
-        return
-      } else if (state === 'connecting' || state === 'disconnecting') {
-        reject(
-          new Error(`Now ${state}. Wait for a few seconds then try again.`),
-        )
-        return
-      }
-
-      // Unsubscribe
-      this._unsubscribe().then(() => {
-        // Disconnect
-        this._peripheral.disconnect(() => {
-          resolve()
-        })
-      })
-    })
-  }
-
-  _disconnect() {
-    if (this._was_connected_explicitly) {
-      return Promise.resolve()
-    } else {
-      return this.disconnect()
-    }
-  }
-
-  /* ------------------------------------------------------------------
-   * getDeviceName()
-   * - Retrieve the device name
-   *
-   * [Arguments]
-   * -  none
-   *
-   * [Return value]
-   * - Promise object
-   *   The device name will be passed to the `resolve()`.
-   * ---------------------------------------------------------------- */
-  getDeviceName() {
-    return new Promise((resolve, reject) => {
-      let name = ''
-      this._connect()
-        .then(() => {
-          if (!this._chars || !this._chars.device) {
-            // Some models of Bot don't seem to support this characteristic UUID
-            throw new Error(
-              `The device does not support the characteristic UUID 0x${
-                this._CHAR_UUID_DEVICE
-              }.`,
-            )
-          }
-          return this._read(this._chars.device)
-        })
-        .then((buf) => {
-          name = buf.toString('utf8')
-          return this._disconnect()
-        })
-        .then(() => {
-          resolve(name)
-        })
-        .catch((error) => {
-          reject(error)
-        })
-    })
-  }
-
-  /* ------------------------------------------------------------------
-   * setDeviceName(name)
-   * - Set the device name
-   *
-   * [Arguments]
-   * - name | String | Required | Device name. The bytes length of the name
-   *        |        |          | must be in the range of 1 to 20 bytes.
-   *
-   * [Return value]
-   * - Promise object
-   *   Nothing will be passed to the `resolve()`.
-   * ---------------------------------------------------------------- */
-  setDeviceName(name: string) {
-    return new Promise<void>((resolve, reject) => {
-      // Check the parameters
-      const valid = parameterChecker.check(
-        { name },
-        {
-          name: { required: true, type: 'string', minBytes: 1, maxBytes: 100 },
-        },
-        true, // Add the required argument
-      )
-
-      if (!valid) {
-        reject(new Error(parameterChecker.error!.message))
-        return
-      }
-
-      const buf = Buffer.from(name, 'utf8')
-      this._connect()
-        .then(() => {
-          if (!this._chars || !this._chars.device) {
-            // Some models of Bot don't seem to support this characteristic UUID
-            throw new Error(
-              `The device does not support the characteristic UUID 0x${
-                this._CHAR_UUID_DEVICE
-              }.`,
-            )
-          }
-          return this._write(this._chars.device, buf)
-        })
-        .then(() => {
-          return this._disconnect()
-        })
-        .then(() => {
-          resolve()
-        })
-        .catch((error) => {
-          reject(error)
-        })
-    })
-  }
-
-  // Write the specified Buffer data to the write characteristic
-  // and receive the response from the notify characteristic
-  // with connection handling
-  _command(req_buf: Buffer): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      if (!Buffer.isBuffer(req_buf)) {
-        reject(new Error('The specified data is not acceptable for writing.'))
-        return
-      }
-
-      let res_buf: Buffer
-
-      this._connect()
-        .then(() => {
-          if (!this._chars || !this._chars.write) {
-            return reject(new Error('No characteristics available.'))
-          }
-          return this._write(this._chars.write, req_buf)
-        })
-        .then(() => {
-          return this._waitCommandResponse()
-        })
-        .then((buf) => {
-          res_buf = buf
-          return this._disconnect()
-        })
-        .then(() => {
-          resolve(res_buf)
-        })
-        .catch((error) => {
-          reject(error)
-        })
-    })
-  }
-
-  _waitCommandResponse(): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      let timer: NodeJS.Timeout | undefined = setTimeout(() => {
-        timer = undefined
-        this._onnotify_internal = () => { }
-        reject(new Error('COMMAND_TIMEOUT'))
-      }, this._COMMAND_TIMEOUT_MSEC)
-
-      this._onnotify_internal = (buf) => {
-        if (timer) {
-          clearTimeout(timer)
-          timer = undefined
-        }
-        this._onnotify_internal = () => { }
         resolve(buf)
       }
     })
+
+    return await Promise.race([readPromise, timeoutPromise])
   }
 
-  // Read data from the specified characteristic
-  _read(char: Noble.Characteristic): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      // Set a timeout timer
-      let timer: NodeJS.Timeout | undefined = setTimeout(() => {
-        reject(new Error('READ_TIMEOUT'))
-      }, this._READ_TIMEOUT_MSEC)
+  /**
+   * Reads data from a characteristic with a timeout.
+   * @param char The characteristic to read from.
+   * @returns A Promise that resolves with the data buffer.
+   */
+  private async read(char: Noble.Characteristic): Promise<Buffer> {
+    const timer = setTimeout(() => {
+      throw new Error('READ_TIMEOUT')
+    }, READ_TIMEOUT_MSEC)
 
-      // Read characteristic data
-      char.read((error, buf) => {
-        if (timer) {
-          clearTimeout(timer)
-          timer = undefined
-        }
-        if (error) {
-          reject(error)
-        } else {
-          resolve(buf)
-        }
-      })
-    })
+    try {
+      const result = await char.readAsync()
+      clearTimeout(timer)
+      return result
+    } catch (error) {
+      clearTimeout(timer)
+      throw error
+    }
   }
 
-  // Write the specified Buffer data to the specified characteristic
-  _write(char: Noble.Characteristic, buf: Buffer): Promise<void | string> {
-    return new Promise<void>((resolve, reject) => {
-      // Set a timeout timer
-      let timer: NodeJS.Timeout | undefined = setTimeout(() => {
-        reject(new Error('WRITE_TIMEOUT'))
-      }, this._WRITE_TIMEOUT_MSEC)
+  /**
+   * Writes data to a characteristic with a timeout.
+   * @param char The characteristic to write to.
+   * @param buf The data buffer.
+   * @returns A Promise that resolves when the write is complete.
+   */
+  private async write(char: Noble.Characteristic, buf: Buffer): Promise<void> {
+    const timer = setTimeout(() => {
+      throw new Error('WRITE_TIMEOUT')
+    }, WRITE_TIMEOUT_MSEC)
 
-      // write characteristic data
-      char.write(buf, false, (error) => {
-        if (timer) {
-          clearTimeout(timer)
-          timer = undefined
-        }
-        if (error) {
-          reject(error)
-        } else {
-          resolve()
-        }
-      })
-    })
+    try {
+      await char.writeAsync(buf, false)
+      clearTimeout(timer)
+    } catch (error) {
+      clearTimeout(timer)
+      throw error
+    }
   }
 }

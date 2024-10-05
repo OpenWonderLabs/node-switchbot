@@ -1,224 +1,97 @@
+import type { ErrorObject, Rule } from './types/types.js'
+
+import { Buffer } from 'node:buffer'
 /* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
  * parameter-checker.ts: Switchbot BLE API registration.
  */
-import { Buffer } from 'node:buffer'
+import { EventEmitter } from 'node:events'
 
-interface Rule {
-  required?: boolean
-  min?: number
-  max?: number
-  minBytes?: number
-  maxBytes?: number
-  pattern?: RegExp
-  enum?: unknown[]
-  type?: 'float' | 'integer' | 'boolean' | 'array' | 'object' | 'string'
-}
+export class ParameterChecker extends EventEmitter {
+  private _error: ErrorObject | null = null
 
-class ParameterChecker {
-  _error: { code: string, message: string } | null = null
+  /**
+   * Emits a log event with the specified log level and message.
+   *
+   * @param level - The severity level of the log (e.g., 'info', 'warn', 'error').
+   * @param message - The log message to be emitted.
+   */
+  private async emitLog(level: string, message: string): Promise<void> {
+    this.emit('log', { level, message })
+  }
 
-  get error() {
-    // ----------------------------------
-    // Error
-    // {
-    //   code: 'TYPE_INVALID',
-    //   message: 'The `age` must be an integer.'
-    //   name: 'age',
-    // }
-    // ---------------------------------
+  /**
+   * Gets the current error object.
+   *
+   * @returns {ErrorObject | null} - The current error object or null if no error.
+   */
+  get error(): ErrorObject | null {
     return this._error
   }
 
-  isSpecified(value: unknown) {
-    return value !== void 0
+  /**
+   * Checks if the value is specified (not undefined).
+   *
+   * @param {unknown} value - The value to check.
+   * @returns {boolean} - True if the value is specified, false otherwise.
+   */
+  isSpecified(value: unknown): boolean {
+    return value !== undefined
   }
 
-  /* ------------------------------------------------------------------
-   * check(obj, rule, required)
-   * - Check if the specified object contains valid values
+  /**
+   * Checks if the specified object contains valid values based on the provided rules.
    *
-   * [Arguments]
-   * - obj      | Object  | Required | Object including parameters you want to check
-   * - rules    | Object  | Required | Object including rules for the parameters
-   * - required | Boolean | Optional | Flag whether the `obj` is required or not.
-   *            |         |          | The default is `false`
-   *
-   * [Return value]
-   * - If the value is valid, this method will return `true`.
-   * - If the value is invalid, this method will return `false` and
-   *   an `Error` object will be set to `this._error`.
-   *
-   * [Usage]
-   * const valid = parameterChecker.check(params, {
-   *   level: {
-   *     required: false,
-   *     type: 'integer',
-   *     max: 100
-   *   },
-   *   greeting: {
-   *     required: true, // But an empty string is allowed.
-   *     type: 'string',
-   *     max: 20 // the number of characters must be up to 20.
-   *   }
-   * });
-   * if(!valid) {
-   *   const message = parameterChecker.error.message;
-   *   throw new Error(message);
-   * }
-   * ---------------------------------------------------------------- */
-  check(obj: Record<string, unknown>, rules: { [key: string]: Rule }, required: boolean) {
+   * @param {Record<string, unknown>} obj - Object including parameters you want to check.
+   * @param {Record<string, Rule>} rules - Object including rules for the parameters.
+   * @param {boolean} [required] - Flag whether the `obj` is required or not.
+   * @returns {Promise<boolean>} - Resolves to true if the value is valid, false otherwise.
+   */
+  async check(obj: Record<string, unknown>, rules: Record<string, Rule>, required: boolean = false): Promise<boolean> {
     this._error = null
+    this.emitLog('debug', `Using rules: ${JSON.stringify(rules)}`)
 
-    if (required) {
-      if (!this.isSpecified(obj)) {
-        this._error = {
-          code: 'MISSING_REQUIRED',
-          message: 'The first argument is missing.',
-        }
-        return false
-      }
-    } else {
-      if (!obj) {
-        return true
-      }
-    }
-
-    if (!this.isObject(obj, {})) {
-      this._error = {
-        code: 'MISSING_REQUIRED',
-        message: 'The first argument is missing.',
-      }
+    if (required && !this.isSpecified(obj)) {
+      this._error = { code: 'MISSING_REQUIRED', message: 'The first argument is missing.' }
       return false
     }
 
-    let result = true
-    const name_list = Object.keys(rules)
-
-    for (let i = 0; i < name_list.length; i++) {
-      const name = name_list[i]
-      const v = obj[name]
-      let rule = rules[name]
-
-      if (!rule) {
-        rule = {}
-      }
-      if (!this.isSpecified(v)) {
-        if (rule.required) {
-          result = false
-          this._error = {
-            code: 'MISSING_REQUIRED',
-            message: `The \`${name}\` is required.`,
-          }
-          break
-        } else {
-          continue
-        }
-      }
-
-      if (rule.type === 'float') {
-        result = this.isFloat(v, rule, name)
-      } else if (rule.type === 'integer') {
-        result = this.isInteger(v, rule, name)
-      } else if (rule.type === 'boolean') {
-        result = this.isBoolean(v, rule, name)
-      } else if (rule.type === 'array') {
-        result = this.isArray(v, rule, name)
-      } else if (rule.type === 'object') {
-        result = this.isObject(v, rule, name)
-      } else if (rule.type === 'string') {
-        result = this.isString(v, rule, name)
-      } else {
-        result = false
-        this._error = {
-          code: 'TYPE_UNKNOWN',
-          message:
-            `The rule specified for the \`${
-              name
-            }\` includes an unknown type: ${
-              rule.type}`,
-        }
-      }
-    }
-
-    return result
-  }
-
-  /* ------------------------------------------------------------------
-   * isFloat(value, rule, name)
-   * - Check if the value is a float
-   *
-   * [Arguments]
-   * - value      | Any     | Required | The value you want to check
-   * - rule       | Object  | Optional |
-   *   - required | Boolean | Optional | Required or not. Default is `false`.
-   *   - min      | Float   | Optional | Minimum number
-   *   - max      | Float   | Optional | Maximum number
-   *   - enum     | Array   | Optional | list of possible values
-   * - name       | String  | Optional | Parameter name
-   *
-   * If non-number value is specified to the `min` or `max`,
-   * they will be ignored.
-   *
-   * [Return value]
-   * - If the value is valid, this method will return `true`.
-   * - If the value is invalid, this method will return `false` and
-   *   an `Error` object will be set to `this._error`.
-   * ---------------------------------------------------------------- */
-  isFloat(value: unknown, rule: Rule, name = 'value'): boolean {
-    this._error = null
-
-    if (!rule.required && !this.isSpecified(value)) {
+    if (!required && !obj) {
       return true
     }
 
-    if (typeof value !== 'number') {
-      this._error = {
-        code: 'TYPE_INVALID',
-        message: `The \`${name}\` must be a number (integer or float).`,
-      }
+    if (!this.isObject(obj, {})) {
+      this._error = { code: 'MISSING_REQUIRED', message: 'The first argument is missing.' }
       return false
     }
 
-    if (typeof rule.min === 'number') {
-      if (value < rule.min) {
-        this._error = {
-          code: 'VALUE_UNDERFLOW',
-          message:
-            `The \`${
-              name
-            }\` must be grater than or equal to ${
-              rule.min
-            }.`,
+    for (const [name, rule] of Object.entries(rules)) {
+      const value = obj[name]
+
+      if (!this.isSpecified(value)) {
+        if (rule.required) {
+          this._error = { code: 'MISSING_REQUIRED', message: `The \`${name}\` is required.` }
+          return false
         }
-        return false
+        continue
       }
-    }
-    if (typeof rule.max === 'number') {
-      if (value > rule.max) {
-        this._error = {
-          code: 'VALUE_OVERFLOW',
-          message:
-            `The \`${
-              name
-            }\` must be less than or equal to ${
-              rule.max
-            }.`,
-        }
-        return false
+
+      const typeCheckers: Record<string, (v: unknown, r: Rule, n: string) => Promise<boolean>> = {
+        float: this.isFloat.bind(this),
+        integer: this.isInteger.bind(this),
+        boolean: this.isBoolean.bind(this),
+        array: this.isArray.bind(this),
+        object: this.isObject.bind(this),
+        string: this.isString.bind(this),
       }
-    }
-    if (Array.isArray(rule.enum) && rule.enum.length > 0) {
-      if (!rule.enum.includes(value)) {
-        this._error = {
-          code: 'ENUM_UNMATCH',
-          message:
-            `The \`${
-              name
-            }\` must be any one of ${
-              JSON.stringify(rule.enum)
-            }.`,
+
+      const checker = rule.type && typeCheckers[rule.type]
+      if (checker) {
+        if (!(await checker(value, rule, name))) {
+          return false
         }
+      } else {
+        this._error = { code: 'TYPE_UNKNOWN', message: `The rule specified for the \`${name}\` includes an unknown type: ${rule.type}` }
         return false
       }
     }
@@ -226,28 +99,53 @@ class ParameterChecker {
     return true
   }
 
-  /* ------------------------------------------------------------------
-   * isInteger(value, rule)
-   * - Check if the value is an integer
+  /**
+   * Checks if the value is a float.
    *
-   * [Arguments]
-   * - value      | Any     | Required | The value you want to check
-   * - rule       | Object  | Optional |
-   *   - required | Boolean | Optional | Required or not. Default is `false`.|
-   *   - min      | Float   | Optional | Minimum number
-   *   - max      | Float   | Optional | Maximum number
-   *   - enum     | Array   | Optional | list of possible values
-   * - name       | String  | Optional | Parameter name
+   * @param {unknown} value - The value to check.
+   * @param {Rule} rule - The rule object containing validation criteria.
+   * @param {string} [name] - The parameter name.
+   * @returns {Promise<boolean>} - Resolves to true if the value is valid, false otherwise.
+   */
+  async isFloat(value: unknown, rule: Rule, name: string = 'value'): Promise<boolean> {
+    this._error = null
+
+    if (!rule.required && !this.isSpecified(value)) {
+      return true
+    }
+
+    if (typeof value !== 'number') {
+      this._error = { code: 'TYPE_INVALID', message: `The \`${name}\` must be a number (integer or float).` }
+      return false
+    }
+
+    if (typeof rule.min === 'number' && value < rule.min) {
+      this._error = { code: 'VALUE_UNDERFLOW', message: `The \`${name}\` must be greater than or equal to ${rule.min}.` }
+      return false
+    }
+
+    if (typeof rule.max === 'number' && value > rule.max) {
+      this._error = { code: 'VALUE_OVERFLOW', message: `The \`${name}\` must be less than or equal to ${rule.max}.` }
+      return false
+    }
+
+    if (Array.isArray(rule.enum) && !rule.enum.includes(value)) {
+      this._error = { code: 'ENUM_UNMATCH', message: `The \`${name}\` must be any one of ${JSON.stringify(rule.enum)}.` }
+      return false
+    }
+
+    return true
+  }
+
+  /**
+   * Checks if the value is an integer.
    *
-   * If non-number value is specified to the `min` or `max`,
-   * they will be ignored.
-   *
-   * [Return value]
-   * - If the value is valid, this method will return `true`.
-   * - If the value is invalid, this method will return `false` and
-   *   an `Error` object will be set to `this._error`.
-   * ---------------------------------------------------------------- */
-  isInteger(value: unknown, rule: Rule, name = 'value') {
+   * @param {unknown} value - The value to check.
+   * @param {Rule} rule - The rule object containing validation criteria.
+   * @param {string} [name] - The parameter name.
+   * @returns {Promise<boolean>} - Resolves to true if the value is valid, false otherwise.
+   */
+  async isInteger(value: unknown, rule: Rule, name: string = 'value'): Promise<boolean> {
     this._error = null
 
     if (!rule.required && !this.isSpecified(value)) {
@@ -256,31 +154,21 @@ class ParameterChecker {
 
     if (Number.isInteger(value)) {
       return true
-    } else {
-      this._error = {
-        code: 'TYPE_INVALID',
-        message: `The \`${name}\` must be an integer.`,
-      }
-      return false
     }
+
+    this._error = { code: 'TYPE_INVALID', message: `The \`${name}\` must be an integer.` }
+    return false
   }
 
-  /* ------------------------------------------------------------------
-   * isBoolean(value, rule, name)
-   * - Check if the value is a boolean.
+  /**
+   * Checks if the value is a boolean.
    *
-   * [Arguments]
-   * - value      | Any     | Required | The value you want to check
-   * - rule       | Object  | Optional |
-   *   - required | Boolean | Optional | Required or not. Default is `false`.
-   * - name       | String  | Optional | Parameter name
-   *
-   * [Return value]
-   * - If the value is valid, this method will return `true`.
-   * - If the value is invalid, this method will return `false` and
-   *   an `Error` object will be set to `this._error`.
-   * ---------------------------------------------------------------- */
-  isBoolean(value: unknown, rule: Rule, name = 'value') {
+   * @param {unknown} value - The value to check.
+   * @param {Rule} rule - The rule object containing validation criteria.
+   * @param {string} [name] - The parameter name.
+   * @returns {Promise<boolean>} - Resolves to true if the value is valid, false otherwise.
+   */
+  async isBoolean(value: unknown, rule: Rule, name: string = 'value'): Promise<boolean> {
     this._error = null
 
     if (!rule.required && !this.isSpecified(value)) {
@@ -288,31 +176,22 @@ class ParameterChecker {
     }
 
     if (typeof value !== 'boolean') {
-      this._error = {
-        code: 'TYPE_INVALID',
-        message: `The \`${name}\` must be boolean.`,
-      }
+      this._error = { code: 'TYPE_INVALID', message: `The \`${name}\` must be boolean.` }
       return false
     }
+
     return true
   }
 
-  /* ------------------------------------------------------------------
-   * isObject(value)
-   * - Check if the value is an object
+  /**
+   * Checks if the value is an object.
    *
-   * [Arguments]
-   * - value      | Any     | Required | The value you want to check
-   * - rule       | Object  | Optional |
-   *   - required | Boolean | Optional | Required or not. Default is `false`.
-   * - name       | String  | Optional | Parameter name
-   *
-   * [Return value]
-   * - If the value is valid, this method will return `true`.
-   * - If the value is invalid, this method will return `false` and
-   *   an `Error` object will be set to `this._error`.
-   * ---------------------------------------------------------------- */
-  isObject(value: unknown, rule: Rule, name = 'value') {
+   * @param {unknown} value - The value to check.
+   * @param {Rule} rule - The rule object containing validation criteria.
+   * @param {string} [name] - The parameter name.
+   * @returns {Promise<boolean>} - Resolves to true if the value is valid, false otherwise.
+   */
+  async isObject(value: unknown, rule: Rule, name: string = 'value'): Promise<boolean> {
     this._error = null
 
     if (!rule.required && !this.isSpecified(value)) {
@@ -320,36 +199,22 @@ class ParameterChecker {
     }
 
     if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-      this._error = {
-        code: 'TYPE_INVALID',
-        message: `The \`${name}\` must be an object.`,
-      }
+      this._error = { code: 'TYPE_INVALID', message: `The \`${name}\` must be an object.` }
       return false
     }
+
     return true
   }
 
-  /* ------------------------------------------------------------------
-   * isArray(value, rule, name)
-   * - Check if the value is an `Array` object
+  /**
+   * Checks if the value is an array.
    *
-   * [Arguments]
-   * - value      | Any     | Required | The value you want to check
-   * - rule       | Object  | Optional |
-   *   - required | Boolean | Optional | Required or not. Default is `false`.
-   *   - min      | Integer | Optional | Minimum number of elements in the array
-   *   - max      | Integer | Optional | Maximum number of elements in the array
-   * - name       | String  | Optional | Parameter name
-   *
-   * If non-number value is specified to the `min` or `max`,
-   * they will be ignored.
-   *
-   * [Return value]
-   * - If the value is valid, this method will return `true`.
-   * - If the value is invalid, this method will return `false` and
-   *   an `Error` object will be set to `this._error`.
-   * ---------------------------------------------------------------- */
-  isArray(value: unknown, rule: Rule, name = 'value') {
+   * @param {unknown} value - The value to check.
+   * @param {Rule} rule - The rule object containing validation criteria.
+   * @param {string} [name] - The parameter name.
+   * @returns {Promise<boolean>} - Resolves to true if the value is valid, false otherwise.
+   */
+  async isArray(value: unknown, rule: Rule, name: string = 'value'): Promise<boolean> {
     this._error = null
 
     if (!rule.required && !this.isSpecified(value)) {
@@ -357,70 +222,32 @@ class ParameterChecker {
     }
 
     if (!Array.isArray(value)) {
-      this._error = {
-        code: 'TYPE_INVALID',
-        message: 'The value must be an array.',
-      }
+      this._error = { code: 'TYPE_INVALID', message: 'The value must be an array.' }
       return false
     }
 
-    if (typeof rule.min === 'number') {
-      if (value.length < rule.min) {
-        this._error = {
-          code: 'LENGTH_UNDERFLOW',
-          message:
-            `The number of characters in the \`${
-              name
-            }\` must be grater than or equal to ${
-              rule.min
-            }.`,
-        }
-        return false
-      }
+    if (typeof rule.min === 'number' && value.length < rule.min) {
+      this._error = { code: 'LENGTH_UNDERFLOW', message: `The number of elements in the \`${name}\` must be greater than or equal to ${rule.min}.` }
+      return false
     }
-    if (typeof rule.max === 'number') {
-      if (value.length > rule.max) {
-        this._error = {
-          code: 'LENGTH_OVERFLOW',
-          message:
-            `The number of characters in the \`${
-              name
-            }\` must be less than or equal to ${
-              rule.max
-            }.`,
-        }
-        return false
-      }
+
+    if (typeof rule.max === 'number' && value.length > rule.max) {
+      this._error = { code: 'LENGTH_OVERFLOW', message: `The number of elements in the \`${name}\` must be less than or equal to ${rule.max}.` }
+      return false
     }
 
     return true
   }
 
-  /* ------------------------------------------------------------------
-   * isString(value, rule, name)
-   * - Check if the value is an `Array` object
+  /**
+   * Checks if the value is a string.
    *
-   * [Arguments]
-   * - value      | Any     | Required | The value you want to check
-   * - rule       | Object  | Optional |
-   *   - required | Boolean | Optional | Required or not. Default is `false`.
-   *   - min      | Integer | Optional | Minimum number of characters in the string
-   *   - max      | Integer | Optional | Maximum number of characters in the string
-   *   - minBytes | Integer | Optional | Minimum bytes of the string (UTF-8)
-   *   - maxBytes | Integer | Optional | Maximum bytes of the string (UTF-8)
-   *   - pattern  | RegExp  | Optional | Pattern of the string
-   *   - enum     | Array   | Optional | list of possible values
-   * - name       | String  | Optional | Parameter name
-   *
-   * If non-number value is specified to the `min` or `max`,
-   * they will be ignored.
-   *
-   * [Return value]
-   * - If the value is valid, this method will return `true`.
-   * - If the value is invalid, this method will return `false` and
-   *   an `Error` object will be set to `this._error`.
-   * ---------------------------------------------------------------- */
-  isString(value: unknown, rule: Rule, name = 'value') {
+   * @param {unknown} value - The value to check.
+   * @param {Rule} rule - The rule object containing validation criteria.
+   * @param {string} [name] - The parameter name.
+   * @returns {Promise<boolean>} - Resolves to true if the value is valid, false otherwise.
+   */
+  async isString(value: unknown, rule: Rule, name: string = 'value'): Promise<boolean> {
     this._error = null
 
     if (!rule.required && !this.isSpecified(value)) {
@@ -428,97 +255,44 @@ class ParameterChecker {
     }
 
     if (typeof value !== 'string') {
-      this._error = {
-        code: 'TYPE_INVALID',
-        message: 'The value must be a string.',
-      }
+      this._error = { code: 'TYPE_INVALID', message: 'The value must be a string.' }
       return false
     }
 
-    if (typeof rule.min === 'number') {
-      if (value.length < rule.min) {
-        this._error = {
-          code: 'LENGTH_UNDERFLOW',
-          message:
-            `The number of characters in the \`${
-              name
-            }\` must be grater than or equal to ${
-              rule.min
-            }.`,
-        }
-        return false
-      }
+    if (typeof rule.min === 'number' && value.length < rule.min) {
+      this._error = { code: 'LENGTH_UNDERFLOW', message: `The number of characters in the \`${name}\` must be greater than or equal to ${rule.min}.` }
+      return false
     }
-    if (typeof rule.max === 'number') {
-      if (value.length > rule.max) {
-        this._error = {
-          code: 'LENGTH_OVERFLOW',
-          message:
-            `The number of characters in the \`${
-              name
-            }\` must be less than or equal to ${
-              rule.max
-            }.`,
-        }
-        return false
-      }
+
+    if (typeof rule.max === 'number' && value.length > rule.max) {
+      this._error = { code: 'LENGTH_OVERFLOW', message: `The number of characters in the \`${name}\` must be less than or equal to ${rule.max}.` }
+      return false
     }
+
     if (typeof rule.minBytes === 'number') {
       const blen = Buffer.from(value, 'utf8').length
       if (blen < rule.minBytes) {
-        this._error = {
-          code: 'LENGTH_UNDERFLOW',
-          message:
-            `The byte length of the \`${
-              name
-            }\` (${
-              blen
-            } bytes) must be grater than or equal to ${
-              rule.minBytes
-            } bytes.`,
-        }
+        this._error = { code: 'LENGTH_UNDERFLOW', message: `The byte length of the \`${name}\` (${blen} bytes) must be greater than or equal to ${rule.minBytes} bytes.` }
         return false
       }
     }
+
     if (typeof rule.maxBytes === 'number') {
       const blen = Buffer.from(value, 'utf8').length
       if (blen > rule.maxBytes) {
-        this._error = {
-          code: 'LENGTH_OVERFLOW',
-          message:
-            `The byte length of the \`${
-              name
-            }\` (${
-              blen
-            } bytes) must be less than or equal to ${
-              rule.maxBytes
-            } bytes.`,
-        }
+        this._error = { code: 'LENGTH_OVERFLOW', message: `The byte length of the \`${name}\` (${blen} bytes) must be less than or equal to ${rule.maxBytes} bytes.` }
         return false
       }
     }
-    if (rule.pattern instanceof RegExp) {
-      if (!rule.pattern.test(value)) {
-        this._error = {
-          code: 'PATTERN_UNMATCH',
-          message: `The \`${name}\` does not conform with the pattern.`,
-        }
-        return false
-      }
+
+    if (rule.pattern instanceof RegExp && !rule.pattern.test(value)) {
+      this._error = { code: 'PATTERN_UNMATCH', message: `The \`${name}\` does not conform with the pattern.` }
+      return false
     }
-    if (Array.isArray(rule.enum) && rule.enum.length > 0) {
-      if (!rule.enum.includes(value)) {
-        this._error = {
-          code: 'ENUM_UNMATCH',
-          message:
-            `The \`${
-              name
-            }\` must be any one of ${
-              JSON.stringify(rule.enum)
-            }.`,
-        }
-        return false
-      }
+
+    if (Array.isArray(rule.enum) && !rule.enum.includes(value)) {
+      this._error = { code: 'ENUM_UNMATCH', message: `The \`${name}\` must be any one of ${JSON.stringify(rule.enum)}.` }
+      return false
     }
 
     return true

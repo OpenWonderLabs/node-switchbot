@@ -4,87 +4,77 @@
  */
 import type { Buffer } from 'node:buffer'
 
-import { SwitchbotDevice } from '../device.js'
-import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types.js'
+import type { meterPlusServiceData, meterServiceData } from '../types/bledevicestatus.js'
 
+import { SwitchbotDevice } from '../device.js'
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
+
+/**
+ * Class representing a WoSensorTH device.
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/meter.md
+ */
 export class WoSensorTH extends SwitchbotDevice {
-  static parseServiceData(buf: Buffer, onlog: ((message: string) => void) | undefined) {
-    if (buf.length !== 6) {
-      if (onlog && typeof onlog === 'function') {
-        onlog(
-          `[parseServiceDataForWoSensorTH] Buffer length ${buf.length} !== 6!`,
-        )
-      }
+  /**
+   * Parses the service data for WoSensorTH.
+   * @param {Buffer} serviceData - The service data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
+   * @returns {Promise<meterServiceData | null>} - Parsed service data or null if invalid.
+   */
+  static async parseServiceData(
+    serviceData: Buffer,
+    emitLog: (level: string, message: string) => void,
+  ): Promise<meterServiceData | null> {
+    if (serviceData.length !== 6) {
+      emitLog('debugerror', `[parseServiceDataForWoSensorTH] Buffer length ${serviceData.length} !== 6!`)
       return null
     }
-    const byte2 = buf.readUInt8(2)
-    const byte3 = buf.readUInt8(3)
-    const byte4 = buf.readUInt8(4)
-    const byte5 = buf.readUInt8(5)
 
-    const temp_sign = byte4 & 0b10000000 ? 1 : -1
-    const temp_c = temp_sign * ((byte4 & 0b01111111) + (byte3 & 0b00001111) / 10)
-    const temp_f = Math.round(((temp_c * 9 / 5) + 32) * 10) / 10
+    const [byte2, byte3, byte4, byte5] = [serviceData.readUInt8(2), serviceData.readUInt8(3), serviceData.readUInt8(4), serviceData.readUInt8(5)]
+    const tempSign = byte4 & 0b10000000 ? 1 : -1
+    const tempC = tempSign * ((byte4 & 0b01111111) + (byte3 & 0b00001111) / 10)
+    const tempF = Math.round(((tempC * 9 / 5) + 32) * 10) / 10
 
-    const data = {
+    return {
       model: SwitchBotBLEModel.Meter,
       modelName: SwitchBotBLEModelName.Meter,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.Meter,
-      /**
-       * @deprecated The `temperature` object is deprecated and will be removed in future versions.
-       * Use the `celsius` and `fahrenheit` properties directly instead.
-       */
-      temperature: {
-        c: temp_c,
-        f: temp_f,
-      },
-      celsius: temp_c,
-      fahrenheit: temp_f,
+      celsius: tempC,
+      fahrenheit: tempF,
       fahrenheit_mode: !!(byte5 & 0b10000000),
       humidity: byte5 & 0b01111111,
       battery: byte2 & 0b01111111,
     }
-
-    return data
   }
 
-  static parseServiceData_Plus(buf: Buffer, onlog: ((message: string) => void) | undefined) {
-    if (buf.length !== 6) {
-      if (onlog && typeof onlog === 'function') {
-        onlog(
-          `[parseServiceDataForWoSensorTHPlus] Buffer length ${buf.length} !== 6!`,
-        )
-      }
+  /**
+   * Parses the service data for WoSensorTH Plus.
+   * @param {Buffer} serviceData - The service data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
+   * @returns {Promise<meterPlusServiceData | null>} - Parsed service data or null if invalid.
+   */
+  static async parseServiceData_Plus(
+    serviceData: Buffer,
+    emitLog: (level: string, message: string) => void,
+  ): Promise<meterPlusServiceData | null> {
+    if (serviceData.length !== 6) {
+      emitLog('debugerror', `[parseServiceDataForWoSensorTHPlus] Buffer length ${serviceData.length} !== 6!`)
       return null
     }
-    const byte2 = buf.readUInt8(2)
-    const byte3 = buf.readUInt8(3)
-    const byte4 = buf.readUInt8(4)
-    const byte5 = buf.readUInt8(5)
 
-    const temp_sign = byte4 & 0b10000000 ? 1 : -1
-    const temp_c = temp_sign * ((byte4 & 0b01111111) + (byte3 & 0b00001111) / 10)
-    const temp_f = Math.round(((temp_c * 9 / 5) + 32) * 10) / 10
+    const [byte2, byte3, byte4, byte5] = [serviceData.readUInt8(2), serviceData.readUInt8(3), serviceData.readUInt8(4), serviceData.readUInt8(5)]
+    const tempSign = byte4 & 0b10000000 ? 1 : -1
+    const tempC = tempSign * ((byte4 & 0b01111111) + (byte3 & 0b00001111) / 10)
+    const tempF = Math.round(((tempC * 9 / 5) + 32) * 10) / 10
 
-    const data = {
+    return {
       model: SwitchBotBLEModel.MeterPlus,
       modelName: SwitchBotBLEModelName.MeterPlus,
-      modelfriendlyName: SwitchBotBLEModelFriendlyName.MeterPlus,
-      /**
-       * @deprecated The `temperature` object is deprecated and will be removed in future versions.
-       * Use the `celsius` and `fahrenheit` properties directly instead.
-       */
-      temperature: {
-        c: temp_c,
-        f: temp_f,
-      },
-      celsius: temp_c,
-      fahrenheit: temp_f,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterPlus,
+      celsius: tempC,
+      fahrenheit: tempF,
       fahrenheit_mode: !!(byte5 & 0b10000000),
       humidity: byte5 & 0b01111111,
       battery: byte2 & 0b01111111,
     }
-
-    return data
   }
 }
