@@ -28,7 +28,7 @@ export class WoCurtain extends SwitchbotDevice {
     reverse: boolean = false,
   ): Promise<object | null> {
     if (![5, 6].includes(serviceData.length)) {
-      emitLog('error', `[parseServiceDataForWoCurtain] Buffer length ${serviceData.length} !== 5 or 6!`)
+      emitLog('debugerror', `[parseServiceDataForWoCurtain] Buffer length ${serviceData.length} !== 5 or 6!`)
       return null
     }
 

@@ -25,7 +25,7 @@ export class WoSensorTH extends SwitchbotDevice {
     emitLog: (level: string, message: string) => void,
   ): Promise<meterServiceData | null> {
     if (serviceData.length !== 6) {
-      emitLog('error', `[parseServiceDataForWoSensorTH] Buffer length ${serviceData.length} !== 6!`)
+      emitLog('debugerror', `[parseServiceDataForWoSensorTH] Buffer length ${serviceData.length} !== 6!`)
       return null
     }
 
@@ -57,7 +57,7 @@ export class WoSensorTH extends SwitchbotDevice {
     emitLog: (level: string, message: string) => void,
   ): Promise<meterPlusServiceData | null> {
     if (serviceData.length !== 6) {
-      emitLog('error', `[parseServiceDataForWoSensorTHPlus] Buffer length ${serviceData.length} !== 6!`)
+      emitLog('debugerror', `[parseServiceDataForWoSensorTHPlus] Buffer length ${serviceData.length} !== 6!`)
       return null
     }
 

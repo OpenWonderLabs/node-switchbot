@@ -25,11 +25,11 @@ export class WoBulb extends SwitchbotDevice {
     emitLog: (level: string, message: string) => void,
   ): Promise<object | null> {
     if (serviceData.length !== 18) {
-      emitLog('error', `[parseServiceDataForWoBulb] Buffer length ${serviceData.length} !== 18!`)
+      emitLog('debugerror', `[parseServiceDataForWoBulb] Buffer length ${serviceData.length} !== 18!`)
       return null
     }
     if (manufacturerData.length !== 13) {
-      emitLog('error', `[parseServiceDataForWoBulb] Buffer length ${manufacturerData.length} !== 13!`)
+      emitLog('debugerror', `[parseServiceDataForWoBulb] Buffer length ${manufacturerData.length} !== 13!`)
       return null
     }
 

@@ -52,7 +52,7 @@ export class WoPlugMini extends SwitchbotDevice {
     emitLog: (level: string, message: string) => void,
   ): Promise<object | null> {
     if (manufacturerData.length !== 14) {
-      emitLog('error', `[parseServiceDataForWoPlugMini] Buffer length ${manufacturerData.length} should be 14`)
+      emitLog('debugerror', `[parseServiceDataForWoPlugMini] Buffer length ${manufacturerData.length} should be 14`)
       return null
     }
 

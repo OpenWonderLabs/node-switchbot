@@ -25,11 +25,11 @@ export class WoIOSensorTH extends SwitchbotDevice {
     emitLog: (level: string, message: string) => void,
   ): Promise<object | null> {
     if (serviceData.length !== 3) {
-      emitLog('error', `[parseServiceDataForWoIOSensorTH] Service Data Buffer length ${serviceData.length} !== 3!`)
+      emitLog('debugerror', `[parseServiceDataForWoIOSensorTH] Service Data Buffer length ${serviceData.length} !== 3!`)
       return null
     }
     if (manufacturerData.length !== 14) {
-      emitLog('error', `[parseServiceDataForWoIOSensorTH] Manufacturer Data Buffer length ${manufacturerData.length} !== 14!`)
+      emitLog('debugerror', `[parseServiceDataForWoIOSensorTH] Manufacturer Data Buffer length ${manufacturerData.length} !== 14!`)
       return null
     }
 

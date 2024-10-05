@@ -23,7 +23,7 @@ export class WoHub2 extends SwitchbotDevice {
     emitLog: (level: string, message: string) => void,
   ): Promise<object | null> {
     if (manufacturerData.length !== 16) {
-      emitLog('error', `[parseServiceDataForWoHub2] Buffer length ${manufacturerData.length} !== 16!`)
+      emitLog('debugerror', `[parseServiceDataForWoHub2] Buffer length ${manufacturerData.length} !== 16!`)
       return null
     }
 

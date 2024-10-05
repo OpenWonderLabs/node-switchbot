@@ -23,7 +23,7 @@ export class WoContact extends SwitchbotDevice {
     emitLog: (level: string, message: string) => void,
   ): Promise<object | null> {
     if (serviceData.length !== 9) {
-      emitLog('error', `[parseServiceDataForWoContact] Buffer length ${serviceData.length} !== 9!`)
+      emitLog('debugerror', `[parseServiceDataForWoContact] Buffer length ${serviceData.length} !== 9!`)
       return null
     }
 

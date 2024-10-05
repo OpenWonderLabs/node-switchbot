@@ -25,7 +25,7 @@ export class WoPresence extends SwitchbotDevice {
     emitLog: (level: string, message: string) => void,
   ): Promise<motionSensorServiceData | null> {
     if (serviceData.length !== 6) {
-      emitLog('error', `[parseServiceDataForWoPresence] Buffer length ${serviceData.length} !== 6!`)
+      emitLog('debugerror', `[parseServiceDataForWoPresence] Buffer length ${serviceData.length} !== 6!`)
       return null
     }
 

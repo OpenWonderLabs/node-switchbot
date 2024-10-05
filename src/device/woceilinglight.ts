@@ -23,7 +23,7 @@ export class WoCeilingLight extends SwitchbotDevice {
     emitLog: (level: string, message: string) => void,
   ): Promise<object | null> {
     if (manufacturerData.length !== 13) {
-      emitLog('error', `[parseServiceDataForWoCeilingLight] Buffer length ${manufacturerData.length} !== 13!`)
+      emitLog('debugerror', `[parseServiceDataForWoCeilingLight] Buffer length ${manufacturerData.length} !== 13!`)
       return null
     }
 
@@ -69,7 +69,7 @@ export class WoCeilingLight extends SwitchbotDevice {
     emitLog: (level: string, message: string) => void,
   ): Promise<object | null> {
     if (manufacturerData.length !== 13) {
-      emitLog('error', `[parseServiceDataForWoCeilingLightPro] Buffer length ${manufacturerData.length} !== 13!`)
+      emitLog('debugerror', `[parseServiceDataForWoCeilingLightPro] Buffer length ${manufacturerData.length} !== 13!`)
       return null
     }
 

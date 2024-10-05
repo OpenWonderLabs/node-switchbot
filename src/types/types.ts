@@ -188,8 +188,12 @@ export interface AdvertisementData {
  * Enum for log levels.
  */
 export enum LogLevel {
-  ERROR = 'error',
+  SUCCESS = 'success',
+  DEBUGSUCCESS = 'debugsuccess',
   WARN = 'warn',
-  INFO = 'info',
+  DEBUGWARN = 'debugwarn',
+  ERROR = 'error',
+  DEBUGERROR = 'debugerror',
   DEBUG = 'debug',
+  INFO = 'info',
 }

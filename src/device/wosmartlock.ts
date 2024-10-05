@@ -64,7 +64,7 @@ export class WoSmartLock extends SwitchbotDevice {
     emitLog: (level: string, message: string) => void,
   ): Promise<lockServiceData | null> {
     if (manufacturerData.length < 11) {
-      emitLog('error', `[parseServiceDataForWoSmartLock] Buffer length ${manufacturerData.length} is too short!`)
+      emitLog('debugerror', `[parseServiceDataForWoSmartLock] Buffer length ${manufacturerData.length} is too short!`)
       return null
     }
 

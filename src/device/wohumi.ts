@@ -23,7 +23,7 @@ export class WoHumi extends SwitchbotDevice {
     emitLog: (level: string, message: string) => void,
   ): Promise<object | null> {
     if (serviceData.length !== 8) {
-      emitLog('error', `[parseServiceDataForWoHumi] Buffer length ${serviceData.length} !== 8!`)
+      emitLog('debugerror', `[parseServiceDataForWoHumi] Buffer length ${serviceData.length} !== 8!`)
       return null
     }
 

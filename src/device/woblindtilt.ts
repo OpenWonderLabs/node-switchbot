@@ -29,7 +29,7 @@ export class WoBlindTilt extends SwitchbotDevice {
     reverse: boolean = false,
   ): Promise<object | null> {
     if (![5, 6].includes(manufacturerData.length)) {
-      emitLog('error', `[parseServiceDataForWoBlindTilt] Buffer length ${manufacturerData.length} !== 5 or 6!`)
+      emitLog('debugerror', `[parseServiceDataForWoBlindTilt] Buffer length ${manufacturerData.length} !== 5 or 6!`)
       return null
     }
 

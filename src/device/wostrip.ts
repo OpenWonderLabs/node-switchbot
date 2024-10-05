@@ -25,7 +25,7 @@ export class WoStrip extends SwitchbotDevice {
     emitLog: (level: string, message: string) => void,
   ): Promise<stripLightServiceData | null> {
     if (serviceData.length !== 18) {
-      emitLog('error', `[parseServiceDataForWoStrip] Buffer length ${serviceData.length} !== 18!`)
+      emitLog('debugerror', `[parseServiceDataForWoStrip] Buffer length ${serviceData.length} !== 18!`)
       return null
     }
 

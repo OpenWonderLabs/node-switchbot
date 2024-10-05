@@ -23,7 +23,7 @@ export class WoHand extends SwitchbotDevice {
     emitLog: (level: string, message: string) => void,
   ): Promise<object | null> {
     if (serviceData.length !== 3) {
-      emitLog('error', `[parseServiceData] Buffer length ${serviceData.length} !== 3!`)
+      emitLog('debugerror', `[parseServiceData] Buffer length ${serviceData.length} !== 3!`)
       return null
     }
 
