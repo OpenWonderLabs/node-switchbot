@@ -6,12 +6,12 @@ The `SwitchBotOpenAPI` class allows you to interact with SwitchBot devices using
 
 - [OpenAPI](#openapi)
   - [Importing and Setting Up](#importing-and-setting-up)
-  - [SwitchBotOpenAPI Object](#switchbotopenapi-object)
-    - [getDevices() Method](#getdevices-method)
-    - [controlDevice() Method](#controldevice-method)
-    - [getDeviceStatus() Method](#getdevicestatus-method)
-    - [setupWebhook() Method](#setupwebhook-method)
-    - [deleteWebhook() Method](#deletewebhook-method)
+  - [`SwitchBotOpenAPI` Object](#switchbotopenapi-object)
+    - [`getDevices()` Method](#getdevices-method)
+    - [`controlDevice()` Method](#controldevice-method)
+    - [`getDeviceStatus()` Method](#getdevicestatus-method)
+    - [`setupWebhook()` Method](#setupwebhook-method)
+    - [`deleteWebhook()` Method](#deletewebhook-method)
   - [Logging](#logging)
   - [Supported Devices](#supported-devices)
 
@@ -135,17 +135,30 @@ To be able to receive logging that this module is pushing out you will need to s
 ```typescript
 this.switchBotAPI.on('log', (log) => {
   switch (log.level) {
-    case LogLevel.ERROR:
-      console.error(log.message)
+    case LogLevel.SUCCESS:
+      this.successLog(log.message)
+      break
+    case LogLevel.DEBUGSUCCESS:
+      this.debugSuccessLog(log.message)
       break
     case LogLevel.WARN:
-      console.warn(log.message)
+      this.warnLog(log.message)
+      break
+    case LogLevel.DEBUGWARN:
+      this.debugWarnLog(log.message)
+      break
+    case LogLevel.ERROR:
+      this.errorLog(log.message)
+      break
+    case LogLevel.DEBUGERROR:
+      this.debugErrorLog(log.message)
       break
     case LogLevel.DEBUG:
-      console.debug(log.message)
+      this.debugLog(log.message)
       break
+    case LogLevel.INFO:
     default:
-      console.info(log.message)
+      this.infoLog(log.message)
   }
 })
 ```

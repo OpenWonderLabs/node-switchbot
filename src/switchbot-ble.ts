@@ -42,7 +42,6 @@ export class SwitchBotBLE extends EventEmitter {
    * Constructor
    *
    * @param {Params} [params] - Optional parameters
-   * @param {typeof Noble} [params.noble] - Optional noble instance
    */
   constructor(params?: Params) {
     super()
@@ -63,7 +62,6 @@ export class SwitchBotBLE extends EventEmitter {
    * Initializes the noble object.
    *
    * @param {Params} [params] - Optional parameters
-   * @param {typeof Noble} [params.noble] - Optional noble instance
    * @returns {Promise<void>} - Resolves when initialization is complete
    */
   async init(params?: Params): Promise<void> {
