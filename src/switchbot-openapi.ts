@@ -213,7 +213,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
                 await this.emitLog('debug', `Received Webhook: ${JSON.stringify(body)}`)
                 this.emit('webhookEvent', body)
               } catch (e: any) {
-                await this.emitLog('error', `Failed to handle webhook event data. Error:${e}`)
+                await this.emitLog('error', `Failed to handle webhook event data, Error: ${e.message ?? e}`)
               }
             })
             response.writeHead(200, { 'Content-Type': 'text/plain' })
@@ -224,11 +224,11 @@ export class SwitchBotOpenAPI extends EventEmitter {
             response.end(`NG`)
           }
         } catch (e: any) {
-          await this.emitLog('error', `Failed to handle webhook event. Error:${e}`)
+          await this.emitLog('error', `Failed to handle webhook event, Error: ${e.message ?? e}`)
         }
       }).listen(port || 80)
     } catch (e: any) {
-      await this.emitLog('error', `Failed to create webhook listener. Error:${e.message}`)
+      await this.emitLog('error', `Failed to create webhook listener, Error: ${e.message ?? e}`)
       return
     }
 
@@ -248,7 +248,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
         await this.emitLog('error', `Failed to configure webhook. Existing webhook well be overridden. HTTP:${statusCode} API:${response?.statusCode} message:${response?.message}`)
       }
     } catch (e: any) {
-      await this.emitLog('error', `Failed to configure webhook. Error: ${e.message}`)
+      await this.emitLog('error', `Failed to configure webhook, Error: ${e.message ?? e}`)
     }
 
     try {
@@ -269,7 +269,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
         await this.emitLog('error', `Failed to update webhook. HTTP:${statusCode} API:${response?.statusCode} message:${response?.message}`)
       }
     } catch (e: any) {
-      await this.emitLog('error', `Failed to update webhook. Error:${e.message}`)
+      await this.emitLog('error', `Failed to update webhook, Error: ${e.message ?? e}`)
     }
 
     try {
@@ -288,7 +288,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
         await this.emitLog('info', `Listening webhook on ${response?.body?.urls[0]}`)
       }
     } catch (e: any) {
-      await this.emitLog('error', `Failed to query webhook. Error:${e}`)
+      await this.emitLog('error', `Failed to query webhook, Error: ${e.message ?? e}`)
     }
   }
 
@@ -318,7 +318,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
         await this.emitLog('info', 'Unregistered webhook to close listening.')
       }
     } catch (e: any) {
-      await this.emitLog('error', `Failed to delete webhook. Error:${e.message}`)
+      await this.emitLog('error', `Failed to delete webhook, Error: ${e.message ?? e}`)
     }
   }
 }

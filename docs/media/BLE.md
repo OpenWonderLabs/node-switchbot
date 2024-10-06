@@ -80,7 +80,7 @@ const switchBotBLE = new SwitchBotBLE()
 try {
   await switchBotBLE.startScan()
 } catch (e: any) {
-  console.error(`Failed to start BLE scanning. Error:${e}`)
+  console.error(`Failed to start BLE scanning, Error: ${e.message ?? e}`)
 }
 ```
 
@@ -230,7 +230,7 @@ switchBotBLE.onadvertisement = async (ad: any) => {
   try {
     this.bleEventHandler[ad.address]?.(ad.serviceData)
   } catch (e: any) {
-    await this.errorLog(`Failed to handle BLE event. Error:${e}`)
+    await this.errorLog(`Failed to handle BLE event, Error: ${e.message ?? e}`)
   }
 }
 ```
@@ -246,7 +246,7 @@ try {
   switchBotBLE.stopScan()
   console.log('Stopped BLE scanning to close listening.')
 } catch (e: any) {
-  console.error(`Failed to stop BLE scanning, error:${e.message}`)
+  console.error(`Failed to stop BLE scanning, Error: ${e.message ?? e}`)
 }
 ```
 

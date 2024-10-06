@@ -199,12 +199,17 @@ export class SwitchbotDevice extends EventEmitter {
    * @returns A Promise that resolves with the list of services.
    */
   public async discoverServices(): Promise<Noble.Service[]> {
-    const services = await this._peripheral.discoverServicesAsync([])
-    const primaryServices = services.filter(s => s.uuid === SERV_UUID_PRIMARY)
-    if (primaryServices.length === 0) {
-      throw new Error('No service was found.')
+    try {
+      const services = await this._peripheral.discoverServicesAsync([])
+      const primaryServices = services.filter(s => s.uuid === SERV_UUID_PRIMARY)
+
+      if (primaryServices.length === 0) {
+        throw new Error('No service was found.')
+      }
+      return primaryServices
+    } catch (e: any) {
+      throw new Error(`Failed to discover services, Error: ${e.message ?? e}`)
     }
-    return primaryServices
   }
 
   /**

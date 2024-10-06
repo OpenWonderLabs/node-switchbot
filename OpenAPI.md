@@ -47,8 +47,8 @@ async function getDevices() {
   try {
     const devices = await switchBotAPI.getDevices()
     console.log('Devices:', devices)
-  } catch (error) {
-    console.error('Error getting devices:', error)
+  } catch (e: any) {
+    console.error(`failed to get devices, Error: ${e.message ?? e}`)
   }
 }
 

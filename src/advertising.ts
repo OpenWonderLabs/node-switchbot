@@ -95,7 +95,7 @@ export class Advertising {
    * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<any>} - The parsed service data.
    */
-  private static async parseServiceData(
+  public static async parseServiceData(
     model: string,
     serviceData: Buffer,
     manufacturerData: Buffer,
