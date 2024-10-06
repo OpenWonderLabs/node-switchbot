@@ -1,11 +1,11 @@
-/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
- *
- * switchbot.ts: Switchbot BLE API registration.
- */
 import type { Ad, Params } from './types/types.js'
 
 import { EventEmitter } from 'node:events'
 
+/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * switchbot.ts: Switchbot BLE API registration.
+ */
 import * as Noble from '@stoprocent/noble'
 
 import { Advertising } from './advertising.js'
@@ -64,7 +64,7 @@ export class SwitchBotBLE extends EventEmitter {
    * @returns {Promise<void>} - Resolves when initialization is complete
    */
   async init(params?: Params): Promise<void> {
-    this.noble = params && params.noble ? params.noble : Noble
+    this.noble = params && params.noble ? params.noble : Noble.default as typeof Noble
   }
 
   /**
@@ -74,11 +74,54 @@ export class SwitchBotBLE extends EventEmitter {
    * @returns {Promise<SwitchbotDevice[]>} - A promise that resolves with a list of discovered devices.
    */
   async discover(params: Params = {}): Promise<SwitchbotDevice[]> {
-    await this.ready
+    const promise = new Promise<SwitchbotDevice[]>((resolve, reject) => {
+      // Check the parameters
+      const valid = parameterChecker.check(
+        params as Record<string, unknown>,
+        {
+          duration: { required: false, type: 'integer', min: 1, max: 60000 },
+          model: {
+            required: false,
+            type: 'string',
+            enum: [
+              SwitchBotBLEModel.Bot,
+              SwitchBotBLEModel.Curtain,
+              SwitchBotBLEModel.Curtain3,
+              SwitchBotBLEModel.Humidifier,
+              SwitchBotBLEModel.Meter,
+              SwitchBotBLEModel.MeterPlus,
+              SwitchBotBLEModel.Hub2,
+              SwitchBotBLEModel.OutdoorMeter,
+              SwitchBotBLEModel.MotionSensor,
+              SwitchBotBLEModel.ContactSensor,
+              SwitchBotBLEModel.ColorBulb,
+              SwitchBotBLEModel.CeilingLight,
+              SwitchBotBLEModel.CeilingLightPro,
+              SwitchBotBLEModel.StripLight,
+              SwitchBotBLEModel.PlugMiniUS,
+              SwitchBotBLEModel.PlugMiniJP,
+              SwitchBotBLEModel.Lock,
+              SwitchBotBLEModel.LockPro,
+              SwitchBotBLEModel.BlindTilt,
+            ],
+          },
+          id: { required: false, type: 'string', min: 12, max: 17 },
+          quick: { required: false, type: 'boolean' },
+        },
+        false,
+      )
 
-    try {
-      await this.validateParams(params)
+      if (!valid) {
+        this.emitLog('error', `parameterChecker: ${JSON.stringify(parameterChecker.error!.message)}`)
+        reject(new Error(parameterChecker.error!.message))
+        return
+      }
 
+      if (!params) {
+        params = {}
+      }
+
+      // Determine the values of the parameters
       const p = {
         duration: params.duration ?? DEFAULT_DISCOVERY_DURATION,
         model: params.model ?? '',
@@ -86,109 +129,64 @@ export class SwitchBotBLE extends EventEmitter {
         quick: !!params.quick,
       }
 
-      await this.initNoble()
-
-      if (this.noble === null) {
-        throw new Error('noble failed to initialize')
-      }
-
-      const peripherals: Record<string, SwitchbotDevice> = {}
-      let timer: NodeJS.Timeout
-
-      const finishDiscovery = (): SwitchbotDevice[] => {
-        if (timer) {
-          clearTimeout(timer)
-        }
-
-        this.noble.removeAllListeners('discover')
-        this.noble.stopScanningAsync()
-
-        const deviceList: SwitchbotDevice[] = Object.values(peripherals)
-        return deviceList
-      }
-
-      this.noble.on('discover', async (peripheral: Noble.Peripheral) => {
-        const device = await this.getDeviceObject(peripheral, p.id, p.model)
-        if (!device) {
-          return
-        }
-        const id = device.id
-        peripherals[id!] = device
-
-        if (this.ondiscover && typeof this.ondiscover === 'function') {
-          this.ondiscover(device)
-        }
-
-        if (p.quick) {
-          return finishDiscovery()
-        }
-      })
-
-      await this.noble.startScanningAsync(PRIMARY_SERVICE_UUID_LIST, false)
-      timer = setTimeout(() => {
-        return finishDiscovery()
-      }, p.duration)
-
-      await new Promise<void>((resolve, reject) => {
-        this.noble.once('stateChange', (state: typeof Noble._state) => {
-          switch (state) {
-            case 'unsupported':
-            case 'unauthorized':
-            case 'poweredOff':
-              reject(new Error(`Failed to initialize the Noble object: ${state}`))
-              break
-            case 'resetting':
-            case 'unknown':
-              reject(new Error(`Adapter is not ready: ${state}`))
-              break
-            case 'poweredOn':
-              resolve()
-              break
-            default:
-              reject(new Error(`Unknown state: ${state}`))
+      // Initialize the noble object
+      this._init()
+        .then(() => {
+          if (this.noble === null) {
+            return reject(new Error('noble failed to initialize'))
           }
+          const peripherals: Record<string, SwitchbotDevice> = {}
+          let timer: NodeJS.Timeout = setTimeout(() => { }, 0)
+          const finishDiscovery = () => {
+            if (timer) {
+              clearTimeout(timer)
+            }
+
+            this.noble.removeAllListeners('discover')
+            this.noble.stopScanningAsync()
+
+            const device_list: SwitchbotDevice[] = []
+            for (const addr in peripherals) {
+              device_list.push(peripherals[addr])
+            }
+
+            resolve(device_list)
+          }
+
+          // Set a handler for the 'discover' event
+          this.noble.on('discover', async (peripheral: Noble.Peripheral) => {
+            const device = await this.getDeviceObject(peripheral, p.id, p.model)
+            if (!device) {
+              return
+            }
+            const id = device.id
+            peripherals[id!] = device
+
+            if (this.ondiscover && typeof this.ondiscover === 'function') {
+              this.ondiscover(device)
+            }
+
+            if (p.quick) {
+              finishDiscovery()
+            }
+          })
+          // Start scanning
+          this.noble.startScanningAsync(
+            PRIMARY_SERVICE_UUID_LIST,
+            false,
+          ).then(() => {
+            timer = setTimeout(() => {
+              finishDiscovery()
+            }, p.duration)
+          }).catch((error: Error) => {
+            reject(error)
+          })
         })
-      })
-
-      return finishDiscovery()
-    } catch (e: any) {
-      this.emitLog('error', e.message ?? e)
-      throw e
-    }
-  }
-
-  /**
-   * Initializes the noble object and waits for it to be powered on.
-   *
-   * @returns {Promise<void>} - Resolves when the noble object is powered on.
-   */
-  async initNoble(): Promise<void> {
-    await this.ready
-
-    if (this.noble._state === 'poweredOn') {
-      return
-    }
-
-    return new Promise<void>((resolve, reject) => {
-      this.noble.once('stateChange', (state: typeof Noble._state) => {
-        switch (state) {
-          case 'unsupported':
-          case 'unauthorized':
-          case 'poweredOff':
-            reject(new Error(`Failed to initialize the Noble object: ${state}`))
-            break
-          case 'resetting':
-          case 'unknown':
-            reject(new Error(`Adapter is not ready: ${state}`))
-            break
-          case 'poweredOn':
-            resolve()
-            break
-          default:
-            reject(new Error(`Unknown state: ${state}`))
-        }
-      })
+        .catch((error) => {
+          reject(error)
+        })
     })
+    return promise
   }
 
   /**
@@ -215,6 +213,7 @@ export class SwitchBotBLE extends EventEmitter {
             reject(new Error(`Adapter is not ready: ${this.noble._state}`))
             return
           case 'poweredOn':
+            resolve()
             return
           default:
             reject(new Error(`Unknown state: ${this.noble._state}`))
@@ -329,103 +328,95 @@ export class SwitchBotBLE extends EventEmitter {
   }
 
   /**
-   * Validates the provided parameters against a predefined schema.
-   *
-   * @param params - The parameters to validate.
-   * @returns A promise that resolves if the parameters are valid, otherwise it throws an error.
-   *
-   * @throws {Error} If the parameters do not conform to the expected schema.
-   *
-   * The expected schema for `params` is:
-   * - `duration` (optional): An integer between 1 and 60000.
-   * - `model` (optional): A string that must be one of the following values:
-   *   - `SwitchBotBLEModel.Bot`
-   *   - `SwitchBotBLEModel.Curtain`
-   *   - `SwitchBotBLEModel.Curtain3`
-   *   - `SwitchBotBLEModel.Humidifier`
-   *   - `SwitchBotBLEModel.Meter`
-   *   - `SwitchBotBLEModel.MeterPlus`
-   *   - `SwitchBotBLEModel.Hub2`
-   *   - `SwitchBotBLEModel.OutdoorMeter`
-   *   - `SwitchBotBLEModel.MotionSensor`
-   *   - `SwitchBotBLEModel.ContactSensor`
-   *   - `SwitchBotBLEModel.ColorBulb`
-   *   - `SwitchBotBLEModel.CeilingLight`
-   *   - `SwitchBotBLEModel.CeilingLightPro`
-   *   - `SwitchBotBLEModel.StripLight`
-   *   - `SwitchBotBLEModel.PlugMiniUS`
-   *   - `SwitchBotBLEModel.PlugMiniJP`
-   *   - `SwitchBotBLEModel.Lock`
-   *   - `SwitchBotBLEModel.LockPro`
-   *   - `SwitchBotBLEModel.BlindTilt`
-   * - `id` (optional): A string with a length between 12 and 17 characters.
-   * - `quick` (optional): A boolean value.
-   */
-  async validateParams(params: Params): Promise<void> {
-    const valid = parameterChecker.check(
-      params as Record<string, unknown>,
-      {
-        duration: { required: false, type: 'integer', min: 1, max: 60000 },
-        model: {
-          required: false,
-          type: 'string',
-          enum: [
-            SwitchBotBLEModel.Bot,
-            SwitchBotBLEModel.Curtain,
-            SwitchBotBLEModel.Curtain3,
-            SwitchBotBLEModel.Humidifier,
-            SwitchBotBLEModel.Meter,
-            SwitchBotBLEModel.MeterPlus,
-            SwitchBotBLEModel.Hub2,
-            SwitchBotBLEModel.OutdoorMeter,
-            SwitchBotBLEModel.MotionSensor,
-            SwitchBotBLEModel.ContactSensor,
-            SwitchBotBLEModel.ColorBulb,
-            SwitchBotBLEModel.CeilingLight,
-            SwitchBotBLEModel.CeilingLightPro,
-            SwitchBotBLEModel.StripLight,
-            SwitchBotBLEModel.PlugMiniUS,
-            SwitchBotBLEModel.PlugMiniJP,
-            SwitchBotBLEModel.Lock,
-            SwitchBotBLEModel.LockPro,
-            SwitchBotBLEModel.BlindTilt,
-          ],
-        },
-        id: { required: false, type: 'string', min: 12, max: 17 },
-        quick: { required: false, type: 'boolean' },
-      },
-      false,
-    )
-
-    if (!valid) {
-      this.emitLog('error', `parameterChecker: ${JSON.stringify(parameterChecker.error!.message)}`)
-      throw new Error(parameterChecker.error!.message)
-    }
-  }
-
-  /**
    * Starts scanning for SwitchBot devices.
    *
    * @param {Params} [params] - Optional parameters.
    * @returns {Promise<void>} - Resolves when scanning starts successfully.
    */
   async startScan(params: Params = {}): Promise<void> {
-    const p = {
-      model: params.model || '',
-      id: params.id || '',
-    }
-
-    this.noble.on('discover', async (peripheral: Noble.Peripheral) => {
-      const ad = await Advertising.parse(peripheral, this.emitLog.bind(this))
-      if (ad && await this.filterAdvertising(ad, p.id, p.model)) {
-        if (this.onadvertisement && typeof this.onadvertisement === 'function') {
-          this.onadvertisement(ad)
-        }
+    const promise = new Promise<void>((resolve, reject) => {
+      // Check the parameters
+      const valid = parameterChecker.check(
+        params as Record<string, unknown>,
+        {
+          model: {
+            required: false,
+            type: 'string',
+            enum: [
+              SwitchBotBLEModel.Bot,
+              SwitchBotBLEModel.Curtain,
+              SwitchBotBLEModel.Curtain3,
+              SwitchBotBLEModel.Humidifier,
+              SwitchBotBLEModel.Meter,
+              SwitchBotBLEModel.MeterPlus,
+              SwitchBotBLEModel.Hub2,
+              SwitchBotBLEModel.OutdoorMeter,
+              SwitchBotBLEModel.MotionSensor,
+              SwitchBotBLEModel.ContactSensor,
+              SwitchBotBLEModel.ColorBulb,
+              SwitchBotBLEModel.CeilingLight,
+              SwitchBotBLEModel.CeilingLightPro,
+              SwitchBotBLEModel.StripLight,
+              SwitchBotBLEModel.PlugMiniUS,
+              SwitchBotBLEModel.PlugMiniJP,
+              SwitchBotBLEModel.Lock,
+              SwitchBotBLEModel.LockPro,
+              SwitchBotBLEModel.BlindTilt,
+            ],
+          },
+          id: { required: false, type: 'string', min: 12, max: 17 },
+        },
+        false,
+      )
+      if (!valid) {
+        this.emitLog('error', `parameterChecker: ${JSON.stringify(parameterChecker.error!.message)}`)
+        reject(new Error(parameterChecker.error!.message))
+        return
       }
-    })
 
-    await this.noble.startScanningAsync(PRIMARY_SERVICE_UUID_LIST, true)
-    this.emitLog('info', 'Started Scanning for SwitchBot BLE devices.')
+      // Initialize the noble object
+      this._init()
+        .then(() => {
+          if (this.noble === null) {
+            return reject(new Error('noble object failed to initialize'))
+          }
+          // Determine the values of the parameters
+          const p = {
+            model: params.model || '',
+            id: params.id || '',
+          }
+
+          // Set a handler for the 'discover' event
+          this.noble.on('discover', async (peripheral: Noble.Peripheral) => {
+            const ad = await Advertising.parse(peripheral, this.emitLog.bind(this))
+            if (ad && await this.filterAdvertising(ad, p.id, p.model)) {
+              if (
+                this.onadvertisement
+                && typeof this.onadvertisement === 'function'
+              ) {
+                this.onadvertisement(ad)
+              }
+            }
+          })
+
+          // Start scanning
+          this.noble.startScanningAsync(
+            PRIMARY_SERVICE_UUID_LIST,
+            true,
+          ).then(() => {
+            this.emitLog('info', 'Started Scanning for SwitchBot BLE devices.')
+            resolve()
+          }).catch((error: Error) => {
+            this.emitLog('error', `startScanning error: ${JSON.stringify(error!.message)}`)
+            reject(error)
+          })
+        })
+        .catch((error) => {
+          this.emitLog('error', `startScanning error: ${JSON.stringify(error!.message)}`)
+          reject(error)
+        })
+    })
+    return promise
   }
 
   /**
