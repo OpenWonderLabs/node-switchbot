@@ -2,6 +2,10 @@
  *
  * woblindtilt.ts: Switchbot BLE API registration.
  */
+import type * as Noble from '@stoprocent/noble'
+
+import type { blindTiltServiceData } from '../types/bledevicestatus.js'
+
 import { Buffer } from 'node:buffer'
 
 import { SwitchbotDevice } from '../device.js'
@@ -20,14 +24,14 @@ export class WoBlindTilt extends SwitchbotDevice {
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
    * @param {Function} emitLog - The function to emit log messages.
    * @param {boolean} [reverse] - Whether to reverse the tilt percentage.
-   * @returns {Promise<object | null>} - The parsed data object or null if the data is invalid.
+   * @returns {Promise<blindTiltServiceData | null>} - The parsed data object or null if the data is invalid.
    */
   static async parseServiceData(
     serviceData: Buffer,
     manufacturerData: Buffer,
     emitLog: (level: string, message: string) => void,
     reverse: boolean = false,
-  ): Promise<object | null> {
+  ): Promise<blindTiltServiceData | null> {
     if (![5, 6].includes(manufacturerData.length)) {
       emitLog('debugerror', `[parseServiceDataForWoBlindTilt] Buffer length ${manufacturerData.length} !== 5 or 6!`)
       return null
@@ -43,7 +47,7 @@ export class WoBlindTilt extends SwitchbotDevice {
     const sequenceNumber = byte6.readUInt8(0)
     const battery = serviceData.length > 2 ? byte2 & 0b01111111 : null
 
-    return {
+    const data: blindTiltServiceData = {
       model: SwitchBotBLEModel.BlindTilt,
       modelName: SwitchBotBLEModelName.BlindTilt,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.BlindTilt,
@@ -54,6 +58,12 @@ export class WoBlindTilt extends SwitchbotDevice {
       lightLevel,
       sequenceNumber,
     }
+
+    return data
+  }
+
+  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+    super(peripheral, noble)
   }
 
   /**

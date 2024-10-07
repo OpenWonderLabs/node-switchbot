@@ -2,10 +2,14 @@
  *
  * wocurtain.ts: Switchbot BLE API registration.
  */
+import type * as Noble from '@stoprocent/noble'
+
+import type { curtain3ServiceData, curtainServiceData } from '../types/bledevicestatus.js'
+
 import { Buffer } from 'node:buffer'
 
 import { SwitchbotDevice } from '../device.js'
-import { SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
+import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
 /**
  * Class representing a WoCurtain device.
@@ -19,14 +23,14 @@ export class WoCurtain extends SwitchbotDevice {
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
    * @param {Function} emitLog - The function to emit log messages.
    * @param {boolean} [reverse] - Whether to reverse the position.
-   * @returns {Promise<object | null>} - Parsed service data or null if invalid.
+   * @returns {Promise<curtainServiceData | curtain3ServiceData | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     serviceData: Buffer,
     manufacturerData: Buffer,
     emitLog: (level: string, message: string) => void,
     reverse: boolean = false,
-  ): Promise<object | null> {
+  ): Promise<curtainServiceData | curtain3ServiceData | null> {
     if (![5, 6].includes(serviceData.length)) {
       emitLog('debugerror', `[parseServiceDataForWoCurtain] Buffer length ${serviceData.length} !== 5 or 6!`)
       return null
@@ -49,9 +53,7 @@ export class WoCurtain extends SwitchbotDevice {
       batteryData = byte2
     }
 
-    const model = serviceData.subarray(0, 1).toString('utf8')
-    const modelName = model === 'c' ? SwitchBotBLEModelName.Curtain : SwitchBotBLEModelName.Curtain3
-    const modelFriendlyName = model === 'c' ? SwitchBotBLEModelFriendlyName.Curtain : SwitchBotBLEModelFriendlyName.Curtain3
+    const model = serviceData.subarray(0, 1).toString('utf8') as string ? SwitchBotBLEModel.Curtain : SwitchBotBLEModel.Curtain3
     const calibration = Boolean(byte1 & 0b01000000)
     const position = Math.max(Math.min(deviceData.readUInt8(0) & 0b01111111, 100), 0)
     const inMotion = Boolean(deviceData.readUInt8(0) & 0b10000000)
@@ -59,17 +61,37 @@ export class WoCurtain extends SwitchbotDevice {
     const deviceChain = deviceData.readUInt8(1) & 0b00000111
     const battery = batteryData !== null ? batteryData & 0b01111111 : null
 
-    return {
-      model,
-      modelName,
-      modelFriendlyName,
-      calibration,
-      battery,
-      inMotion,
-      position: reverse ? 100 - position : position,
-      lightLevel,
-      deviceChain,
+    if (model === SwitchBotBLEModel.Curtain) {
+      const data: curtainServiceData = {
+        model: SwitchBotBLEModel.Curtain,
+        modelName: SwitchBotBLEModelName.Curtain,
+        modelFriendlyName: SwitchBotBLEModelFriendlyName.Curtain,
+        calibration,
+        battery: battery ?? 0,
+        inMotion,
+        position: reverse ? 100 - position : position,
+        lightLevel,
+        deviceChain,
+      }
+      return data
+    } else {
+      const data: curtain3ServiceData = {
+        model: SwitchBotBLEModel.Curtain3,
+        modelName: SwitchBotBLEModelName.Curtain3,
+        modelFriendlyName: SwitchBotBLEModelFriendlyName.Curtain3,
+        calibration,
+        battery: battery ?? 0,
+        inMotion,
+        position: reverse ? 100 - position : position,
+        lightLevel,
+        deviceChain,
+      }
+      return data
     }
+  }
+
+  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+    super(peripheral, noble)
   }
 
   /**

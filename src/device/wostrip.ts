@@ -2,6 +2,8 @@
  *
  * wostrip.ts: Switchbot BLE API registration.
  */
+import type * as Noble from '@stoprocent/noble'
+
 import type { stripLightServiceData } from '../types/bledevicestatus.js'
 
 import { Buffer } from 'node:buffer'
@@ -57,6 +59,10 @@ export class WoStrip extends SwitchbotDevice {
     }
 
     return data
+  }
+
+  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+    super(peripheral, noble)
   }
 
   /**

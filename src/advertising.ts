@@ -60,7 +60,7 @@ export class Advertising {
     const model = serviceData.subarray(0, 1).toString('utf8')
     const sd = await Advertising.parseServiceData(model, serviceData, manufacturerData, emitLog)
     if (!sd) {
-      emitLog('debugerror', `[parseAdvertising.${peripheral.id}.${model}] return null, parsed serviceData empty!`)
+      // emitLog('debugerror', `[parseAdvertising.${peripheral.id}.${model}] return null, parsed serviceData empty!`)
       return null
     }
 

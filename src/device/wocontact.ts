@@ -1,8 +1,12 @@
+import type { Buffer } from 'node:buffer'
+
 /* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
  * wocontact.ts: Switchbot BLE API registration.
  */
-import type { Buffer } from 'node:buffer'
+import type * as Noble from '@stoprocent/noble'
+
+import type { contactSensorServiceData } from '../types/bledevicestatus.js'
 
 import { SwitchbotDevice } from '../device.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
@@ -16,12 +20,12 @@ export class WoContact extends SwitchbotDevice {
    * Parses the service data for WoContact.
    * @param {Buffer} serviceData - The service data buffer.
    * @param {Function} emitLog - The function to emit log messages.
-   * @returns {Promise<object | null>} - Parsed service data or null if invalid.
+   * @returns {Promise<contactSensorServiceData | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     serviceData: Buffer,
     emitLog: (level: string, message: string) => void,
-  ): Promise<object | null> {
+  ): Promise<contactSensorServiceData | null> {
     if (serviceData.length !== 9) {
       emitLog('debugerror', `[parseServiceDataForWoContact] Buffer length ${serviceData.length} !== 9!`)
       return null
@@ -39,7 +43,7 @@ export class WoContact extends SwitchbotDevice {
     const button_count = byte8 & 0b00001111
     const doorState = hallState === 0 ? 'close' : hallState === 1 ? 'open' : 'timeout no closed'
 
-    return {
+    const data: contactSensorServiceData = {
       model: SwitchBotBLEModel.ContactSensor,
       modelName: SwitchBotBLEModelName.ContactSensor,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.ContactSensor,
@@ -52,5 +56,11 @@ export class WoContact extends SwitchbotDevice {
       button_count,
       doorState,
     }
+
+    return data
+  }
+
+  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+    super(peripheral, noble)
   }
 }

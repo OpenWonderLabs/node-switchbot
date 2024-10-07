@@ -2,6 +2,10 @@
  *
  * wohand.ts: Switchbot BLE API registration.
  */
+import type * as Noble from '@stoprocent/noble'
+
+import type { botServiceData } from '../types/bledevicestatus.js'
+
 import { Buffer } from 'node:buffer'
 
 import { SwitchbotDevice } from '../device.js'
@@ -40,13 +44,16 @@ export class WoHand extends SwitchbotDevice {
     }
   }
 
+  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+    super(peripheral, noble)
+  }
+
   /**
    * Sends a command to the bot.
-   * @param {number[]} bytes - The command bytes.
+   * @param {number[]} reqBuf - The command bytes.
    * @returns {Promise<void>}
    */
-  private async operateBot(bytes: number[]): Promise<void> {
-    const reqBuf = Buffer.from(bytes)
+  protected async sendCommand(reqBuf: Buffer): Promise<void> {
     const resBuf = await this.command(reqBuf)
     const code = resBuf.readUInt8(0)
 
@@ -59,39 +66,39 @@ export class WoHand extends SwitchbotDevice {
    * Presses the bot.
    * @returns {Promise<void>}
    */
-  async press(): Promise<void> {
-    await this.operateBot([0x57, 0x01, 0x00])
+  public async press(): Promise<void> {
+    await this.sendCommand(Buffer.from([0x57, 0x01, 0x00]))
   }
 
   /**
    * Turns on the bot.
    * @returns {Promise<void>}
    */
-  async turnOn(): Promise<void> {
-    await this.operateBot([0x57, 0x01, 0x01])
+  public async turnOn(): Promise<void> {
+    await this.sendCommand(Buffer.from([0x57, 0x01, 0x01]))
   }
 
   /**
    * Turns off the bot.
    * @returns {Promise<void>}
    */
-  async turnOff(): Promise<void> {
-    await this.operateBot([0x57, 0x01, 0x02])
+  public async turnOff(): Promise<void> {
+    await this.sendCommand(Buffer.from([0x57, 0x01, 0x02]))
   }
 
   /**
    * Moves the bot down.
    * @returns {Promise<void>}
    */
-  async down(): Promise<void> {
-    await this.operateBot([0x57, 0x01, 0x03])
+  public async down(): Promise<void> {
+    await this.sendCommand(Buffer.from([0x57, 0x01, 0x03]))
   }
 
   /**
    * Moves the bot up.
    * @returns {Promise<void>}
    */
-  async up(): Promise<void> {
-    await this.operateBot([0x57, 0x01, 0x04])
+  public async up(): Promise<void> {
+    await this.sendCommand(Buffer.from([0x57, 0x01, 0x04]))
   }
 }
