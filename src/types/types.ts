@@ -62,6 +62,7 @@ export enum SwitchBotModel {
   Keypad = 'W2500010',
   KeypadTouch = 'W2500020',
   K10 = 'K10+',
+  K10Pro = 'K10+ Pro',
   WoSweeper = 'WoSweeper',
   WoSweeperMini = 'WoSweeperMini',
   RobotVacuumCleanerS1 = 'W3011000', // Currently only available in Japan.

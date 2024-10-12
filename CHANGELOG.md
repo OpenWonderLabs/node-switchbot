@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [3.1.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.1.1) (2024-10-11)
+
+### What's Changed
+- Fix `K10Pro` Type, `Property 'K10Pro' does not exist on type 'typeof SwitchBotModel'`.
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v3.1.0...v3.1.1
+
 ## [3.1.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.1.0) (2024-10-11)
 
 ### What's Changed
