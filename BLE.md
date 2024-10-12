@@ -80,7 +80,7 @@ const switchBotBLE = new SwitchBotBLE()
 try {
   await switchBotBLE.startScan()
 } catch (e: any) {
-  console.error(`Failed to start BLE scanning. Error:${e}`)
+  console.error(`Failed to start BLE scanning, Error: ${e.message ?? e}`)
 }
 ```
 
@@ -230,7 +230,7 @@ switchBotBLE.onadvertisement = async (ad: any) => {
   try {
     this.bleEventHandler[ad.address]?.(ad.serviceData)
   } catch (e: any) {
-    await this.errorLog(`Failed to handle BLE event. Error:${e}`)
+    await this.errorLog(`Failed to handle BLE event, Error: ${e.message ?? e}`)
   }
 }
 ```
@@ -246,7 +246,7 @@ try {
   switchBotBLE.stopScan()
   console.log('Stopped BLE scanning to close listening.')
 } catch (e: any) {
-  console.error(`Failed to stop BLE scanning, error:${e.message}`)
+  console.error(`Failed to stop BLE scanning, Error: ${e.message ?? e}`)
 }
 ```
 
@@ -731,6 +731,7 @@ Actually, the `WoSmartLock ` is an object inherited from the [`SwitchbotDevice`]
 The `setKey()` method initialises the key information required for encrypted communication with the SmartLock
 
 This must be set before any control commands are sent to the device. To obtain the key information you will need to use an external tool - see [`pySwitchbot`](https://github.com/Danielhiversen/pySwitchbot/tree/master?tab=readme-ov-file#obtaining-locks-encryption-key) project for an example script.
+Or, use [`switchbot-get-encryption-key`](https://www.npmjs.com/package/switchbot-get-encryption-key) npm script.
 
 | Property        | Type   | Description                                                                                      |
 | :-------------- | :----- | :----------------------------------------------------------------------------------------------- |

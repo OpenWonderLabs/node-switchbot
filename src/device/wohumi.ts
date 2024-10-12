@@ -2,6 +2,10 @@
  *
  * wohumi.ts: Switchbot BLE API registration.
  */
+import type * as Noble from '@stoprocent/noble'
+
+import type { humidifierServiceData } from '../types/bledevicestatus.js'
+
 import { Buffer } from 'node:buffer'
 
 import { SwitchbotDevice } from '../device.js'
@@ -16,12 +20,12 @@ export class WoHumi extends SwitchbotDevice {
    * Parses the service data for WoHumi.
    * @param {Buffer} serviceData - The service data buffer.
    * @param {Function} emitLog - The function to emit log messages.
-   * @returns {Promise<object | null>} - Parsed service data or null if invalid.
+   * @returns {Promise<humidifierServiceData | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     serviceData: Buffer,
     emitLog: (level: string, message: string) => void,
-  ): Promise<object | null> {
+  ): Promise<humidifierServiceData | null> {
     if (serviceData.length !== 8) {
       emitLog('debugerror', `[parseServiceDataForWoHumi] Buffer length ${serviceData.length} !== 8!`)
       return null
@@ -35,7 +39,7 @@ export class WoHumi extends SwitchbotDevice {
     const percentage = byte4 & 0b01111111 // 0-100%, 101/102/103 - Quick gear 1/2/3
     const humidity = autoMode ? 0 : percentage === 101 ? 33 : percentage === 102 ? 66 : percentage === 103 ? 100 : percentage
 
-    return {
+    const data: humidifierServiceData = {
       model: SwitchBotBLEModel.Humidifier,
       modelName: SwitchBotBLEModelName.Humidifier,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.Humidifier,
@@ -44,6 +48,12 @@ export class WoHumi extends SwitchbotDevice {
       percentage: autoMode ? 0 : percentage,
       humidity,
     }
+
+    return data
+  }
+
+  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+    super(peripheral, noble)
   }
 
   /**

@@ -96,6 +96,7 @@ export class ParameterChecker extends EventEmitter {
       }
     }
 
+    this.emitLog('debug', 'All checks passed.')
     return true
   }
 

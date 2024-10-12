@@ -4,6 +4,8 @@
  */
 import type { Buffer } from 'node:buffer'
 
+import type * as Noble from '@stoprocent/noble'
+
 import type { meterPlusServiceData, meterServiceData } from '../types/bledevicestatus.js'
 
 import { SwitchbotDevice } from '../device.js'
@@ -76,5 +78,9 @@ export class WoSensorTH extends SwitchbotDevice {
       humidity: byte5 & 0b01111111,
       battery: byte2 & 0b01111111,
     }
+  }
+
+  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+    super(peripheral, noble)
   }
 }

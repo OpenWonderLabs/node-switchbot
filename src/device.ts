@@ -4,40 +4,33 @@
  */
 import type * as Noble from '@stoprocent/noble'
 
-import type { Chars, SwitchBotBLEModel, SwitchBotBLEModelName } from './types/types.js'
+import type { Chars, SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from './types/types.js'
 
 import { Buffer } from 'node:buffer'
 import { EventEmitter } from 'node:events'
 
 import { Advertising } from './advertising.js'
 import { parameterChecker } from './parameter-checker.js'
-import {
-  CHAR_UUID_DEVICE,
-  CHAR_UUID_NOTIFY,
-  CHAR_UUID_WRITE,
-  READ_TIMEOUT_MSEC,
-  SERV_UUID_PRIMARY,
-  WRITE_TIMEOUT_MSEC,
-} from './settings.js'
-import { SwitchBotBLE } from './switchbot-ble.js'
+import { CHAR_UUID_DEVICE, CHAR_UUID_NOTIFY, CHAR_UUID_WRITE, READ_TIMEOUT_MSEC, SERV_UUID_PRIMARY, WRITE_TIMEOUT_MSEC } from './settings.js'
 
 /**
  * Represents a Switchbot Device.
  */
 export class SwitchbotDevice extends EventEmitter {
-  private _noble: typeof Noble
-  private _peripheral: Noble.Peripheral
-  private _characteristics: Chars | null = null
-  private _id!: string
-  private _address!: string
-  private _model!: SwitchBotBLEModel
-  private _modelName!: SwitchBotBLEModelName
-  private _explicitly = false
-  private _connected = false
-  private onnotify_internal: (buf: Buffer) => void = () => {}
-
-  private ondisconnect_internal: () => Promise<void> = async () => {}
-  private onconnect_internal: () => Promise<void> = async () => {}
+  [x: string]: any
+  private noble: typeof Noble
+  private peripheral: Noble.Peripheral
+  private characteristics: Chars | null = null
+  private deviceId!: string
+  private deviceAddress!: string
+  private deviceModel!: SwitchBotBLEModel
+  private deviceModelName!: SwitchBotBLEModelName
+  private deviceFriendlyName!: SwitchBotBLEModelFriendlyName
+  private explicitlyConnected = false
+  private isConnected = false
+  private onNotify: (buf: Buffer) => void = () => {}
+  private onDisconnect: () => Promise<void> = async () => {}
+  private onConnect: () => Promise<void> = async () => {}
 
   /**
    * Initializes a new instance of the SwitchbotDevice class.
@@ -46,70 +39,74 @@ export class SwitchbotDevice extends EventEmitter {
    */
   constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
     super()
-    this._peripheral = peripheral
-    this._noble = noble
+    this.peripheral = peripheral
+    this.noble = noble
 
-    Advertising.parse(peripheral, this.emitLog.bind(this)).then((ad) => {
-      this._id = ad?.id ?? ''
-      this._address = ad?.address ?? ''
-      this._model = ad?.serviceData.model as SwitchBotBLEModel ?? ''
-      this._modelName = ad?.serviceData.modelName as SwitchBotBLEModelName ?? ''
+    Advertising.parse(peripheral, this.log.bind(this)).then((ad) => {
+      this.deviceId = ad?.id ?? ''
+      this.deviceAddress = ad?.address ?? ''
+      this.deviceModel = ad?.serviceData.model as SwitchBotBLEModel ?? ''
+      this.deviceModelName = ad?.serviceData.modelName as SwitchBotBLEModelName ?? ''
+      this.deviceFriendlyName = ad?.serviceData.modelFriendlyName as SwitchBotBLEModelFriendlyName ?? ''
     })
   }
 
   /**
-   * Emits a log event with the specified log level and message.
-   *
-   * @param level - The severity level of the log (e.g., 'info', 'warn', 'error').
-   * @param message - The log message to be emitted.
+   * Logs a message with the specified log level.
+   * @param level The severity level of the log (e.g., 'info', 'warn', 'error').
+   * @param message The log message to be emitted.
    */
-  public async emitLog(level: string, message: string): Promise<void> {
+  public async log(level: string, message: string): Promise<void> {
     this.emit('log', { level, message })
   }
 
   // Getters
   get id(): string {
-    return this._id
+    return this.deviceId
   }
 
   get address(): string {
-    return this._address
+    return this.deviceAddress
   }
 
   get model(): SwitchBotBLEModel {
-    return this._model
+    return this.deviceModel
   }
 
   get modelName(): SwitchBotBLEModelName {
-    return this._modelName
+    return this.deviceModelName
+  }
+
+  get friendlyName(): SwitchBotBLEModelFriendlyName {
+    return this.deviceFriendlyName
   }
 
   get connectionState(): string {
-    return this._connected ? 'connected' : this._peripheral.state
+    return this.isConnected ? 'connected' : this.peripheral.state
   }
 
-  get onconnect(): () => Promise<void> {
-    return this.onconnect_internal
+  get onConnectHandler(): () => Promise<void> {
+    return this.onConnect
   }
 
-  set onconnect(func: () => Promise<void>) {
+  set onConnectHandler(func: () => Promise<void>) {
     if (typeof func !== 'function') {
-      throw new TypeError('The `onconnect` must be a function that returns a Promise<void>.')
+      throw new TypeError('The `onConnectHandler` must be a function that returns a Promise<void>.')
     }
-    this.onconnect_internal = async () => {
+    this.onConnect = async () => {
       await func()
     }
   }
 
-  get ondisconnect(): () => Promise<void> {
-    return this.ondisconnect_internal
+  get onDisconnectHandler(): () => Promise<void> {
+    return this.onDisconnect
   }
 
-  set ondisconnect(func: () => Promise<void>) {
+  set onDisconnectHandler(func: () => Promise<void>) {
     if (typeof func !== 'function') {
-      throw new TypeError('The `ondisconnect` must be a function that returns a Promise<void>.')
+      throw new TypeError('The `onDisconnectHandler` must be a function that returns a Promise<void>.')
     }
-    this.ondisconnect_internal = async () => {
+    this.onDisconnect = async () => {
       await func()
     }
   }
@@ -119,17 +116,17 @@ export class SwitchbotDevice extends EventEmitter {
    * @returns A Promise that resolves when the connection is complete.
    */
   async connect(): Promise<void> {
-    this._explicitly = true
-    await this.connect_internal()
+    this.explicitlyConnected = true
+    await this.internalConnect()
   }
 
   /**
    * Internal method to handle the connection process.
    * @returns A Promise that resolves when the connection is complete.
    */
-  private async connect_internal(): Promise<void> {
-    if (this._noble._state !== 'poweredOn') {
-      throw new Error(`The Bluetooth status is ${this._noble._state}, not poweredOn.`)
+  private async internalConnect(): Promise<void> {
+    if (this.noble._state !== 'poweredOn') {
+      throw new Error(`The Bluetooth status is ${this.noble._state}, not poweredOn.`)
     }
 
     const state = this.connectionState
@@ -140,21 +137,21 @@ export class SwitchbotDevice extends EventEmitter {
       throw new Error(`Now ${state}. Wait for a few seconds then try again.`)
     }
 
-    this._peripheral.once('connect', async () => {
-      this._connected = true
-      await this.onconnect()
+    this.peripheral.once('connect', async () => {
+      this.isConnected = true
+      await this.onConnect()
     })
 
-    this._peripheral.once('disconnect', async () => {
-      this._connected = false
-      this._characteristics = null
-      this._peripheral.removeAllListeners()
-      await this.ondisconnect_internal()
+    this.peripheral.once('disconnect', async () => {
+      this.isConnected = false
+      this.characteristics = null
+      this.peripheral.removeAllListeners()
+      await this.onDisconnect()
     })
 
-    await this._peripheral.connectAsync()
-    this._characteristics = await this.getCharacteristics()
-    await this.subscribe()
+    await this.peripheral.connectAsync()
+    this.characteristics = await this.getCharacteristics()
+    await this.subscribeToNotify()
   }
 
   /**
@@ -200,12 +197,17 @@ export class SwitchbotDevice extends EventEmitter {
    * @returns A Promise that resolves with the list of services.
    */
   public async discoverServices(): Promise<Noble.Service[]> {
-    const services = await this._peripheral.discoverServicesAsync([])
-    const primaryServices = services.filter(s => s.uuid === SERV_UUID_PRIMARY)
-    if (primaryServices.length === 0) {
-      throw new Error('No service was found.')
+    try {
+      const services = await this.peripheral.discoverServicesAsync([])
+      const primaryServices = services.filter(s => s.uuid === SERV_UUID_PRIMARY)
+
+      if (primaryServices.length === 0) {
+        throw new Error('No service was found.')
+      }
+      return primaryServices
+    } catch (e: any) {
+      throw new Error(`Failed to discover services, Error: ${e.message ?? e}`)
     }
-    return primaryServices
   }
 
   /**
@@ -221,21 +223,21 @@ export class SwitchbotDevice extends EventEmitter {
    * Subscribes to the notify characteristic.
    * @returns A Promise that resolves when the subscription is complete.
    */
-  private async subscribe(): Promise<void> {
-    const char = this._characteristics?.notify
+  private async subscribeToNotify(): Promise<void> {
+    const char = this.characteristics?.notify
     if (!char) {
       throw new Error('No notify characteristic was found.')
     }
     await char.subscribeAsync()
-    char.on('data', this.onnotify_internal)
+    char.on('data', this.onNotify)
   }
 
   /**
    * Unsubscribes from the notify characteristic.
    * @returns A Promise that resolves when the unsubscription is complete.
    */
-  async unsubscribe(): Promise<void> {
-    const char = this._characteristics?.notify
+  async unsubscribeFromNotify(): Promise<void> {
+    const char = this.characteristics?.notify
     if (!char) {
       return
     }
@@ -248,8 +250,8 @@ export class SwitchbotDevice extends EventEmitter {
    * @returns A Promise that resolves when the disconnection is complete.
    */
   async disconnect(): Promise<void> {
-    this._explicitly = false
-    const state = this._peripheral.state
+    this.explicitlyConnected = false
+    const state = this.peripheral.state
 
     if (state === 'disconnected') {
       return
@@ -258,18 +260,18 @@ export class SwitchbotDevice extends EventEmitter {
       throw new Error(`Now ${state}. Wait for a few seconds then try again.`)
     }
 
-    await this.unsubscribe()
-    await this._peripheral.disconnectAsync()
+    await this.unsubscribeFromNotify()
+    await this.peripheral.disconnectAsync()
   }
 
   /**
    * Internal method to handle disconnection if not explicitly initiated.
    * @returns A Promise that resolves when the disconnection is complete.
    */
-  private async disconnect_internal(): Promise<void> {
-    if (!this._explicitly) {
+  private async internalDisconnect(): Promise<void> {
+    if (!this.explicitlyConnected) {
       await this.disconnect()
-      this._explicitly = true
+      this.explicitlyConnected = true
     }
   }
 
@@ -278,12 +280,12 @@ export class SwitchbotDevice extends EventEmitter {
    * @returns A Promise that resolves with the device name.
    */
   async getDeviceName(): Promise<string> {
-    await this.connect_internal()
-    if (!this._characteristics?.device) {
+    await this.internalConnect()
+    if (!this.characteristics?.device) {
       throw new Error(`The device does not support the characteristic UUID 0x${CHAR_UUID_DEVICE}.`)
     }
-    const buf = await this.read(this._characteristics.device)
-    await this.disconnect_internal()
+    const buf = await this.readCharacteristic(this.characteristics.device)
+    await this.internalDisconnect()
     return buf.toString('utf8')
   }
 
@@ -304,41 +306,41 @@ export class SwitchbotDevice extends EventEmitter {
     }
 
     const buf = Buffer.from(name, 'utf8')
-    await this.connect_internal()
-    if (!this._characteristics?.device) {
+    await this.internalConnect()
+    if (!this.characteristics?.device) {
       throw new Error(`The device does not support the characteristic UUID 0x${CHAR_UUID_DEVICE}.`)
     }
-    await this.write(this._characteristics.device, buf)
-    await this.disconnect_internal()
+    await this.writeCharacteristic(this.characteristics.device, buf)
+    await this.internalDisconnect()
   }
 
   /**
    * Sends a command to the device and awaits a response.
-   * @param req_buf The command buffer.
+   * @param reqBuf The command buffer.
    * @returns A Promise that resolves with the response buffer.
    */
-  async command(req_buf: Buffer): Promise<Buffer> {
-    if (!Buffer.isBuffer(req_buf)) {
+  async command(reqBuf: Buffer): Promise<Buffer> {
+    if (!Buffer.isBuffer(reqBuf)) {
       throw new TypeError('The specified data is not acceptable for writing.')
     }
 
-    await this.connect_internal()
-    if (!this._characteristics?.write) {
+    await this.internalConnect()
+    if (!this.characteristics?.write) {
       throw new Error('No characteristics available.')
     }
 
-    await this.write(this._characteristics.write, req_buf)
-    const res_buf = await this._waitCommandResponseAsync()
-    await this.disconnect_internal()
+    await this.writeCharacteristic(this.characteristics.write, reqBuf)
+    const resBuf = await this.waitForCommandResponse()
+    await this.internalDisconnect()
 
-    return res_buf
+    return resBuf
   }
 
   /**
    * Waits for a response from the device after sending a command.
    * @returns A Promise that resolves with the response buffer.
    */
-  private async _waitCommandResponseAsync(): Promise<Buffer> {
+  private async waitForCommandResponse(): Promise<Buffer> {
     const timeout = READ_TIMEOUT_MSEC
     let timer: NodeJS.Timeout | null = null
 
@@ -347,7 +349,7 @@ export class SwitchbotDevice extends EventEmitter {
     })
 
     const readPromise = new Promise<Buffer>((resolve) => {
-      this.onnotify_internal = (buf: Buffer) => {
+      this.onNotify = (buf: Buffer) => {
         if (timer) {
           clearTimeout(timer)
         }
@@ -363,7 +365,7 @@ export class SwitchbotDevice extends EventEmitter {
    * @param char The characteristic to read from.
    * @returns A Promise that resolves with the data buffer.
    */
-  private async read(char: Noble.Characteristic): Promise<Buffer> {
+  private async readCharacteristic(char: Noble.Characteristic): Promise<Buffer> {
     const timer = setTimeout(() => {
       throw new Error('READ_TIMEOUT')
     }, READ_TIMEOUT_MSEC)
@@ -384,7 +386,7 @@ export class SwitchbotDevice extends EventEmitter {
    * @param buf The data buffer.
    * @returns A Promise that resolves when the write is complete.
    */
-  private async write(char: Noble.Characteristic, buf: Buffer): Promise<void> {
+  private async writeCharacteristic(char: Noble.Characteristic, buf: Buffer): Promise<void> {
     const timer = setTimeout(() => {
       throw new Error('WRITE_TIMEOUT')
     }, WRITE_TIMEOUT_MSEC)

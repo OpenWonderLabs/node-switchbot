@@ -4,6 +4,10 @@
  */
 import type { Buffer } from 'node:buffer'
 
+import type * as Noble from '@stoprocent/noble'
+
+import type { hub2ServiceData } from '../types/bledevicestatus.js'
+
 import { SwitchbotDevice } from '../device.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
@@ -16,12 +20,12 @@ export class WoHub2 extends SwitchbotDevice {
    * Parses the service data for WoHub2.
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
    * @param {Function} emitLog - The function to emit log messages.
-   * @returns {Promise<object | null>} - Parsed service data or null if invalid.
+   * @returns {Promise<hub2ServiceData | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     manufacturerData: Buffer,
     emitLog: (level: string, message: string) => void,
-  ): Promise<object | null> {
+  ): Promise<hub2ServiceData | null> {
     if (manufacturerData.length !== 16) {
       emitLog('debugerror', `[parseServiceDataForWoHub2] Buffer length ${manufacturerData.length} !== 16!`)
       return null
@@ -34,7 +38,7 @@ export class WoHub2 extends SwitchbotDevice {
     const tempF = Math.round(((tempC * 9) / 5 + 32) * 10) / 10
     const lightLevel = byte12 & 0b11111
 
-    return {
+    const data: hub2ServiceData = {
       model: SwitchBotBLEModel.Hub2,
       modelName: SwitchBotBLEModelName.Hub2,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.Hub2,
@@ -44,5 +48,11 @@ export class WoHub2 extends SwitchbotDevice {
       humidity: byte2 & 0b01111111,
       lightLevel,
     }
+
+    return data
+  }
+
+  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+    super(peripheral, noble)
   }
 }

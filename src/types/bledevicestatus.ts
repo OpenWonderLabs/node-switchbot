@@ -17,8 +17,9 @@ export interface ad {
 }
 
 interface serviceData {
-  model: string
-  modelName: string
+  model: SwitchBotBLEModel
+  modelName: SwitchBotBLEModelName
+  modelFriendlyName: SwitchBotBLEModelFriendlyName
 }
 
 export type botServiceData = serviceData & {
@@ -213,10 +214,11 @@ export type blindTiltServiceData = serviceData & {
   modelName: SwitchBotBLEModelName.BlindTilt
   modelFriendlyName: SwitchBotBLEModelFriendlyName.BlindTilt
   calibration: boolean
-  battery: number
+  battery: number | null
   inMotion: boolean
   tilt: number
   lightLevel: number
+  sequenceNumber: number
 }
 
 export type ceilingLightServiceData = serviceData & {

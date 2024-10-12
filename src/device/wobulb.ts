@@ -2,6 +2,10 @@
  *
  * wobulb.ts: Switchbot BLE API registration.
  */
+import type * as Noble from '@stoprocent/noble'
+
+import type { colorBulbServiceData } from '../types/bledevicestatus.js'
+
 import { Buffer } from 'node:buffer'
 
 import { SwitchbotDevice } from '../device.js'
@@ -17,19 +21,20 @@ export class WoBulb extends SwitchbotDevice {
    * @param {Buffer} serviceData - The service data buffer.
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
    * @param {Function} emitLog - The function to emit log messages.
-   * @returns {Promise<object | null>} - Parsed service data or null if invalid.
+   * @returns {Promise<colorBulbServiceData | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     serviceData: Buffer,
     manufacturerData: Buffer,
+    // eslint-disable-next-line unused-imports/no-unused-vars
     emitLog: (level: string, message: string) => void,
-  ): Promise<object | null> {
+  ): Promise<colorBulbServiceData | null> {
     if (serviceData.length !== 18) {
-      emitLog('debugerror', `[parseServiceDataForWoBulb] Buffer length ${serviceData.length} !== 18!`)
+      // emitLog('debugerror', `[parseServiceDataForWoBulb] Buffer length ${serviceData.length} !== 18!`)
       return null
     }
     if (manufacturerData.length !== 13) {
-      emitLog('debugerror', `[parseServiceDataForWoBulb] Buffer length ${manufacturerData.length} !== 13!`)
+      // emitLog('debugerror', `[parseServiceDataForWoBulb] Buffer length ${manufacturerData.length} !== 13!`)
       return null
     }
 
@@ -45,23 +50,29 @@ export class WoBulb extends SwitchbotDevice {
       byte10,
     ] = manufacturerData
 
-    return {
+    const data: colorBulbServiceData = {
       model: SwitchBotBLEModel.ColorBulb,
       modelName: SwitchBotBLEModelName.ColorBulb,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.ColorBulb,
-      power: byte1,
+      power: !!byte1,
       red: byte3,
       green: byte4,
       blue: byte5,
       color_temperature: byte6,
       state: !!(byte7 & 0b01111111),
       brightness: byte7 & 0b01111111,
-      delay: !!(byte8 & 0b10000000),
-      preset: !!(byte8 & 0b00001000),
+      delay: (byte8 & 0b10000000) >> 7,
+      preset: (byte8 & 0b00001000) >> 3,
       color_mode: byte8 & 0b00000111,
       speed: byte9 & 0b01111111,
       loop_index: byte10 & 0b11111110,
     }
+
+    return data
+  }
+
+  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+    super(peripheral, noble)
   }
 
   /**

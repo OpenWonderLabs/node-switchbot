@@ -4,6 +4,10 @@
  */
 import type { Buffer } from 'node:buffer'
 
+import type * as Noble from '@stoprocent/noble'
+
+import type { outdoorMeterServiceData } from '../types/bledevicestatus.js'
+
 import { SwitchbotDevice } from '../device.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
@@ -17,13 +21,13 @@ export class WoIOSensorTH extends SwitchbotDevice {
    * @param {Buffer} serviceData - The service data buffer.
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
    * @param {Function} emitLog - The function to emit log messages.
-   * @returns {Promise<object | null>} - Parsed service data or null if invalid.
+   * @returns {Promise<outdoorMeterServiceData | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     serviceData: Buffer,
     manufacturerData: Buffer,
     emitLog: (level: string, message: string) => void,
-  ): Promise<object | null> {
+  ): Promise<outdoorMeterServiceData | null> {
     if (serviceData.length !== 3) {
       emitLog('debugerror', `[parseServiceDataForWoIOSensorTH] Service Data Buffer length ${serviceData.length} !== 3!`)
       return null
@@ -44,7 +48,7 @@ export class WoIOSensorTH extends SwitchbotDevice {
     const tempC = tempSign * ((mdByte11 & 0b01111111) + (mdByte10 & 0b00001111) / 10)
     const tempF = Math.round(((tempC * 9) / 5 + 32) * 10) / 10
 
-    return {
+    const data: outdoorMeterServiceData = {
       model: SwitchBotBLEModel.OutdoorMeter,
       modelName: SwitchBotBLEModelName.OutdoorMeter,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.OutdoorMeter,
@@ -54,5 +58,11 @@ export class WoIOSensorTH extends SwitchbotDevice {
       humidity: mdByte12 & 0b01111111,
       battery: sdByte2 & 0b01111111,
     }
+
+    return data
+  }
+
+  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+    super(peripheral, noble)
   }
 }

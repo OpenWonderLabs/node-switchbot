@@ -4,6 +4,8 @@
  */
 import type { Buffer } from 'node:buffer'
 
+import type * as Noble from '@stoprocent/noble'
+
 import type { motionSensorServiceData } from '../types/bledevicestatus.js'
 
 import { SwitchbotDevice } from '../device.js'
@@ -46,5 +48,9 @@ export class WoPresence extends SwitchbotDevice {
     }
 
     return data
+  }
+
+  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+    super(peripheral, noble)
   }
 }

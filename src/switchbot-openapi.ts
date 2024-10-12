@@ -6,7 +6,7 @@ import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 
 import type { pushResponse } from './types/devicepush.js'
 import type { devices } from './types/deviceresponse.js'
-import type { deviceStatus } from './types/devicestatus.js'
+import type { deviceStatus, deviceStatusRequest } from './types/devicestatus.js'
 import type { deleteWebhookResponse, queryWebhookResponse, setupWebhookResponse, updateWebhookResponse } from './types/devicewebhookstatus.js'
 
 import { Buffer } from 'node:buffer'
@@ -109,10 +109,10 @@ export class SwitchBotOpenAPI extends EventEmitter {
    * @param command - The command to send to the device.
    * @param parameter - The parameter for the command.
    * @param commandType - The type of the command, defaults to 'command'.
-   * @returns {Promise<{ response: pushResponse['body'], statusCode: number }>} A promise that resolves to an object containing the API response.
+   * @returns {Promise<{ response: pushResponse['body'], statusCode: pushResponse['statusCode'] }>} A promise that resolves to an object containing the API response.
    * @throws An error if the device control fails.
    */
-  async controlDevice(deviceId: string, command: string, parameter: string, commandType: string = 'command'): Promise<{ response: pushResponse['body'], statusCode: number }> {
+  async controlDevice(deviceId: string, command: string, parameter: string, commandType: string = 'command'): Promise<{ response: pushResponse['body'], statusCode: pushResponse['statusCode'] }> {
     try {
       const { body, statusCode } = await request(`${this.baseURL}/devices/${deviceId}/commands`, {
         method: 'POST',
@@ -137,10 +137,10 @@ export class SwitchBotOpenAPI extends EventEmitter {
    * Retrieves the status of a specific device.
    *
    * @param deviceId - The unique identifier of the device.
-   * @returns {Promise<{ response: deviceStatus, statusCode: number }>} A promise that resolves to the device status.
+   * @returns {Promise<{ response: deviceStatus, statusCode: deviceStatusRequest['statusCode'] }>} A promise that resolves to the device status.
    * @throws An error if the request fails.
    */
-  async getDeviceStatus(deviceId: string): Promise<{ response: deviceStatus, statusCode: number }> {
+  async getDeviceStatus(deviceId: string): Promise<{ response: deviceStatus, statusCode: deviceStatusRequest['statusCode'] }> {
     try {
       const { body, statusCode } = await request(`${this.baseURL}/devices/${deviceId}/status`, {
         method: 'GET',
@@ -213,7 +213,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
                 await this.emitLog('debug', `Received Webhook: ${JSON.stringify(body)}`)
                 this.emit('webhookEvent', body)
               } catch (e: any) {
-                await this.emitLog('error', `Failed to handle webhook event data. Error:${e}`)
+                await this.emitLog('error', `Failed to handle webhook event data, Error: ${e.message ?? e}`)
               }
             })
             response.writeHead(200, { 'Content-Type': 'text/plain' })
@@ -224,11 +224,11 @@ export class SwitchBotOpenAPI extends EventEmitter {
             response.end(`NG`)
           }
         } catch (e: any) {
-          await this.emitLog('error', `Failed to handle webhook event. Error:${e}`)
+          await this.emitLog('error', `Failed to handle webhook event, Error: ${e.message ?? e}`)
         }
       }).listen(port || 80)
     } catch (e: any) {
-      await this.emitLog('error', `Failed to create webhook listener. Error:${e.message}`)
+      await this.emitLog('error', `Failed to create webhook listener, Error: ${e.message ?? e}`)
       return
     }
 
@@ -248,7 +248,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
         await this.emitLog('error', `Failed to configure webhook. Existing webhook well be overridden. HTTP:${statusCode} API:${response?.statusCode} message:${response?.message}`)
       }
     } catch (e: any) {
-      await this.emitLog('error', `Failed to configure webhook. Error: ${e.message}`)
+      await this.emitLog('error', `Failed to configure webhook, Error: ${e.message ?? e}`)
     }
 
     try {
@@ -269,7 +269,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
         await this.emitLog('error', `Failed to update webhook. HTTP:${statusCode} API:${response?.statusCode} message:${response?.message}`)
       }
     } catch (e: any) {
-      await this.emitLog('error', `Failed to update webhook. Error:${e.message}`)
+      await this.emitLog('error', `Failed to update webhook, Error: ${e.message ?? e}`)
     }
 
     try {
@@ -288,7 +288,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
         await this.emitLog('info', `Listening webhook on ${response?.body?.urls[0]}`)
       }
     } catch (e: any) {
-      await this.emitLog('error', `Failed to query webhook. Error:${e}`)
+      await this.emitLog('error', `Failed to query webhook, Error: ${e.message ?? e}`)
     }
   }
 
@@ -318,7 +318,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
         await this.emitLog('info', 'Unregistered webhook to close listening.')
       }
     } catch (e: any) {
-      await this.emitLog('error', `Failed to delete webhook. Error:${e.message}`)
+      await this.emitLog('error', `Failed to delete webhook, Error: ${e.message ?? e}`)
     }
   }
 }
