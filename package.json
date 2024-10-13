@@ -48,12 +48,12 @@
   },
   "readmeFilename": "README.md",
   "dependencies": {
-    "@stoprocent/noble": "^1.15.1",
     "async-mutex": "^0.5.0",
     "undici": "^6.20.0"
   },
   "optionalDependencies": {
-    "@stoprocent/bluetooth-hci-socket": "^1.4.1"
+    "@stoprocent/bluetooth-hci-socket": "^1.4.1",
+    "@stoprocent/noble": "^1.15.1"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^3.7.3",
