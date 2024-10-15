@@ -65,7 +65,11 @@ export class SwitchBotBLE extends EventEmitter {
    * @returns {Promise<void>} - Resolves when initialization is complete
    */
   private async initialize(params?: Params): Promise<void> {
-    this.noble = params?.noble ?? Noble.default as typeof Noble
+    try {
+      this.noble = params?.noble ?? Noble.default as typeof Noble
+    } catch (e: any) {
+      this.log('error', `Failed to import noble: ${JSON.stringify(e.message ?? e)}`)
+    }
   }
 
   /**
