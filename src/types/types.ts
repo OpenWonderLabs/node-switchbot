@@ -167,6 +167,11 @@ export interface Chars {
   device: Noble.Characteristic | null
 }
 
+export interface NobleTypes {
+  state: 'unknown' | 'resetting' | 'unsupported' | 'unauthorized' | 'poweredOff' | 'poweredOn'
+  peripheral: Noble.Peripheral
+}
+
 export interface ServiceData {
   model: string
   [key: string]: unknown
