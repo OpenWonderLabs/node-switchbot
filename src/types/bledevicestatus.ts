@@ -26,7 +26,7 @@ export type botServiceData = serviceData & {
   model: SwitchBotBLEModel.Bot
   modelName: SwitchBotBLEModelName.Bot
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Bot
-  mode: string
+  mode: boolean
   state: boolean
   battery: number
 }

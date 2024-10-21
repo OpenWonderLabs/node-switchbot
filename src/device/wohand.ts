@@ -19,7 +19,7 @@ export class WoHand extends SwitchbotDevice {
    * Parses the service data for WoHand.
    * @param {Buffer} serviceData - The service data buffer.
    * @param {Function} emitLog - The function to emit log messages.
-   * @returns {Promise<object | null>} - Parsed service data or null if invalid.
+   * @returns {Promise<botServiceData | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     serviceData: Buffer,
@@ -33,16 +33,14 @@ export class WoHand extends SwitchbotDevice {
     const byte1 = serviceData.readUInt8(1)
     const byte2 = serviceData.readUInt8(2)
 
-    const data: botServiceData = {
+    return {
       model: SwitchBotBLEModel.Bot,
       modelName: SwitchBotBLEModelName.Bot,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.Bot,
-      mode: (!!(byte1 & 0b10000000)).toString(), // Whether the light switch Add-on is used or not. 0 = press, 1 = switch
+      mode: !!(byte1 & 0b10000000), // Whether the light switch Add-on is used or not. 0 = press, 1 = switch
       state: !(byte1 & 0b01000000), // Whether the switch status is ON or OFF. 0 = on, 1 = off
       battery: byte2 & 0b01111111, // %
     }
-
-    return data
   }
 
   constructor(peripheral: NobleTypes['peripheral'], noble: NobleTypes['noble']) {
@@ -51,7 +49,7 @@ export class WoHand extends SwitchbotDevice {
 
   /**
    * Sends a command to the bot.
-   * @param {number[]} reqBuf - The command bytes.
+   * @param {Buffer} reqBuf - The command buffer.
    * @returns {Promise<void>}
    */
   protected async sendCommand(reqBuf: Buffer): Promise<void> {
