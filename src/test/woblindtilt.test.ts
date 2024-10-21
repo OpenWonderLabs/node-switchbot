@@ -1,6 +1,5 @@
-import type * as noble from '@stoprocent/noble'
-
 import type { } from '../types/bledevicestatus.js'
+import type { NobleTypes } from '../types/types.js'
 
 import { Buffer } from 'node:buffer'
 
@@ -42,7 +41,7 @@ describe('woBlindTilt', () => {
   })
 
   it('should open the blind tilt', async () => {
-    const peripheral = {} as unknown as noble.Peripheral
+    const peripheral = {} as unknown as NobleTypes['peripheral']
     const device = new WoBlindTilt(peripheral, emitLog as any)
     vi.spyOn(device as any, 'operateBlindTilt').mockResolvedValue(undefined)
 
@@ -52,7 +51,7 @@ describe('woBlindTilt', () => {
   })
 
   it('should close the blind tilt up', async () => {
-    const peripheral = {} as unknown as noble.Peripheral
+    const peripheral = {} as unknown as NobleTypes['peripheral']
     const device = new WoBlindTilt(peripheral, emitLog as any)
     vi.spyOn(device as any, 'operateBlindTilt').mockResolvedValue(undefined)
 
@@ -62,7 +61,7 @@ describe('woBlindTilt', () => {
   })
 
   it('should close the blind tilt down', async () => {
-    const peripheral = {} as unknown as noble.Peripheral
+    const peripheral = {} as unknown as NobleTypes['peripheral']
     const device = new WoBlindTilt(peripheral, emitLog as any)
     vi.spyOn(device as any, 'operateBlindTilt').mockResolvedValue(undefined)
 
@@ -72,7 +71,7 @@ describe('woBlindTilt', () => {
   })
 
   it('should pause the blind tilt', async () => {
-    const peripheral = {} as unknown as noble.Peripheral
+    const peripheral = {} as unknown as NobleTypes['peripheral']
     const device = new WoBlindTilt(peripheral, emitLog as any)
     vi.spyOn(device as any, 'operateBlindTilt').mockResolvedValue(undefined)
 
@@ -82,7 +81,7 @@ describe('woBlindTilt', () => {
   })
 
   it('should run the blind tilt to a specified position', async () => {
-    const peripheral = {} as unknown as noble.Peripheral
+    const peripheral = {} as unknown as NobleTypes['peripheral']
     const device = new WoBlindTilt(peripheral, emitLog as any)
     vi.spyOn(device, 'operateBlindTilt').mockResolvedValue(undefined)
 
@@ -92,14 +91,14 @@ describe('woBlindTilt', () => {
   })
 
   it('should throw an error for invalid position percentage', async () => {
-    const peripheral = {} as unknown as noble.Peripheral
+    const peripheral = {} as unknown as NobleTypes['peripheral']
     const device = new WoBlindTilt(peripheral, emitLog as any)
 
     await expect(device.runToPos(150, 1)).rejects.toThrow(RangeError)
   })
 
   it('should throw an error for invalid mode', async () => {
-    const peripheral = {} as unknown as noble.Peripheral
+    const peripheral = {} as unknown as NobleTypes['peripheral']
     const device = new WoBlindTilt(peripheral, emitLog as any)
 
     await expect(device.runToPos(50, 2)).rejects.toThrow(RangeError)

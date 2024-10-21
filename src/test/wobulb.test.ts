@@ -1,7 +1,7 @@
-import type * as noble from '@stoprocent/noble'
 import type { Mock } from 'vitest'
 
 import type { } from '../types/bledevicestatus.js'
+import type { NobleTypes } from '../types/types.js'
 
 import { Buffer } from 'node:buffer'
 
@@ -59,7 +59,7 @@ describe('woBulb', () => {
     let commandMock: Mock<(...args: any[]) => any>
 
     beforeEach(() => {
-      const peripheral = {} as unknown as noble.Peripheral
+      const peripheral = {} as unknown as NobleTypes['peripheral']
       bulb = new WoBulb(peripheral, emitLog as any)
       commandMock = vi.fn()
       bulb.command = commandMock

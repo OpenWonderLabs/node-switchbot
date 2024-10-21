@@ -1,4 +1,4 @@
-import type * as noble from '@stoprocent/noble'
+import type { NobleTypes } from '../types/types.js'
 
 import { Buffer } from 'node:buffer'
 
@@ -38,7 +38,7 @@ describe('woHand', () => {
     let woHand: WoHand
 
     beforeEach(() => {
-      const peripheral = {} as unknown as noble.Peripheral
+      const peripheral = {} as unknown as NobleTypes['peripheral']
       woHand = new WoHand(peripheral, emitLog as any)
       vi.spyOn(woHand, 'command').mockResolvedValue(Buffer.from([0x01, 0x00, 0x00]))
     })

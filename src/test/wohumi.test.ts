@@ -1,4 +1,4 @@
-import type * as noble from '@stoprocent/noble'
+import type { NobleTypes } from '../types/types.js'
 
 import { Buffer } from 'node:buffer'
 
@@ -35,7 +35,7 @@ describe('woHumi', () => {
 
   describe('operateHumi', () => {
     it('should throw an error if the device returns an error', async () => {
-      const peripheral = {} as unknown as noble.Peripheral
+      const peripheral = {} as unknown as NobleTypes['peripheral']
       const wohumi = new WoHumi(peripheral, emitLog as any)
       vi.spyOn(wohumi, 'command').mockResolvedValue(Buffer.from([0x00, 0x00, 0x00]))
       await expect(wohumi.operateHumi([0x57, 0x01, 0x00])).rejects.toThrow('The device returned an error: 0x000000')
@@ -44,7 +44,7 @@ describe('woHumi', () => {
 
   describe('press', () => {
     it('should call operateHumi with correct bytes', async () => {
-      const peripheral = {} as unknown as noble.Peripheral
+      const peripheral = {} as unknown as NobleTypes['peripheral']
       const wohumi = new WoHumi(peripheral, emitLog as any)
       const operateHumiSpy = vi.spyOn(wohumi, 'operateHumi').mockResolvedValue()
       await wohumi.press()
@@ -54,7 +54,7 @@ describe('woHumi', () => {
 
   describe('turnOn', () => {
     it('should call operateHumi with correct bytes', async () => {
-      const peripheral = {} as unknown as noble.Peripheral
+      const peripheral = {} as unknown as NobleTypes['peripheral']
       const wohumi = new WoHumi(peripheral, emitLog as any)
       const operateHumiSpy = vi.spyOn(wohumi, 'operateHumi').mockResolvedValue()
       await wohumi.turnOn()
@@ -64,7 +64,7 @@ describe('woHumi', () => {
 
   describe('turnOff', () => {
     it('should call operateHumi with correct bytes', async () => {
-      const peripheral = {} as unknown as noble.Peripheral
+      const peripheral = {} as unknown as NobleTypes['peripheral']
       const wohumi = new WoHumi(peripheral, emitLog as any)
       const operateHumiSpy = vi.spyOn(wohumi, 'operateHumi').mockResolvedValue()
       await wohumi.turnOff()
@@ -74,7 +74,7 @@ describe('woHumi', () => {
 
   describe('down', () => {
     it('should call operateHumi with correct bytes', async () => {
-      const peripheral = {} as unknown as noble.Peripheral
+      const peripheral = {} as unknown as NobleTypes['peripheral']
       const wohumi = new WoHumi(peripheral, emitLog as any)
       const operateHumiSpy = vi.spyOn(wohumi, 'operateHumi').mockResolvedValue()
       await wohumi.down()
@@ -84,7 +84,7 @@ describe('woHumi', () => {
 
   describe('up', () => {
     it('should call operateHumi with correct bytes', async () => {
-      const peripheral = {} as unknown as noble.Peripheral
+      const peripheral = {} as unknown as NobleTypes['peripheral']
       const wohumi = new WoHumi(peripheral, emitLog as any)
       const operateHumiSpy = vi.spyOn(wohumi, 'operateHumi').mockResolvedValue()
       await wohumi.up()

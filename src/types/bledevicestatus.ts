@@ -13,7 +13,7 @@ export interface ad {
   id: string
   address: string
   rssi: number
-  serviceData: botServiceData | colorBulbServiceData | contactSensorServiceData | curtainServiceData | curtain3ServiceData | stripLightServiceData | lockServiceData | lockProServiceData | meterServiceData | meterPlusServiceData | motionSensorServiceData | outdoorMeterServiceData | plugMiniUSServiceData | plugMiniJPServiceData | blindTiltServiceData | ceilingLightServiceData | ceilingLightProServiceData | hub2ServiceData | batteryCirculatorFanServiceData | waterLeakDetectorServiceData | humidifierServiceData | robotVacuumCleanerServiceData
+  serviceData: botServiceData | colorBulbServiceData | contactSensorServiceData | curtainServiceData | curtain3ServiceData | stripLightServiceData | lockServiceData | lockProServiceData | meterServiceData | meterPlusServiceData | meterProServiceData | motionSensorServiceData | outdoorMeterServiceData | plugMiniUSServiceData | plugMiniJPServiceData | blindTiltServiceData | ceilingLightServiceData | ceilingLightProServiceData | hub2ServiceData | batteryCirculatorFanServiceData | waterLeakDetectorServiceData | humidifierServiceData | robotVacuumCleanerServiceData
 }
 
 interface serviceData {
@@ -151,6 +151,17 @@ export type meterPlusServiceData = serviceData & {
   model: SwitchBotBLEModel.MeterPlus
   modelName: SwitchBotBLEModelName.MeterPlus
   modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterPlus
+  celsius: number
+  fahrenheit: number
+  fahrenheit_mode: boolean
+  humidity: number
+  battery: number
+}
+
+export type meterProServiceData = serviceData & {
+  model: SwitchBotBLEModel.MeterPro
+  modelName: SwitchBotBLEModelName.MeterPro
+  modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterPro
   celsius: number
   fahrenheit: number
   fahrenheit_mode: boolean

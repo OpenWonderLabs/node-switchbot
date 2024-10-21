@@ -1,12 +1,11 @@
-import type { Buffer } from 'node:buffer'
-
 /* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
  * wocontact.ts: Switchbot BLE API registration.
  */
-import type * as Noble from '@stoprocent/noble'
+import type { Buffer } from 'node:buffer'
 
 import type { contactSensorServiceData } from '../types/bledevicestatus.js'
+import type { NobleTypes } from '../types/types.js'
 
 import { SwitchbotDevice } from '../device.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
@@ -60,7 +59,7 @@ export class WoContact extends SwitchbotDevice {
     return data
   }
 
-  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+  constructor(peripheral: NobleTypes['peripheral'], noble: NobleTypes['noble']) {
     super(peripheral, noble)
   }
 }

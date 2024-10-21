@@ -1,4 +1,4 @@
-import type * as noble from '@stoprocent/noble'
+import type { NobleTypes } from '../types/types.js'
 
 import { Buffer } from 'node:buffer'
 
@@ -72,7 +72,7 @@ describe('woPlugMini', () => {
     let commandStub: sinon.SinonStub
 
     beforeEach(() => {
-      const peripheral = {} as unknown as noble.Peripheral
+      const peripheral = {} as unknown as NobleTypes['peripheral']
       woPlugMini = new WoPlugMini(peripheral, emitLog as any)
       commandStub = sinon.stub(woPlugMini, 'command')
     })
@@ -105,7 +105,7 @@ describe('woPlugMini', () => {
     let setStateStub: sinon.SinonStub
 
     beforeEach(() => {
-      const peripheral = {} as unknown as noble.Peripheral
+      const peripheral = {} as unknown as NobleTypes['peripheral']
       woPlugMini = new WoPlugMini(peripheral, emitLog as any)
       setStateStub = sinon.stub(woPlugMini as any, 'setState')
     })

@@ -4,9 +4,8 @@
  */
 import type { Buffer } from 'node:buffer'
 
-import type * as Noble from '@stoprocent/noble'
-
-import type { meterPlusServiceData, meterServiceData } from '../types/bledevicestatus.js'
+import type { meterPlusServiceData, meterProServiceData, meterServiceData } from '../types/bledevicestatus.js'
+import type { NobleTypes } from '../types/types.js'
 
 import { SwitchbotDevice } from '../device.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
@@ -80,7 +79,39 @@ export class WoSensorTH extends SwitchbotDevice {
     }
   }
 
-  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+  /**
+   * Parses the service data for WoSensorTH Plus.
+   * @param {Buffer} serviceData - The service data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
+   * @returns {Promise<meterProServiceData | null>} - Parsed service data or null if invalid.
+   */
+  static async parseServiceData_Pro(
+    serviceData: Buffer,
+    emitLog: (level: string, message: string) => void,
+  ): Promise<meterProServiceData | null> {
+    if (serviceData.length !== 6) {
+      emitLog('debugerror', `[parseServiceDataForWoSensorTHPro] Buffer length ${serviceData.length} !== 6!`)
+      return null
+    }
+
+    const [byte2, byte3, byte4, byte5] = [serviceData.readUInt8(2), serviceData.readUInt8(3), serviceData.readUInt8(4), serviceData.readUInt8(5)]
+    const tempSign = byte4 & 0b10000000 ? 1 : -1
+    const tempC = tempSign * ((byte4 & 0b01111111) + (byte3 & 0b00001111) / 10)
+    const tempF = Math.round(((tempC * 9 / 5) + 32) * 10) / 10
+
+    return {
+      model: SwitchBotBLEModel.MeterPro,
+      modelName: SwitchBotBLEModelName.MeterPro,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterPro,
+      celsius: tempC,
+      fahrenheit: tempF,
+      fahrenheit_mode: !!(byte5 & 0b10000000),
+      humidity: byte5 & 0b01111111,
+      battery: byte2 & 0b01111111,
+    }
+  }
+
+  constructor(peripheral: NobleTypes['peripheral'], noble: NobleTypes['noble']) {
     super(peripheral, noble)
   }
 }

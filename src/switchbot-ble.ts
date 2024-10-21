@@ -195,7 +195,7 @@ export class SwitchBotBLE extends EventEmitter {
   /**
    * Creates a device object based on the peripheral, id, and model.
    *
-   * @param {Noble.Peripheral} peripheral - The peripheral object.
+   * @param {NobleTypes['peripheral']} peripheral - The peripheral object.
    * @param {string} id - The device id.
    * @param {string} model - The device model.
    * @returns {Promise<SwitchbotDevice | null>} - The device object or null.
