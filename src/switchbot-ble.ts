@@ -2,7 +2,7 @@
  *
  * switchbot.ts: Switchbot BLE API registration.
  */
-import type { Ad, NobleTypes, Params, Rule } from './types/types.js'
+import type { Ad, NobleTypes, onadvertisement, ondiscover, Params, Rule } from './types/types.js'
 
 import { EventEmitter } from 'node:events'
 
@@ -33,8 +33,8 @@ import { SwitchBotBLEModel } from './types/types.js'
 export class SwitchBotBLE extends EventEmitter {
   public ready: Promise<void>
   public noble: any
-  ondiscover?: (device: SwitchbotDevice) => Promise<void> | void
-  onadvertisement?: (ad: Ad) => Promise<void> | void
+  ondiscover?: ondiscover
+  onadvertisement?: onadvertisement
 
   /**
    * Constructor

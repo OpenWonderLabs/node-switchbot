@@ -6,7 +6,12 @@ import type { Buffer } from 'node:buffer'
 
 import type * as Noble from '@stoprocent/noble'
 
+import type { SwitchbotDevice } from '../device.js'
+
 export type MacAddress = string
+
+export type ondiscover = (device: SwitchbotDevice) => Promise<void> | void
+export type onadvertisement = (ad: Ad) => Promise<void> | void
 
 interface DeviceInfo {
   Model: SwitchBotModel
