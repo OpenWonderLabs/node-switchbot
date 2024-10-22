@@ -12,7 +12,7 @@ import type { batteryCirculatorFanServiceData, blindTiltServiceData, botServiceD
 export type MacAddress = string
 
 export type ondiscover = (device: SwitchbotDevice) => Promise<void> | void
-export type onadvertisement = (ad: Ad) => Promise<void> | void
+export type onadvertisement = (ad: ad) => Promise<void> | void
 
 interface DeviceInfo {
   Model: SwitchBotModel
@@ -190,7 +190,7 @@ export interface ServiceData {
   [key: string]: unknown
 }
 
-export interface Ad {
+export interface ad {
   id: string
   address: string
   rssi: number
