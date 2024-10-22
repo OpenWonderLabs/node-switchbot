@@ -4,7 +4,7 @@
  */
 import type { Buffer } from 'node:buffer'
 
-import type { meterServiceData } from '../types/bledevicestatus.js'
+import type { meterPlusServiceData } from '../types/bledevicestatus.js'
 import type { NobleTypes } from '../types/types.js'
 
 import { SwitchbotDevice } from '../device.js'
@@ -14,7 +14,7 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
  * Class representing a WoSensorTH device.
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/meter.md
  */
-export class WoSensorTH extends SwitchbotDevice {
+export class WoSensorTHPlus extends SwitchbotDevice {
   constructor(peripheral: NobleTypes['peripheral'], noble: NobleTypes['noble']) {
     super(peripheral, noble)
   }
@@ -22,9 +22,9 @@ export class WoSensorTH extends SwitchbotDevice {
   static async parseServiceData(
     serviceData: Buffer,
     emitLog: (level: string, message: string) => void,
-  ): Promise<meterServiceData | null> {
+  ): Promise<meterPlusServiceData | null> {
     if (serviceData.length !== 6) {
-      emitLog('debugerror', `[parseServiceData] Buffer length ${serviceData.length} !== 6!`)
+      emitLog('debugerror', `[parseServiceData] Buffer length ${serviceData.length} !== 6 or 7!`)
       return null
     }
 
@@ -39,15 +39,15 @@ export class WoSensorTH extends SwitchbotDevice {
     const tempF = Math.round(((tempC * 9) / 5 + 32) * 10) / 10
 
     const data = {
-      model: SwitchBotBLEModel.Meter,
-      modelName: SwitchBotBLEModelName.Meter,
-      modelFriendlyName: SwitchBotBLEModelFriendlyName.Meter,
+      model: SwitchBotBLEModel.MeterPlus,
+      modelName: SwitchBotBLEModelName.MeterPlus,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterPlus,
       celsius: tempC,
       fahrenheit: tempF,
       fahrenheit_mode: !!(byte5 & 0b10000000),
       humidity: byte5 & 0b01111111,
       battery: byte2 & 0b01111111,
     }
-    return data as meterServiceData
+    return data as meterPlusServiceData
   }
 }

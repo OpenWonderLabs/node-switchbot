@@ -2,7 +2,7 @@
  *
  * woplugmini.ts: Switchbot BLE API registration.
  */
-import type { plugMiniUSServiceData } from '../types/bledevicestatus.js'
+import type { plugMiniJPServiceData } from '../types/bledevicestatus.js'
 import type { NobleTypes } from '../types/types.js'
 
 import { Buffer } from 'node:buffer'
@@ -14,23 +14,23 @@ import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName
  * Class representing a WoPlugMini device.
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/plugmini.md
  */
-export class WoPlugMiniUS extends SwitchbotDevice {
+export class WoPlugMiniJP extends SwitchbotDevice {
   constructor(peripheral: NobleTypes['peripheral'], noble: NobleTypes['noble']) {
     super(peripheral, noble)
   }
 
   /**
-   * Parses the service data for WoPlugMini US.
+   * Parses the service data for WoPlugMini JP.
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
    * @param {Function} emitLog - The function to emit log messages.
-   * @returns {Promise<plugMiniUSServiceData | null>} - Parsed service data or null if invalid.
+   * @returns {Promise<plugMiniJPServiceData | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     manufacturerData: Buffer,
     emitLog: (level: string, message: string) => void,
-  ): Promise<plugMiniUSServiceData | null> {
+  ): Promise<plugMiniJPServiceData | null> {
     if (manufacturerData.length !== 14) {
-      emitLog('debugerror', `[parseServiceDataForWoPlugMini] Buffer length ${manufacturerData.length} should be 14`)
+      emitLog('debugerror', `[parseServiceDataForWoPlugMiniJP] Buffer length ${manufacturerData.length} should be 14`)
       return null
     }
 
@@ -51,7 +51,7 @@ export class WoPlugMiniUS extends SwitchbotDevice {
     const currentPower = (((byte12 & 0b01111111) << 8) + byte13) / 10 // in watt
 
     const data = {
-      model: SwitchBotBLEModel.PlugMiniUS,
+      model: SwitchBotBLEModel.PlugMiniJP,
       modelName: SwitchBotBLEModelName.PlugMini,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.PlugMini,
       state: state ?? 'unknown',
@@ -63,7 +63,7 @@ export class WoPlugMiniUS extends SwitchbotDevice {
       currentPower,
     }
 
-    return data as plugMiniUSServiceData
+    return data as plugMiniJPServiceData
   }
 
   /**

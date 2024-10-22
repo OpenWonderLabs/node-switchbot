@@ -4,7 +4,7 @@
  */
 import type * as Noble from '@stoprocent/noble'
 
-import type { Ad, NobleTypes, ServiceData } from './types/types.js'
+import type { ad, NobleTypes, ServiceData } from './types/types.js'
 
 import { Buffer } from 'node:buffer'
 
@@ -17,9 +17,13 @@ import { WoHand } from './device/wohand.js'
 import { WoHub2 } from './device/wohub2.js'
 import { WoHumi } from './device/wohumi.js'
 import { WoIOSensorTH } from './device/woiosensorth.js'
-import { WoPlugMini } from './device/woplugmini.js'
+import { WoPlugMiniUS } from './device/woplugmini.js'
+import { WoPlugMiniJP } from './device/woplugmini_jp.js'
 import { WoPresence } from './device/wopresence.js'
 import { WoSensorTH } from './device/wosensorth.js'
+import { WoSensorTHPlus } from './device/wosensorthplus.js'
+import { WoSensorTHPro } from './device/wosensorthpro.js'
+import { WoSensorTHProCO2 } from './device/wosensorthproco2.js'
 import { WoSmartLock } from './device/wosmartlock.js'
 import { WoSmartLockPro } from './device/wosmartlockpro.js'
 import { WoStrip } from './device/wostrip.js'
@@ -44,7 +48,7 @@ export class Advertising {
   static async parse(
     peripheral: NobleTypes['peripheral'],
     emitLog: (level: string, message: string) => void,
-  ): Promise<Ad | null> {
+  ): Promise<ad | null> {
     const ad = peripheral.advertisement
     if (!ad || !ad.serviceData) {
       return null
@@ -69,7 +73,12 @@ export class Advertising {
       id: peripheral.id,
       address,
       rssi: peripheral.rssi,
-      serviceData: { model, ...sd } as ServiceData,
+      serviceData: {
+        model,
+        modelName: sd.modelName || '',
+        modelFriendlyName: sd.modelFriendlyName || '',
+        ...sd,
+      },
     }
 
     emitLog('debug', `[parseAdvertising.${peripheral.id}.${model}] return ${JSON.stringify(data)}`)
@@ -112,9 +121,11 @@ export class Advertising {
       case SwitchBotBLEModel.Meter:
         return WoSensorTH.parseServiceData(serviceData, emitLog)
       case SwitchBotBLEModel.MeterPlus:
-        return WoSensorTH.parseServiceData_Plus(serviceData, emitLog)
+        return WoSensorTHPlus.parseServiceData(serviceData, emitLog)
       case SwitchBotBLEModel.MeterPro:
-        return WoSensorTH.parseServiceData_Pro(serviceData, emitLog)
+        return WoSensorTHPro.parseServiceData(serviceData, emitLog)
+      case SwitchBotBLEModel.MeterProCO2:
+        return WoSensorTHProCO2.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.Hub2:
         return WoHub2.parseServiceData(manufacturerData, emitLog)
       case SwitchBotBLEModel.OutdoorMeter:
@@ -132,9 +143,9 @@ export class Advertising {
       case SwitchBotBLEModel.StripLight:
         return WoStrip.parseServiceData(serviceData, emitLog)
       case SwitchBotBLEModel.PlugMiniUS:
-        return WoPlugMini.parseServiceData_US(manufacturerData, emitLog)
+        return WoPlugMiniUS.parseServiceData(manufacturerData, emitLog)
       case SwitchBotBLEModel.PlugMiniJP:
-        return WoPlugMini.parseServiceData_JP(manufacturerData, emitLog)
+        return WoPlugMiniJP.parseServiceData(manufacturerData, emitLog)
       case SwitchBotBLEModel.Lock:
         return WoSmartLock.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.LockPro:

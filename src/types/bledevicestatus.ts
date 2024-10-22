@@ -162,6 +162,17 @@ export type meterProServiceData = serviceData & {
   battery: number
 }
 
+export type meterProCO2ServiceData = serviceData & {
+  model: SwitchBotBLEModel.MeterProCO2
+  modelName: SwitchBotBLEModelName.MeterProCO2
+  modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterProCO2
+  celsius: number
+  fahrenheit: number
+  fahrenheit_mode: boolean
+  humidity: number
+  battery: number
+}
+
 export type outdoorMeterServiceData = serviceData & {
   model: SwitchBotBLEModel.OutdoorMeter
   modelName: SwitchBotBLEModelName.OutdoorMeter
@@ -201,7 +212,7 @@ export type plugMiniUSServiceData = serviceData & {
 }
 
 export type plugMiniJPServiceData = serviceData & {
-  model: SwitchBotBLEModel.PlugMiniUS
+  model: SwitchBotBLEModel.PlugMiniJP
   modelName: SwitchBotBLEModelName.PlugMini
   modelFriendlyName: SwitchBotBLEModelFriendlyName.PlugMini
   state: string

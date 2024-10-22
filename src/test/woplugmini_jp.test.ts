@@ -5,7 +5,7 @@ import { Buffer } from 'node:buffer'
 import sinon from 'sinon'
 import { describe, expect, it } from 'vitest'
 
-import { WoPlugMiniUS } from '../device/woplugmini.js'
+import { WoPlugMiniJP } from '../device/woplugmini_jp.js'
 import { SwitchBotBLEModel } from '../types/types.js'
 
 describe('woPlugMini', () => {
@@ -15,12 +15,12 @@ describe('woPlugMini', () => {
     emitLog = sinon.spy()
   })
 
-  describe('parseServiceData_US', () => {
-    it('should parse valid service data for US model', async () => {
+  describe('parseServiceData', () => {
+    it('should parse valid service data for JP model', async () => {
       const manufacturerData = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0x80, 0, 0, 0, 0])
-      const result = await WoPlugMiniUS.parseServiceData(manufacturerData, emitLog)
+      const result = await WoPlugMiniJP.parseServiceData(manufacturerData, emitLog)
       expect(result).toEqual({
-        model: SwitchBotBLEModel.PlugMiniUS,
+        model: SwitchBotBLEModel.PlugMiniJP,
         modelName: 'PlugMini',
         modelFriendlyName: 'PlugMini',
         state: 'on',
@@ -35,19 +35,19 @@ describe('woPlugMini', () => {
 
     it('should return null for invalid service data length', async () => {
       const manufacturerData = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-      const result = await WoPlugMiniUS.parseServiceData(manufacturerData, emitLog)
+      const result = await WoPlugMiniJP.parseServiceData(manufacturerData, emitLog)
       expect(result).toBeNull()
       expect(emitLog.calledWith('error', '[parseServiceDataForWoPlugMini] Buffer length 10 should be 14')).toBe(true)
     })
   })
 
   describe('operatePlug', () => {
-    let woPlugMini: WoPlugMiniUS
+    let woPlugMini: WoPlugMiniJP
     let commandStub: sinon.SinonStub
 
     beforeEach(() => {
       const peripheral = {} as unknown as NobleTypes['peripheral']
-      woPlugMini = new WoPlugMiniUS(peripheral, emitLog as any)
+      woPlugMini = new WoPlugMiniJP(peripheral, emitLog as any)
       commandStub = sinon.stub(woPlugMini, 'command')
     })
 
@@ -75,12 +75,12 @@ describe('woPlugMini', () => {
   })
 
   describe('state operations', () => {
-    let woPlugMini: WoPlugMiniUS
+    let woPlugMini: WoPlugMiniJP
     let setStateStub: sinon.SinonStub
 
     beforeEach(() => {
       const peripheral = {} as unknown as NobleTypes['peripheral']
-      woPlugMini = new WoPlugMiniUS(peripheral, emitLog as any)
+      woPlugMini = new WoPlugMiniJP(peripheral, emitLog as any)
       setStateStub = sinon.stub(woPlugMini as any, 'setState')
     })
 
