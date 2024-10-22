@@ -22,6 +22,7 @@ export declare interface SwitchBotBLEDevice {
   Humidifier: DeviceInfo
   Meter: DeviceInfo
   MeterPlus: DeviceInfo
+  MeterPro: DeviceInfo
   Hub2: DeviceInfo
   OutdoorMeter: DeviceInfo
   MotionSensor: DeviceInfo

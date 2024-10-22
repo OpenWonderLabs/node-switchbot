@@ -39,6 +39,8 @@ export type meter = device & {}
 
 export type meterPlus = device & {}
 
+export type meterPro = device & {}
+
 export type outdoorMeter = device & {}
 
 export type lock = device & {

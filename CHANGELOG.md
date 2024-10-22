@@ -2,11 +2,20 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [3.2.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.2.1) (2024-10-21)
+
+### What's Changed
+- Add more Meter Pro types
+- Housekeeping and update dependencies
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v3.2.0...v3.2.1
+
 ## [3.2.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.2.0) (2024-10-21)
 
 ### What's Changed
 - Add basic support for Meter Pro
 - Fix Noble import issue
+- Housekeeping and update dependencies
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v3.1.1...v3.2.0
 
