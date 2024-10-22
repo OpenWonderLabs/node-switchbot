@@ -50,6 +50,8 @@ export enum SwitchBotModel {
   Meter = 'SwitchBot MeterTH S1',
   MeterPlusJP = 'W2201500',
   MeterPlusUS = 'W2301500',
+  MeterPro = 'W4900000',
+  MeterProCO2 = 'W4900010',
   OutdoorMeter = 'W3400010',
   MotionSensor = 'W1101500',
   ContactSensor = 'W1201500',
