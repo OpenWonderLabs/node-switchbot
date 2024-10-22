@@ -1,6 +1,5 @@
-import type * as noble from '@stoprocent/noble'
-
 import type { } from '../types/bledevicestatus.js'
+import type { NobleTypes } from '../types/types.js'
 
 import { Buffer } from 'node:buffer'
 
@@ -76,7 +75,7 @@ describe('woCeilingLight', () => {
 
   describe('operateCeilingLight', () => {
     it('should return true for successful operation', async () => {
-      const peripheral = {} as unknown as noble.Peripheral
+      const peripheral = {} as unknown as NobleTypes['peripheral']
       const device = new WoCeilingLight(peripheral, emitLog as any)
       vi.spyOn(device, 'command').mockResolvedValue(Buffer.from([0x00, 0x80]))
       const result = await device.operateCeilingLight([0x57, 0x0F, 0x48, 0x01])
@@ -84,7 +83,7 @@ describe('woCeilingLight', () => {
     })
 
     it('should throw an error for invalid response length', async () => {
-      const peripheral = {} as unknown as noble.Peripheral
+      const peripheral = {} as unknown as NobleTypes['peripheral']
       const device = new WoCeilingLight(peripheral, emitLog as any)
       vi.spyOn(device, 'command').mockResolvedValue(Buffer.from([0x00]))
       await expect(device.operateCeilingLight([0x57, 0x0F, 0x48, 0x01])).rejects.toThrow('Expecting a 2-byte response, got instead: 0x00')

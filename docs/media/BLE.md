@@ -731,6 +731,7 @@ Actually, the `WoSmartLock ` is an object inherited from the [`SwitchbotDevice`]
 The `setKey()` method initialises the key information required for encrypted communication with the SmartLock
 
 This must be set before any control commands are sent to the device. To obtain the key information you will need to use an external tool - see [`pySwitchbot`](https://github.com/Danielhiversen/pySwitchbot/tree/master?tab=readme-ov-file#obtaining-locks-encryption-key) project for an example script.
+Or, use [`switchbot-get-encryption-key`](https://www.npmjs.com/package/switchbot-get-encryption-key) npm script.
 
 | Property        | Type   | Description                                                                                      |
 | :-------------- | :----- | :----------------------------------------------------------------------------------------------- |

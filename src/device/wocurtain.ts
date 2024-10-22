@@ -2,9 +2,8 @@
  *
  * wocurtain.ts: Switchbot BLE API registration.
  */
-import type * as Noble from '@stoprocent/noble'
-
 import type { curtain3ServiceData, curtainServiceData } from '../types/bledevicestatus.js'
+import type { NobleTypes } from '../types/types.js'
 
 import { Buffer } from 'node:buffer'
 
@@ -90,7 +89,7 @@ export class WoCurtain extends SwitchbotDevice {
     }
   }
 
-  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+  constructor(peripheral: NobleTypes['peripheral'], noble: NobleTypes['noble']) {
     super(peripheral, noble)
   }
 

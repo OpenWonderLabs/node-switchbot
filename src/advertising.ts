@@ -4,7 +4,7 @@
  */
 import type * as Noble from '@stoprocent/noble'
 
-import type { Ad, ServiceData } from './types/types.js'
+import type { Ad, NobleTypes, ServiceData } from './types/types.js'
 
 import { Buffer } from 'node:buffer'
 
@@ -37,12 +37,12 @@ export class Advertising {
    * This function processes advertising packets received from SwitchBot devices
    * and extracts relevant information based on the device type.
    *
-   * @param {Noble.Peripheral} peripheral - The peripheral device object from noble.
+   * @param {NobleTypes['peripheral']} peripheral - The peripheral device object from noble.
    * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<Ad | null>} - An object containing parsed data specific to the SwitchBot device type, or `null` if the device is not recognized.
    */
   static async parse(
-    peripheral: Noble.Peripheral,
+    peripheral: NobleTypes['peripheral'],
     emitLog: (level: string, message: string) => void,
   ): Promise<Ad | null> {
     const ad = peripheral.advertisement
@@ -113,6 +113,8 @@ export class Advertising {
         return WoSensorTH.parseServiceData(serviceData, emitLog)
       case SwitchBotBLEModel.MeterPlus:
         return WoSensorTH.parseServiceData_Plus(serviceData, emitLog)
+      case SwitchBotBLEModel.MeterPro:
+        return WoSensorTH.parseServiceData_Pro(serviceData, emitLog)
       case SwitchBotBLEModel.Hub2:
         return WoHub2.parseServiceData(manufacturerData, emitLog)
       case SwitchBotBLEModel.OutdoorMeter:
@@ -148,10 +150,10 @@ export class Advertising {
   /**
    * Formats the address of the peripheral.
    *
-   * @param {Noble.Peripheral} peripheral - The peripheral device object from noble.
+   * @param {NobleTypes['peripheral']} peripheral - The peripheral device object from noble.
    * @returns {string} - The formatted address.
    */
-  private static formatAddress(peripheral: Noble.Peripheral): string {
+  private static formatAddress(peripheral: NobleTypes['peripheral']): string {
     let address = peripheral.address || ''
     if (address === '') {
       const str = peripheral.advertisement.manufacturerData?.toString('hex').slice(4, 16) || ''

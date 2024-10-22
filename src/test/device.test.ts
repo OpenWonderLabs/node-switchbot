@@ -1,10 +1,10 @@
-import type * as Noble from '@stoprocent/noble'
+import type { NobleTypes } from '../types/types.js'
 
 import { SwitchbotDevice } from '../device.js'
 
 describe('switchbotDevice', () => {
-  let mockPeripheral: jest.Mocked<Noble.Peripheral>
-  let mockNoble: jest.Mocked<typeof Noble>
+  let mockPeripheral: jest.Mocked<NobleTypes['peripheral']>
+  let mockNoble: jest.Mocked<NobleTypes['noble']>
 
   beforeEach(() => {
     mockPeripheral = {
@@ -15,11 +15,11 @@ describe('switchbotDevice', () => {
       once: jest.fn(),
       removeAllListeners: jest.fn(),
       discoverCharacteristicsAsync: jest.fn().mockResolvedValue([]),
-    } as unknown as jest.Mocked<Noble.Peripheral>
+    } as unknown as jest.Mocked<NobleTypes['peripheral']>
 
     mockNoble = {
       _state: 'poweredOn',
-    } as unknown as jest.Mocked<typeof Noble>
+    } as unknown as jest.Mocked<NobleTypes['noble']>
   })
 
   it('should initialize with correct properties', async () => {

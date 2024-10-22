@@ -1,6 +1,5 @@
-import type * as Noble from '@stoprocent/noble'
-
 import type { lockServiceData } from '../types/bledevicestatus.js'
+import type { NobleTypes } from '../types/types.js'
 
 import { Buffer } from 'node:buffer'
 
@@ -11,13 +10,13 @@ import { WoSmartLockCommands } from '../settings.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
 describe('woSmartLock', () => {
-  let mockPeripheral: Noble.Peripheral
-  let mockNoble: typeof Noble
+  let mockPeripheral: NobleTypes['peripheral']
+  let mockNoble: NobleTypes['noble']
   let lock: WoSmartLock
 
   beforeEach(() => {
-    mockPeripheral = {} as Noble.Peripheral
-    mockNoble = {} as typeof Noble
+    mockPeripheral = {} as NobleTypes['peripheral']
+    mockNoble = {} as NobleTypes['noble']
     lock = new WoSmartLock(mockPeripheral, mockNoble)
   })
 

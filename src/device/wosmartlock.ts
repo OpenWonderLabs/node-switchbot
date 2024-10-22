@@ -2,9 +2,8 @@
  * wosmartlock.ts: Switchbot BLE API registration.
  * adapted off the work done by [pySwitchbot](https://github.com/Danielhiversen/pySwitchbot)
  */
-import type * as Noble from '@stoprocent/noble'
-
 import type { lockServiceData } from '../types/bledevicestatus.js'
+import type { NobleTypes } from '../types/types.js'
 
 import { Buffer } from 'node:buffer'
 import * as Crypto from 'node:crypto'
@@ -91,7 +90,7 @@ export class WoSmartLock extends SwitchbotDevice {
     return data
   }
 
-  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+  constructor(peripheral: NobleTypes['peripheral'], noble: NobleTypes['noble']) {
     super(peripheral, noble)
   }
 

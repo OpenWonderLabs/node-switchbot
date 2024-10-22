@@ -1,4 +1,5 @@
 import type { stripLightServiceData } from '../types/bledevicestatus.js'
+import type { NobleTypes } from '../types/types.js'
 
 import { Buffer } from 'node:buffer'
 
@@ -44,7 +45,7 @@ describe('woStrip', () => {
 
   describe('setState', () => {
     it('should call operateStripLight with correct byte array', async () => {
-      const peripheral = {} as unknown as noble.Peripheral // Mock or provide a valid Noble.Peripheral object
+      const peripheral = {} as unknown as NobleTypes['peripheral'] // Mock or provide a valid NobleTypes['peripheral'] object
       const device = new WoStrip(peripheral, noble)
       const operateStripLightSpy = vi.spyOn(device, 'operateStripLight').mockResolvedValue(true)
       const reqByteArray = [0x01, 0x01]
@@ -56,7 +57,7 @@ describe('woStrip', () => {
 
   describe('turnOn', () => {
     it('should call setState with correct byte array', async () => {
-      const peripheral = {} as unknown as noble.Peripheral // Mock or provide a valid Noble.Peripheral object
+      const peripheral = {} as unknown as NobleTypes['peripheral'] // Mock or provide a valid NobleTypes['peripheral'] object
       const device = new WoStrip(peripheral, noble)
       const setStateSpy = vi.spyOn(device, 'setState').mockResolvedValue(true)
       const result = await device.turnOn()
@@ -67,7 +68,7 @@ describe('woStrip', () => {
 
   describe('turnOff', () => {
     it('should call setState with correct byte array', async () => {
-      const peripheral = {} as unknown as noble.Peripheral // Mock or provide a valid Noble.Peripheral object
+      const peripheral = {} as unknown as NobleTypes['peripheral'] // Mock or provide a valid NobleTypes['peripheral'] object
       const device = new WoStrip(peripheral, noble)
       const setStateSpy = vi.spyOn(device, 'setState').mockResolvedValue(true)
       const result = await device.turnOff()
@@ -78,14 +79,14 @@ describe('woStrip', () => {
 
   describe('setBrightness', () => {
     it('should throw error for invalid brightness value', async () => {
-      const peripheral = {} as unknown as noble.Peripheral // Mock or provide a valid Noble.Peripheral object
+      const peripheral = {} as unknown as NobleTypes['peripheral'] // Mock or provide a valid NobleTypes['peripheral'] object
       const device = new WoStrip(peripheral, noble)
       await expect(device.setBrightness(-1)).rejects.toThrow(TypeError)
       await expect(device.setBrightness(101)).rejects.toThrow(TypeError)
     })
 
     it('should call setState with correct byte array', async () => {
-      const peripheral = {} as unknown as noble.Peripheral // Mock or provide a valid Noble.Peripheral object
+      const peripheral = {} as unknown as NobleTypes['peripheral'] // Mock or provide a valid NobleTypes['peripheral'] object
       const device = new WoStrip(peripheral, noble)
       const setStateSpy = vi.spyOn(device, 'setState').mockResolvedValue(true)
       const result = await device.setBrightness(50)
@@ -96,14 +97,14 @@ describe('woStrip', () => {
 
   describe('setRGB', () => {
     it('should throw error for invalid RGB values', async () => {
-      const peripheral = {} as unknown as noble.Peripheral // Mock or provide a valid Noble.Peripheral object
+      const peripheral = {} as unknown as NobleTypes['peripheral'] // Mock or provide a valid NobleTypes['peripheral'] object
       const device = new WoStrip(peripheral, noble)
       await expect(device.setRGB(50, -1, 255, 255)).rejects.toThrow(TypeError)
       await expect(device.setRGB(50, 255, 256, 255)).rejects.toThrow(TypeError)
     })
 
     it('should call setState with correct byte array', async () => {
-      const peripheral = {} as unknown as noble.Peripheral // Mock or provide a valid Noble.Peripheral object
+      const peripheral = {} as unknown as NobleTypes['peripheral'] // Mock or provide a valid NobleTypes['peripheral'] object
       const device = new WoStrip(peripheral, noble)
       const setStateSpy = vi.spyOn(device, 'setState').mockResolvedValue(true)
       const result = await device.setRGB(50, 255, 128, 64)

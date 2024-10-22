@@ -4,7 +4,7 @@
  */
 import type * as Noble from '@stoprocent/noble'
 
-import type { Chars, SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from './types/types.js'
+import type { Chars, NobleTypes, SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from './types/types.js'
 
 import { Buffer } from 'node:buffer'
 import { EventEmitter } from 'node:events'
@@ -18,8 +18,8 @@ import { CHAR_UUID_DEVICE, CHAR_UUID_NOTIFY, CHAR_UUID_WRITE, READ_TIMEOUT_MSEC,
  */
 export class SwitchbotDevice extends EventEmitter {
   [x: string]: any
-  private noble: typeof Noble
-  private peripheral: Noble.Peripheral
+  private noble: NobleTypes['noble']
+  private peripheral: NobleTypes['peripheral']
   private characteristics: Chars | null = null
   private deviceId!: string
   private deviceAddress!: string
@@ -37,7 +37,7 @@ export class SwitchbotDevice extends EventEmitter {
    * @param peripheral The peripheral object from noble.
    * @param noble The Noble object.
    */
-  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+  constructor(peripheral: NobleTypes['peripheral'], noble: NobleTypes['noble']) {
     super()
     this.peripheral = peripheral
     this.noble = noble

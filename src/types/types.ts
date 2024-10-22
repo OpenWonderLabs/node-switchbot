@@ -50,6 +50,8 @@ export enum SwitchBotModel {
   Meter = 'SwitchBot MeterTH S1',
   MeterPlusJP = 'W2201500',
   MeterPlusUS = 'W2301500',
+  MeterPro = 'W4900000',
+  MeterProCO2 = 'W4900010',
   OutdoorMeter = 'W3400010',
   MotionSensor = 'W1101500',
   ContactSensor = 'W1201500',
@@ -88,6 +90,7 @@ export enum SwitchBotBLEModel {
   Humidifier = 'e',
   Meter = 'T',
   MeterPlus = 'i',
+  MeterPro = '4',
   Hub2 = 'v',
   OutdoorMeter = 'w',
   MotionSensor = 's',
@@ -112,11 +115,12 @@ export enum SwitchBotBLEModelName {
   Curtain3 = 'WoCurtain3',
   Humidifier = 'WoHumi',
   Meter = 'WoSensorTH',
+  MeterPlus = 'WoSensorTHPlus',
+  MeterPro = 'WoSensorTHP',
   Lock = 'WoSmartLock',
   LockPro = 'WoSmartLockPro',
   PlugMini = 'WoPlugMini',
   StripLight = 'WoStrip',
-  MeterPlus = 'WoSensorTHPlus',
   OutdoorMeter = 'WoIOSensorTH',
   ContactSensor = 'WoContact',
   MotionSensor = 'WoMotion',
@@ -139,6 +143,7 @@ export enum SwitchBotBLEModelFriendlyName {
   PlugMini = 'Plug Mini',
   StripLight = 'Strip Light',
   MeterPlus = 'Meter Plus',
+  MeterPro = 'Meter Pro',
   OutdoorMeter = 'Outdoor Meter',
   ContactSensor = 'Contact Sensor',
   MotionSensor = 'Motion Sensor',
@@ -165,6 +170,12 @@ export interface Chars {
   write: Noble.Characteristic | null
   notify: Noble.Characteristic | null
   device: Noble.Characteristic | null
+}
+
+export interface NobleTypes {
+  noble: typeof Noble
+  state: 'unknown' | 'resetting' | 'unsupported' | 'unauthorized' | 'poweredOff' | 'poweredOn'
+  peripheral: Noble.Peripheral
 }
 
 export interface ServiceData {

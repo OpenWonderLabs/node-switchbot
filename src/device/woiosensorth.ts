@@ -4,9 +4,8 @@
  */
 import type { Buffer } from 'node:buffer'
 
-import type * as Noble from '@stoprocent/noble'
-
 import type { outdoorMeterServiceData } from '../types/bledevicestatus.js'
+import type { NobleTypes } from '../types/types.js'
 
 import { SwitchbotDevice } from '../device.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
@@ -62,7 +61,7 @@ export class WoIOSensorTH extends SwitchbotDevice {
     return data
   }
 
-  constructor(peripheral: Noble.Peripheral, noble: typeof Noble) {
+  constructor(peripheral: NobleTypes['peripheral'], noble: NobleTypes['noble']) {
     super(peripheral, noble)
   }
 }

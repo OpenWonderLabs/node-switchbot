@@ -2,11 +2,9 @@
  *
  * switchbot.ts: Switchbot BLE API registration.
  */
-import type { Ad, Params, Rule } from './types/types.js'
+import type { Ad, NobleTypes, Params, Rule } from './types/types.js'
 
 import { EventEmitter } from 'node:events'
-
-import * as Noble from '@stoprocent/noble'
 
 import { Advertising } from './advertising.js'
 import { SwitchbotDevice } from './device.js'
@@ -34,7 +32,7 @@ import { SwitchBotBLEModel } from './types/types.js'
  */
 export class SwitchBotBLE extends EventEmitter {
   public ready: Promise<void>
-  public noble!: typeof Noble
+  public noble: any
   ondiscover?: (device: SwitchbotDevice) => Promise<void> | void
   onadvertisement?: (ad: Ad) => Promise<void> | void
 
@@ -65,7 +63,15 @@ export class SwitchBotBLE extends EventEmitter {
    * @returns {Promise<void>} - Resolves when initialization is complete
    */
   private async initialize(params?: Params): Promise<void> {
-    this.noble = params?.noble ?? Noble.default as typeof Noble
+    try {
+      if (params && params.noble) {
+        this.noble = params.noble
+      } else {
+        this.noble = (await import('@stoprocent/noble')).default
+      }
+    } catch (e: any) {
+      this.log('error', `Failed to import noble: ${JSON.stringify(e.message ?? e)}`)
+    }
   }
 
   /**
@@ -90,12 +96,12 @@ export class SwitchBotBLE extends EventEmitter {
    */
   private async waitForPowerOn(): Promise<void> {
     await this.ready
-    if (this.noble._state === 'poweredOn') {
+    if (this.noble && this.noble._state === 'poweredOn') {
       return
     }
 
     return new Promise<void>((resolve, reject) => {
-      this.noble.once('stateChange', (state: typeof Noble._state) => {
+      this.noble?.once('stateChange', (state: NobleTypes['state']) => {
         switch (state) {
           case 'unsupported':
           case 'unauthorized':
@@ -117,13 +123,12 @@ export class SwitchBotBLE extends EventEmitter {
   }
 
   /**
-   * Discover SwitchBot devices based on the provided parameters.
-   *
-   * @param {Params} params - The parameters for discovery.
-   * @returns {Promise<SwitchbotDevice[]>} - A promise that resolves with a list of discovered devices.
+   * Discovers Switchbot devices.
+   * @param params The discovery parameters.
+   * @returns A Promise that resolves with an array of discovered Switchbot devices.
    */
   public async discover(params: Params = {}): Promise<SwitchbotDevice[]> {
-    await this.ready
+    await this.initialize(params)
     await this.validate(params, {
       duration: { required: false, type: 'integer', min: 1, max: 60000 },
       model: { required: false, type: 'string', enum: Object.values(SwitchBotBLEModel) },
@@ -151,18 +156,20 @@ export class SwitchBotBLE extends EventEmitter {
       if (timer) {
         clearTimeout(timer)
       }
-      this.noble.removeAllListeners('discover')
-      try {
-        await this.noble.stopScanningAsync()
-        this.log('info', 'Stopped Scanning for SwitchBot BLE devices.')
-      } catch (e: any) {
-        this.log('error', `discover stopScanningAsync error: ${JSON.stringify(e.message ?? e)}`)
+      if (this.noble) {
+        this.noble.removeAllListeners('discover')
+        try {
+          await this.noble.stopScanningAsync()
+          this.log('info', 'Stopped Scanning for SwitchBot BLE devices.')
+        } catch (e: any) {
+          this.log('error', `discover stopScanningAsync error: ${JSON.stringify(e.message ?? e)}`)
+        }
       }
       return Object.values(peripherals)
     }
 
     return new Promise<SwitchbotDevice[]>((resolve, reject) => {
-      this.noble.on('discover', async (peripheral: Noble.Peripheral) => {
+      this.noble.on('discover', async (peripheral: NobleTypes['peripheral']) => {
         const device = await this.createDevice(peripheral, p.id, p.model)
         if (!device) {
           return
@@ -188,14 +195,14 @@ export class SwitchBotBLE extends EventEmitter {
   /**
    * Creates a device object based on the peripheral, id, and model.
    *
-   * @param {Noble.Peripheral} peripheral - The peripheral object.
+   * @param {NobleTypes['peripheral']} peripheral - The peripheral object.
    * @param {string} id - The device id.
    * @param {string} model - The device model.
    * @returns {Promise<SwitchbotDevice | null>} - The device object or null.
    */
-  private async createDevice(peripheral: Noble.Peripheral, id: string, model: string): Promise<SwitchbotDevice | null> {
+  private async createDevice(peripheral: NobleTypes['peripheral'], id: string, model: string): Promise<SwitchbotDevice | null> {
     const ad = await Advertising.parse(peripheral, this.log.bind(this))
-    if (ad && await this.filterAd(ad, id, model)) {
+    if (ad && await this.filterAd(ad, id, model) && this.noble) {
       switch (ad.serviceData.model) {
         case SwitchBotBLEModel.Bot: return new WoHand(peripheral, this.noble)
         case SwitchBotBLEModel.Curtain:
@@ -264,7 +271,7 @@ export class SwitchBotBLE extends EventEmitter {
 
     const p = { model: params.model || '', id: params.id || '' }
 
-    this.noble.on('discover', async (peripheral: Noble.Peripheral) => {
+    this.noble.on('discover', async (peripheral: NobleTypes['peripheral']) => {
       const ad = await Advertising.parse(peripheral, this.log.bind(this))
       if (ad && await this.filterAd(ad, p.id, p.model)) {
         if (this.onadvertisement) {

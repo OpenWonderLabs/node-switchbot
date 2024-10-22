@@ -1,6 +1,5 @@
-import type * as noble from '@stoprocent/noble'
-
 import type { } from '../types/bledevicestatus.js'
+import type { NobleTypes } from '../types/types.js'
 
 import { Buffer } from 'node:buffer'
 
@@ -41,7 +40,7 @@ describe('woCurtain', () => {
 
   describe('open', () => {
     it('should call runToPos with 0 and default mode', async () => {
-      const peripheral = {} as unknown as noble.Peripheral
+      const peripheral = {} as unknown as NobleTypes['peripheral']
       const curtain = new WoCurtain(peripheral, emitLog as any)
       const runToPosSpy = vi.spyOn(curtain, 'runToPos').mockResolvedValue()
       await curtain.open()
@@ -51,7 +50,7 @@ describe('woCurtain', () => {
 
   describe('close', () => {
     it('should call runToPos with 100 and default mode', async () => {
-      const peripheral = {} as unknown as noble.Peripheral
+      const peripheral = {} as unknown as NobleTypes['peripheral']
       const curtain = new WoCurtain(peripheral, emitLog as any)
       const runToPosSpy = vi.spyOn(curtain, 'runToPos').mockResolvedValue()
       await curtain.close()
@@ -61,7 +60,7 @@ describe('woCurtain', () => {
 
   describe('pause', () => {
     it('should call operateCurtain with correct bytes', async () => {
-      const peripheral = {} as unknown as noble.Peripheral
+      const peripheral = {} as unknown as NobleTypes['peripheral']
       const curtain = new WoCurtain(peripheral, emitLog as any)
       const operateCurtainSpy = vi.spyOn(curtain, 'operateCurtain').mockResolvedValue()
       await curtain.pause()
@@ -71,7 +70,7 @@ describe('woCurtain', () => {
 
   describe('runToPos', () => {
     it('should call operateCurtain with correct bytes', async () => {
-      const peripheral = {} as unknown as noble.Peripheral
+      const peripheral = {} as unknown as NobleTypes['peripheral']
       const curtain = new WoCurtain(peripheral, emitLog as any)
       const operateCurtainSpy = vi.spyOn(curtain, 'operateCurtain').mockResolvedValue()
       await curtain.runToPos(50, 0x01)
@@ -79,7 +78,7 @@ describe('woCurtain', () => {
     })
 
     it('should throw TypeError if percent or mode is not a number', async () => {
-      const peripheral = {} as unknown as noble.Peripheral
+      const peripheral = {} as unknown as NobleTypes['peripheral']
       const curtain = new WoCurtain(peripheral, emitLog as any)
       await expect(curtain.runToPos('50' as any, 0x01)).rejects.toThrow(TypeError)
       await expect(curtain.runToPos(50, '0x01' as any)).rejects.toThrow(TypeError)

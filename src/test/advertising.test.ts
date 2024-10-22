@@ -1,4 +1,4 @@
-import type * as Noble from '@stoprocent/noble'
+import type { NobleTypes } from '../types/types.js'
 
 import { Buffer } from 'node:buffer'
 
@@ -11,7 +11,7 @@ describe('advertising', () => {
     it('should return null if advertisement or serviceData is missing', async () => {
       const peripheral = {
         advertisement: null,
-      } as unknown as Noble.Peripheral
+      } as unknown as NobleTypes['peripheral']
 
       const mockLog = vi.fn()
       const result = await Advertising.parse(peripheral, mockLog)
@@ -24,7 +24,7 @@ describe('advertising', () => {
           serviceData: [{ data: null }],
           manufacturerData: null,
         },
-      } as unknown as Noble.Peripheral
+      } as unknown as NobleTypes['peripheral']
 
       const mockLog = vi.fn()
       const result = await Advertising.parse(peripheral, mockLog)
@@ -42,7 +42,7 @@ describe('advertising', () => {
         },
         rssi: -60,
         address: '00:11:22:33:44:55',
-      } as unknown as Noble.Peripheral
+      } as unknown as NobleTypes['peripheral']
 
       const mockLog = vi.fn()
       const mockParseServiceData = vi.fn().mockResolvedValue({ key: 'value' })
@@ -68,7 +68,7 @@ describe('advertising', () => {
         },
         rssi: -60,
         address: '00:11:22:33:44:55',
-      } as unknown as Noble.Peripheral
+      } as unknown as NobleTypes['peripheral']
 
       const mockLog = vi.fn()
       vi.spyOn(Advertising as any, 'parseServiceData').mockResolvedValue(null)
@@ -97,7 +97,7 @@ describe('advertising', () => {
     it('should format address correctly', () => {
       const peripheral = {
         address: '00-11-22-33-44-55',
-      } as unknown as Noble.Peripheral
+      } as unknown as NobleTypes['peripheral']
 
       const result = (Advertising as any).formatAddress(peripheral)
       expect(result).toBe('00:11:22:33:44:55')
@@ -109,7 +109,7 @@ describe('advertising', () => {
         advertisement: {
           manufacturerData: Buffer.from('0000112233445566', 'hex'),
         },
-      } as unknown as Noble.Peripheral
+      } as unknown as NobleTypes['peripheral']
 
       const result = (Advertising as any).formatAddress(peripheral)
       expect(result).toBe('11:22:33:44:55:66')
