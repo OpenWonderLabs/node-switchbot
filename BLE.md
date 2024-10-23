@@ -1089,7 +1089,7 @@ In this code, you can get a [`WoHand`](#SwitchbotDeviceWoHand-object) object rep
 
 ### Logging
 
-To be able to receive logging that this module is pushing out you will need to subscribt to the events.
+To be able to receive logging that this module is pushing out you will need to subscribe to the events.
 
 ```typescript
 this.switchBotBLE.on('log', (log) => {
