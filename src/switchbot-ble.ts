@@ -160,7 +160,7 @@ export class SwitchBotBLE extends EventEmitter {
         this.noble.removeAllListeners('discover')
         try {
           await this.noble.stopScanningAsync()
-          this.log('info', 'Stopped Scanning for SwitchBot BLE devices.')
+          this.log('debug', 'Stopped Scanning for SwitchBot BLE devices.')
         } catch (e: any) {
           this.log('error', `discover stopScanningAsync error: ${JSON.stringify(e.message ?? e)}`)
         }
@@ -282,7 +282,7 @@ export class SwitchBotBLE extends EventEmitter {
 
     try {
       await this.noble.startScanningAsync(PRIMARY_SERVICE_UUID_LIST, true)
-      this.log('info', 'Started Scanning for SwitchBot BLE devices.')
+      this.log('debug', 'Started Scanning for SwitchBot BLE devices.')
     } catch (e: any) {
       this.log('error', `startScanningAsync error: ${JSON.stringify(e.message ?? e)}`)
     }
@@ -301,7 +301,7 @@ export class SwitchBotBLE extends EventEmitter {
     this.noble.removeAllListeners('discover')
     try {
       await this.noble.stopScanningAsync()
-      this.log('info', 'Stopped Scanning for SwitchBot BLE devices.')
+      this.log('debug', 'Stopped Scanning for SwitchBot BLE devices.')
     } catch (e: any) {
       this.log('error', `stopScanningAsync error: ${JSON.stringify(e.message ?? e)}`)
     }
