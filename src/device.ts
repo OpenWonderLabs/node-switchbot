@@ -159,12 +159,16 @@ export class SwitchbotDevice extends EventEmitter {
    * @returns A Promise that resolves with the device characteristics.
    */
   public async getCharacteristics(): Promise<Chars> {
-    const timer = setTimeout(() => {
-      throw new Error('Failed to discover services and characteristics: TIMEOUT')
-    }, 5000)
+    const TIMEOUT_DURATION = 5000;
+
+    const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+            reject(new Error('Failed to discover services and characteristics: TIMEOUT'));
+        }, TIMEOUT_DURATION);
+    });
 
     try {
-      const services = await this.discoverServices()
+      const services = await Promise.race([this.discoverServices(), timeoutPromise]) as Noble.Service[];
       const chars: Chars = { write: null, notify: null, device: null }
 
       for (const service of services) {
@@ -187,8 +191,8 @@ export class SwitchbotDevice extends EventEmitter {
       }
 
       return chars
-    } finally {
-      clearTimeout(timer)
+    } catch (error) {
+      throw new Error((error as Error).message || 'An error occurred while discovering characteristics.');
     }
   }
 
