@@ -229,7 +229,7 @@ export class SwitchbotDevice extends EventEmitter {
       throw new Error('No notify characteristic was found.')
     }
     await char.subscribeAsync()
-    char.on('data', this.onNotify)
+    char.on('data', (buf: Buffer) => this.onNotify(buf))
   }
 
   /**
