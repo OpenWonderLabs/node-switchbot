@@ -2,10 +2,10 @@
  *
  * worelayswitch1plus.ts: Switchbot BLE API registration.
  */
-import type { Buffer } from 'node:buffer'
-
 import type { relaySwitch1ServiceData } from '../types/bledevicestatus.js'
 import type { NobleTypes } from '../types/types.js'
+
+import { Buffer } from 'node:buffer'
 
 import { SwitchbotDevice } from '../device.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
@@ -46,5 +46,35 @@ export class WoRelaySwitch1 extends SwitchbotDevice {
     }
 
     return data
+  }
+
+  /**
+   * Sends a command to the bot.
+   * @param {Buffer} reqBuf - The command buffer.
+   * @returns {Promise<void>}
+   */
+  protected async sendCommand(reqBuf: Buffer): Promise<void> {
+    const resBuf = await this.command(reqBuf)
+    const code = resBuf.readUInt8(0)
+
+    if (resBuf.length !== 3 || (code !== 0x01 && code !== 0x05)) {
+      throw new Error(`The device returned an error: 0x${resBuf.toString('hex')}`)
+    }
+  }
+
+  /**
+   * Turns on the bot.
+   * @returns {Promise<void>}
+   */
+  public async turnOn(): Promise<void> {
+    await this.sendCommand(Buffer.from([0x57, 0x01, 0x01]))
+  }
+
+  /**
+   * Turns off the bot.
+   * @returns {Promise<void>}
+   */
+  public async turnOff(): Promise<void> {
+    await this.sendCommand(Buffer.from([0x57, 0x01, 0x02]))
   }
 }
