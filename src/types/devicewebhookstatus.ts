@@ -266,3 +266,18 @@ export type humidifier2WebhookContext = deviceWebhookContext & {
   humidity: number
   scale: 'CELSIUS' | 'FAHRENHEIT'
 }
+
+export type relaySwitch1Context = deviceWebhookContext & {
+  online: boolean
+  overTemperature: boolean
+  switchStatus: 0 | 1
+  version: string
+}
+
+export type relaySwitch1PMContext = deviceWebhookContext & {
+  online: boolean
+  overTemperature: boolean
+  switchStatus: 0 | 1
+  overload: boolean
+  version: string
+}

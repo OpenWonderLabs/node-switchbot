@@ -213,3 +213,17 @@ export type circulatorFanStatus = deviceStatus & {
   verticalOscillation: string
   fanSpeed: number
 }
+
+export type relaySwitch1Status = deviceStatus & {
+  switchStatus: 0 | 1
+  version: string
+}
+
+export type relaySwitch1PMStatus = deviceStatus & {
+  switchStatus: 0 | 1
+  voltage: number
+  version: string
+  power: number
+  usedElectricity: number
+  electricCurrent: number
+}
