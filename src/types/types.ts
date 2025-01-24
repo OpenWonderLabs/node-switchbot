@@ -98,7 +98,7 @@ export enum SwitchBotBLEModel {
   Curtain = 'c',
   Curtain3 = '{',
   Humidifier = 'e',
-  Humidifier2 = 'E',
+  Humidifier2 = '#',
   Meter = 'T',
   MeterPlus = 'i',
   MeterPro = '4',

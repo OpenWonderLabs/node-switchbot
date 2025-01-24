@@ -1,25 +1,29 @@
+import type { Mocked } from 'vitest'
+
 import type { NobleTypes } from '../types/types.js'
+
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { SwitchbotDevice } from '../device.js'
 
 describe('switchbotDevice', () => {
-  let mockPeripheral: jest.Mocked<NobleTypes['peripheral']>
-  let mockNoble: jest.Mocked<NobleTypes['noble']>
+  let mockPeripheral: Mocked<NobleTypes['peripheral']>
+  let mockNoble: Mocked<NobleTypes['noble']>
 
   beforeEach(() => {
     mockPeripheral = {
-      connectAsync: jest.fn().mockResolvedValue(undefined),
-      disconnectAsync: jest.fn().mockResolvedValue(undefined),
-      discoverServicesAsync: jest.fn().mockResolvedValue([]),
+      connectAsync: vi.fn().mockResolvedValue(undefined),
+      disconnectAsync: vi.fn().mockResolvedValue(undefined),
+      discoverServicesAsync: vi.fn().mockResolvedValue([]),
       state: 'disconnected' as 'disconnected' | 'connecting' | 'connected' | 'disconnecting',
-      once: jest.fn(),
-      removeAllListeners: jest.fn(),
-      discoverCharacteristicsAsync: jest.fn().mockResolvedValue([]),
-    } as unknown as jest.Mocked<NobleTypes['peripheral']>
+      once: vi.fn(),
+      removeAllListeners: vi.fn(),
+      discoverCharacteristicsAsync: vi.fn().mockResolvedValue([]),
+    } as unknown as Mocked<NobleTypes['peripheral']>
 
     mockNoble = {
       _state: 'poweredOn',
-    } as unknown as jest.Mocked<NobleTypes['noble']>
+    } as unknown as Mocked<NobleTypes['noble']>
   })
 
   it('should initialize with correct properties', async () => {

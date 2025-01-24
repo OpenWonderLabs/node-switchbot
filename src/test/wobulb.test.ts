@@ -5,7 +5,7 @@ import type { NobleTypes } from '../types/types.js'
 
 import { Buffer } from 'node:buffer'
 
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { WoBulb } from '../device/wobulb.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'

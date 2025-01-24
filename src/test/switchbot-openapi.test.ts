@@ -1,10 +1,12 @@
+import type { Mock } from 'vitest'
+
 import { request } from 'undici'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { SwitchBotOpenAPI } from '../switchbot-openapi.js'
 
-jest.mock('undici', () => ({
-  request: jest.fn(),
+vi.mock('undici', () => ({
+  request: vi.fn(),
 }))
 
 describe('switchBotOpenAPI', () => {
@@ -17,15 +19,15 @@ describe('switchBotOpenAPI', () => {
   })
 
   afterEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('getDevices', () => {
     it('should retrieve the list of devices', async () => {
       const mockDevicesResponse = { body: { devices: [] }, statusCode: 200 };
-      (request as jest.Mock).mockResolvedValue({
+      (request as Mock).mockResolvedValue({
         body: {
-          json: jest.fn().mockResolvedValue(mockDevicesResponse.body),
+          json: vi.fn().mockResolvedValue(mockDevicesResponse.body),
         },
         statusCode: mockDevicesResponse.statusCode,
       })
@@ -38,7 +40,7 @@ describe('switchBotOpenAPI', () => {
 
     it('should throw an error if the request fails', async () => {
       const errorMessage = 'Failed to get devices';
-      (request as jest.Mock).mockRejectedValue(new Error(errorMessage))
+      (request as Mock).mockRejectedValue(new Error(errorMessage))
 
       await expect(switchBotAPI.getDevices()).rejects.toThrow(`Failed to get devices: ${errorMessage}`)
     })
@@ -47,9 +49,9 @@ describe('switchBotOpenAPI', () => {
   describe('controlDevice', () => {
     it('should control a device by sending a command', async () => {
       const mockControlResponse = { body: {}, statusCode: 200 };
-      (request as jest.Mock).mockResolvedValue({
+      (request as Mock).mockResolvedValue({
         body: {
-          json: jest.fn().mockResolvedValue(mockControlResponse.body),
+          json: vi.fn().mockResolvedValue(mockControlResponse.body),
         },
         statusCode: mockControlResponse.statusCode,
       })
@@ -62,7 +64,7 @@ describe('switchBotOpenAPI', () => {
 
     it('should throw an error if the device control fails', async () => {
       const errorMessage = 'Failed to control device';
-      (request as jest.Mock).mockRejectedValue(new Error(errorMessage))
+      (request as Mock).mockRejectedValue(new Error(errorMessage))
 
       await expect(switchBotAPI.controlDevice('device-id', 'turnOn', 'default')).rejects.toThrow(`Failed to control device: ${errorMessage}`)
     })
@@ -71,9 +73,9 @@ describe('switchBotOpenAPI', () => {
   describe('getDeviceStatus', () => {
     it('should retrieve the status of a specific device', async () => {
       const mockStatusResponse = { body: {}, statusCode: 200 };
-      (request as jest.Mock).mockResolvedValue({
+      (request as Mock).mockResolvedValue({
         body: {
-          json: jest.fn().mockResolvedValue(mockStatusResponse.body),
+          json: vi.fn().mockResolvedValue(mockStatusResponse.body),
         },
         statusCode: mockStatusResponse.statusCode,
       })
@@ -86,7 +88,7 @@ describe('switchBotOpenAPI', () => {
 
     it('should throw an error if the request fails', async () => {
       const errorMessage = 'Failed to get device status';
-      (request as jest.Mock).mockRejectedValue(new Error(errorMessage))
+      (request as Mock).mockRejectedValue(new Error(errorMessage))
 
       await expect(switchBotAPI.getDeviceStatus('device-id')).rejects.toThrow(`Failed to get device status: ${errorMessage}`)
     })
@@ -95,9 +97,9 @@ describe('switchBotOpenAPI', () => {
   describe('setupWebhook', () => {
     it('should set up a webhook listener and configure the webhook on the server', async () => {
       const mockWebhookResponse = { body: {}, statusCode: 200 };
-      (request as jest.Mock).mockResolvedValue({
+      (request as Mock).mockResolvedValue({
         body: {
-          json: jest.fn().mockResolvedValue(mockWebhookResponse.body),
+          json: vi.fn().mockResolvedValue(mockWebhookResponse.body),
         },
         statusCode: mockWebhookResponse.statusCode,
       })
@@ -110,7 +112,7 @@ describe('switchBotOpenAPI', () => {
 
     it('should log an error if the webhook setup fails', async () => {
       const errorMessage = 'Failed to create webhook listener';
-      (request as jest.Mock).mockRejectedValue(new Error(errorMessage))
+      (request as Mock).mockRejectedValue(new Error(errorMessage))
 
       const url = 'http://localhost:3000/webhook'
       await switchBotAPI.setupWebhook(url)

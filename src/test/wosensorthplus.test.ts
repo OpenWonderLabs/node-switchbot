@@ -1,10 +1,12 @@
 import { Buffer } from 'node:buffer'
 
+import { describe, expect, it, vi } from 'vitest'
+
 import { WoSensorTHPlus } from '../device/wosensorthplus.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
 describe('woSensorTH', () => {
-  const emitLog = jest.fn()
+  const emitLog = vi.fn()
 
   describe('parseServiceData', () => {
     it('should return null if buffer length is not 6', async () => {

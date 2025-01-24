@@ -2,7 +2,7 @@ import type { NobleTypes } from '../types/types.js'
 
 import { Buffer } from 'node:buffer'
 
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { SwitchbotDevice } from '../device.js'
 import { WoHumi2 } from '../device/wohumi2.js'
@@ -16,11 +16,11 @@ describe('woHumi', () => {
     mockPeripheral = {} as NobleTypes['peripheral']
     mockNoble = {} as NobleTypes['noble']
     wohumi = new WoHumi2(mockPeripheral, mockNoble)
-    jest.spyOn(SwitchbotDevice.prototype, 'command').mockResolvedValue(Buffer.from([0x01, 0x00, 0x00]))
+    vi.spyOn(SwitchbotDevice.prototype, 'command').mockResolvedValue(Buffer.from([0x01, 0x00, 0x00]))
   })
 
   afterEach(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   describe('percentage', () => {
@@ -35,7 +35,7 @@ describe('woHumi', () => {
     it('should send the correct command for a valid level', async () => {
       const level = 50
       const expectedCommand = Buffer.from(`57010107${level.toString(16).padStart(2, '0')}`, 'hex')
-      const operateHumiSpy = jest.spyOn(wohumi as any, 'operateHumi')
+      const operateHumiSpy = vi.spyOn(wohumi as any, 'operateHumi')
 
       await wohumi.percentage(level)
 

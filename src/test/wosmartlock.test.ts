@@ -3,7 +3,7 @@ import type { NobleTypes } from '../types/types.js'
 
 import { Buffer } from 'node:buffer'
 
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { WoSmartLock } from '../device/wosmartlock.js'
 import { WoSmartLockCommands } from '../settings.js'
@@ -82,7 +82,7 @@ describe('woSmartLock', () => {
   it('should parse service data correctly', async () => {
     const serviceData = Buffer.from([0x00, 0x00, 0x7F])
     const manufacturerData = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00])
-    const emitLog = jest.fn()
+    const emitLog = vi.fn()
     const data = await WoSmartLock.parseServiceData(serviceData, manufacturerData, emitLog)
     expect(data).toEqual({
       model: 'Lock',
@@ -102,19 +102,19 @@ describe('woSmartLock', () => {
   })
 
   it('should unlock the smart lock', async () => {
-    jest.spyOn(lock, 'operateLock').mockResolvedValue(Buffer.from([0x01]))
+    vi.spyOn(lock, 'operateLock').mockResolvedValue(Buffer.from([0x01]))
     const result = await lock.unlock()
     expect(result).toBe(WoSmartLock.Result.SUCCESS)
   })
 
   it('should lock the smart lock', async () => {
-    jest.spyOn(lock, 'operateLock').mockResolvedValue(Buffer.from([0x01]))
+    vi.spyOn(lock, 'operateLock').mockResolvedValue(Buffer.from([0x01]))
     const result = await lock.lock()
     expect(result).toBe(WoSmartLock.Result.SUCCESS)
   })
 
   it('should get lock info', async () => {
-    jest.spyOn(lock, 'operateLock').mockResolvedValue(Buffer.from([0x01, 0b10000000, 0b00100000]))
+    vi.spyOn(lock, 'operateLock').mockResolvedValue(Buffer.from([0x01, 0b10000000, 0b00100000]))
     const info = await lock.info()
     expect(info).toEqual({
       calibration: true,
@@ -144,28 +144,28 @@ describe('woSmartLock', () => {
   })
 
   it('should retrieve IV from the device', async () => {
-    jest.spyOn(lock, 'operateLock').mockResolvedValue(Buffer.from([0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04]))
+    vi.spyOn(lock, 'operateLock').mockResolvedValue(Buffer.from([0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04]))
     const iv = await lock.getIv()
     expect(iv.toString('hex')).toBe('01020304')
   })
 
   it('should send encrypted command to the device', async () => {
-    jest.spyOn(lock, 'getIv').mockResolvedValue(Buffer.from('01020304', 'hex'))
-    jest.spyOn(lock, 'encrypt').mockResolvedValue('encryptedCommand')
-    jest.spyOn(lock, 'command').mockResolvedValue(Buffer.from([0x01, 0x00, 0x00, 0x00, 0x05, 0x06, 0x07, 0x08]))
+    vi.spyOn(lock, 'getIv').mockResolvedValue(Buffer.from('01020304', 'hex'))
+    vi.spyOn(lock, 'encrypt').mockResolvedValue('encryptedCommand')
+    vi.spyOn(lock, 'command').mockResolvedValue(Buffer.from([0x01, 0x00, 0x00, 0x00, 0x05, 0x06, 0x07, 0x08]))
     const response = await lock.encryptedCommand('testCommand')
     expect(response.toString('hex')).toBe('expectedResponseHexString') // Replace with actual expected response
   })
 
   describe('operateLock', () => {
     it('should operate the lock with encryption', async () => {
-      jest.spyOn(lock, 'encryptedCommand').mockResolvedValue(Buffer.from([0x01]))
+      vi.spyOn(lock, 'encryptedCommand').mockResolvedValue(Buffer.from([0x01]))
       const response = await lock.operateLock(WoSmartLockCommands.LOCK)
       expect(response).toBeDefined()
     })
 
     it('should operate the lock without encryption', async () => {
-      jest.spyOn(lock, 'command').mockResolvedValue(Buffer.from([0x01, 0x00, 0x00, 0x00]))
+      vi.spyOn(lock, 'command').mockResolvedValue(Buffer.from([0x01, 0x00, 0x00, 0x00]))
       const response = await lock.operateLock(WoSmartLockCommands.LOCK, false)
       expect(response).toBeDefined()
     })

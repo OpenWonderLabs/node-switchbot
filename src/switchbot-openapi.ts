@@ -9,7 +9,6 @@ import type { devices } from './types/deviceresponse.js'
 import type { deviceStatus, deviceStatusRequest } from './types/devicestatus.js'
 import type { deleteWebhookResponse, queryWebhookResponse, setupWebhookResponse, updateWebhookResponse } from './types/devicewebhookstatus.js'
 
-import { Buffer } from 'node:buffer'
 import crypto, { randomUUID } from 'node:crypto'
 import { EventEmitter } from 'node:events'
 import { createServer } from 'node:http'
@@ -17,6 +16,16 @@ import { createServer } from 'node:http'
 import { request } from 'undici'
 
 import { updateBaseURL, urls } from './settings.js'
+
+/**
+ * Custom error class for API errors.
+ */
+class APIError extends Error {
+  constructor(message: string, public statusCode?: number) {
+    super(message)
+    this.name = 'APIError'
+  }
+}
 
 /**
  * The `SwitchBotOpenAPI` class provides methods to interact with the SwitchBot OpenAPI.
@@ -89,6 +98,36 @@ export class SwitchBotOpenAPI extends EventEmitter {
   }
 
   /**
+   * Generates the headers required for authentication with the SwitchBot OpenAPI.
+   *
+   * @param configToken - The token used for authorization.
+   * @param configSecret - The secret key used to sign the request.
+   * @returns An object containing the necessary headers:
+   * - `Authorization`: The authorization token.
+   * - `sign`: The HMAC-SHA256 signature of the token, timestamp, and nonce.
+   * - `nonce`: A unique identifier for the request.
+   * - `t`: The current timestamp in milliseconds.
+   * - `Content-Type`: The content type of the request, set to 'application/json'.
+   */
+  private generateHeaders = (configToken: string, configSecret: string): { 'Authorization': string, 'sign': string, 'nonce': string, 't': string, 'Content-Type': string } => {
+    const t = Date.now().toString()
+    const nonce = randomUUID()
+    const data = configToken + t + nonce
+    const sign = crypto
+      .createHmac('sha256', configSecret)
+      .update(data)
+      .digest('base64')
+
+    return {
+      'Authorization': configToken,
+      'sign': sign,
+      'nonce': nonce,
+      't': t,
+      'Content-Type': 'application/json',
+    }
+  }
+
+  /**
    * Retrieves the list of devices from the SwitchBot OpenAPI.
    * @param token - (Optional) The token used for authentication. If not provided, the instance token will be used.
    * @param secret - (Optional) The secret used for authentication. If not provided, the instance secret will be used.
@@ -104,9 +143,9 @@ export class SwitchBotOpenAPI extends EventEmitter {
       this.emitLog('debug', `Got devices: ${JSON.stringify(response)}`)
       this.emitLog('debug', `statusCode: ${statusCode}`)
       return { response, statusCode }
-    } catch (error: any) {
-      this.emitLog('error', `Failed to get devices: ${error.message}`)
-      throw new Error(`Failed to get devices: ${error.message}`)
+    } catch (e: any) {
+      this.emitLog('error', `Failed to get devices: ${e.message ?? e}`)
+      throw new APIError(`Failed to get devices: ${e.message ?? e}`, e.statusCode)
     }
   }
 
@@ -139,9 +178,9 @@ export class SwitchBotOpenAPI extends EventEmitter {
       this.emitLog('debug', `Controlled device: ${deviceId} with command: ${command} and parameter: ${parameter}`)
       this.emitLog('debug', `statusCode: ${statusCode}`)
       return { response, statusCode }
-    } catch (error: any) {
-      this.emitLog('error', `Failed to control device: ${error.message}`)
-      throw new Error(`Failed to control device: ${error.message}`)
+    } catch (e: any) {
+      this.emitLog('error', `Failed to control device: ${e.message ?? e}`)
+      throw new APIError(`Failed to control device: ${e.message ?? e}`, e.statusCode)
     }
   }
 
@@ -166,36 +205,6 @@ export class SwitchBotOpenAPI extends EventEmitter {
     } catch (error: any) {
       this.emitLog('error', `Failed to get device status: ${error.message}`)
       throw new Error(`Failed to get device status: ${error.message}`)
-    }
-  }
-
-  /**
-   * Generates the headers required for authentication with the SwitchBot OpenAPI.
-   *
-   * @param configToken - The token used for authorization.
-   * @param configSecret - The secret key used to sign the request.
-   * @returns An object containing the necessary headers:
-   * - `Authorization`: The authorization token.
-   * - `sign`: The HMAC-SHA256 signature of the token, timestamp, and nonce.
-   * - `nonce`: A unique identifier for the request.
-   * - `t`: The current timestamp in milliseconds.
-   * - `Content-Type`: The content type of the request, set to 'application/json'.
-   */
-  private generateHeaders = (configToken: string, configSecret: string): { 'Authorization': string, 'sign': string, 'nonce': string, 't': string, 'Content-Type': string } => {
-    const t = `${Date.now()}`
-    const nonce = randomUUID()
-    const data = configToken + t + nonce
-    const sign = crypto
-      .createHmac('sha256', configSecret)
-      .update(data)
-      .digest('base64')
-
-    return {
-      'Authorization': configToken,
-      'sign': sign,
-      'nonce': nonce,
-      't': t,
-      'Content-Type': 'application/json',
     }
   }
 
@@ -245,7 +254,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
       }).listen(port || 80)
     } catch (e: any) {
       await this.emitLog('error', `Failed to create webhook listener, Error: ${e.message ?? e}`)
-      return
+      throw new APIError(`Failed to create webhook listener: ${e.message ?? e}`, e.statusCode)
     }
 
     try {
@@ -267,6 +276,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
       }
     } catch (e: any) {
       await this.emitLog('error', `Failed to configure webhook, Error: ${e.message ?? e}`)
+      throw new APIError(`Failed to configure webhook: ${e.message ?? e}`, e.statusCode)
     }
 
     try {
@@ -290,6 +300,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
       }
     } catch (e: any) {
       await this.emitLog('error', `Failed to update webhook, Error: ${e.message ?? e}`)
+      throw new APIError(`Failed to update webhook: ${e.message ?? e}`, e.statusCode)
     }
 
     try {
@@ -311,6 +322,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
       }
     } catch (e: any) {
       await this.emitLog('error', `Failed to query webhook, Error: ${e.message ?? e}`)
+      throw new APIError(`Failed to query webhook: ${e.message ?? e}`, e.statusCode)
     }
   }
 
@@ -345,6 +357,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
       }
     } catch (e: any) {
       await this.emitLog('error', `Failed to delete webhook, Error: ${e.message ?? e}`)
+      throw new APIError(`Failed to delete webhook: ${e.message ?? e}`, e.statusCode)
     }
   }
 }

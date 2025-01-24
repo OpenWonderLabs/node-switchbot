@@ -70,7 +70,7 @@ export class WoPlugMiniJP extends SwitchbotDevice {
    * Reads the state of the plug.
    * @returns {Promise<boolean>} - Resolves with a boolean that tells whether the plug is ON (true) or OFF (false).
    */
-  async readState(): Promise<boolean> {
+  public async readState(): Promise<boolean> {
     return this.operatePlug([0x57, 0x0F, 0x51, 0x01])
   }
 
@@ -80,7 +80,7 @@ export class WoPlugMiniJP extends SwitchbotDevice {
    * @param {number[]} reqByteArray - The request byte array.
    * @returns {Promise<boolean>} - Resolves with a boolean that tells whether the plug is ON (true) or OFF (false).
    */
-  private async setState(reqByteArray: number[]): Promise<boolean> {
+  public async setState(reqByteArray: number[]): Promise<boolean> {
     const base = [0x57, 0x0F, 0x50, 0x01]
     return this.operatePlug([...base, ...reqByteArray])
   }

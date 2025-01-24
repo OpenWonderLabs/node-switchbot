@@ -300,7 +300,11 @@ export class SwitchBotBLE extends EventEmitter {
 
     this.noble.on('discover', async (peripheral: NobleTypes['peripheral']) => {
       const ad = await Advertising.parse(peripheral, this.log.bind(this))
+      this.emit('debug', `Advertisement: ${ad}`)
+      this.emit('debug', `Filter ID: ${p.id}`)
+      this.emit('debug', `Filter Model: ${p.model}`)
       if (ad && await this.filterAd(ad, p.id, p.model)) {
+        this.emit('debug', `Advertisement passed filter: ${ad}`)
         if (this.onadvertisement) {
           this.onadvertisement(ad)
         }

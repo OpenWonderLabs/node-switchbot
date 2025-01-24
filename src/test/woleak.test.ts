@@ -2,12 +2,14 @@ import type { waterLeakDetectorServiceData } from '../types/bledevicestatus.js'
 
 import { Buffer } from 'node:buffer'
 
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { WoLeak } from '../device/woleak.js'
 import { SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../types/types.js'
 
 describe('woLeak', () => {
   describe('parseServiceData', () => {
-    const emitLog = jest.fn()
+    const emitLog = vi.fn()
 
     beforeEach(() => {
       emitLog.mockClear()
