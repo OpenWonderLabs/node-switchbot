@@ -90,8 +90,8 @@ export enum SwitchBotModel {
   BatteryCirculatorFan = 'W3800510',
   CirculatorFan = 'W3800511',
   WaterDetector = 'W4402000',
-  RelaySwitch1 = 'Relay Switch 1',
-  RelaySwitch1PM = 'Relay Switch 1PM',
+  RelaySwitch1 = 'W5502300',
+  RelaySwitch1PM = 'W5502310',
   Unknown = 'Unknown',
 }
 

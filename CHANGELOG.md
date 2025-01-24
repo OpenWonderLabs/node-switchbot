@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [3.4.6](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.4.6) (2025-01-24)
+
+### What's Changed
+- Housekeeping and update dependencies
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v3.4.5...v3.4.6
+
 ## [3.4.5](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.4.5) (2025-01-23)
 
 ### What's Changed
