@@ -11,7 +11,7 @@ import {
   WoSmartLockCommands,
   WoSmartLockProCommands,
   WRITE_TIMEOUT_MSEC,
-} from '../settings.js'
+} from './settings.js'
 
 describe('switchBot API Settings', () => {
   it('should have correct Devices URL', () => {

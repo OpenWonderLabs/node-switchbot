@@ -1,10 +1,10 @@
 import type { Mocked } from 'vitest'
 
-import type { NobleTypes } from '../types/types.js'
+import type { NobleTypes } from './types/types.js'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { SwitchbotDevice } from '../device.js'
+import { SwitchbotDevice } from './device.js'
 
 describe('switchbotDevice', () => {
   let mockPeripheral: Mocked<NobleTypes['peripheral']>

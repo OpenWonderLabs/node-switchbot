@@ -25,6 +25,7 @@ import { WoPlugMiniJP } from './device/woplugmini_jp.js'
 import { WoPresence } from './device/wopresence.js'
 import { WoRelaySwitch1 } from './device/worelayswitch1.js'
 import { WoRelaySwitch1PM } from './device/worelayswitch1pm.js'
+import { WoRemote } from './device/woremote.js'
 import { WoSensorTH } from './device/wosensorth.js'
 import { WoSensorTHPlus } from './device/wosensorthplus.js'
 import { WoSensorTHPro } from './device/wosensorthpro.js'
@@ -237,6 +238,7 @@ export class SwitchBotBLE extends EventEmitter {
         case SwitchBotBLEModel.OutdoorMeter: return new WoIOSensorTH(peripheral, this.noble)
         case SwitchBotBLEModel.MotionSensor: return new WoPresence(peripheral, this.noble)
         case SwitchBotBLEModel.ContactSensor: return new WoContact(peripheral, this.noble)
+        case SwitchBotBLEModel.Remote: return new WoRemote(peripheral, this.noble)
         case SwitchBotBLEModel.ColorBulb: return new WoBulb(peripheral, this.noble)
         case SwitchBotBLEModel.CeilingLight:
         case SwitchBotBLEModel.CeilingLightPro: return new WoCeilingLight(peripheral, this.noble)

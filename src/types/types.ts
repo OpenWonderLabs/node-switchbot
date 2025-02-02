@@ -7,7 +7,7 @@ import type { Buffer } from 'node:buffer'
 import type * as Noble from '@stoprocent/noble'
 
 import type { SwitchbotDevice } from '../device.js'
-import type { batteryCirculatorFanServiceData, blindTiltServiceData, botServiceData, ceilingLightProServiceData, ceilingLightServiceData, colorBulbServiceData, contactSensorServiceData, curtain3ServiceData, curtainServiceData, hub2ServiceData, humidifier2ServiceData, humidifierServiceData, keypadDetectorServiceData, lockProServiceData, lockServiceData, meterPlusServiceData, meterProCO2ServiceData, meterProServiceData, meterServiceData, motionSensorServiceData, outdoorMeterServiceData, plugMiniJPServiceData, plugMiniUSServiceData, relaySwitch1PMServiceData, relaySwitch1ServiceData, robotVacuumCleanerServiceData, stripLightServiceData, waterLeakDetectorServiceData } from '../index.js'
+import type { batteryCirculatorFanServiceData, blindTiltServiceData, botServiceData, ceilingLightProServiceData, ceilingLightServiceData, colorBulbServiceData, contactSensorServiceData, curtain3ServiceData, curtainServiceData, hub2ServiceData, humidifier2ServiceData, humidifierServiceData, keypadDetectorServiceData, lockProServiceData, lockServiceData, meterPlusServiceData, meterProCO2ServiceData, meterProServiceData, meterServiceData, motionSensorServiceData, outdoorMeterServiceData, plugMiniJPServiceData, plugMiniUSServiceData, relaySwitch1PMServiceData, relaySwitch1ServiceData, remoteServiceData, robotVacuumCleanerServiceData, stripLightServiceData, waterLeakDetectorServiceData } from '../index.js'
 
 export type MacAddress = string
 
@@ -122,6 +122,7 @@ export enum SwitchBotBLEModel {
   Keypad = 'y',
   RelaySwitch1 = ';',
   RelaySwitch1PM = '<',
+  Remote = 'b',
   Unknown = 'Unknown',
 }
 
@@ -151,6 +152,7 @@ export enum SwitchBotBLEModelName {
   Keypad = 'WoKeypad',
   RelaySwitch1 = 'WoRelaySwitch1Plus',
   RelaySwitch1PM = 'WoRelaySwitch1PM',
+  Remote = 'WoRemote',
   Unknown = 'Unknown',
 }
 
@@ -182,6 +184,7 @@ export enum SwitchBotBLEModelFriendlyName {
   Keypad = 'Keypad',
   RelaySwitch1 = 'Relay Switch 1',
   RelaySwitch1PM = 'Relay Switch 1PM',
+  Remote = 'Remote',
   Unknown = 'Unknown',
 }
 
@@ -219,7 +222,7 @@ export interface ad {
   id: string
   address: string
   rssi: number
-  serviceData: botServiceData | colorBulbServiceData | contactSensorServiceData | curtainServiceData | curtain3ServiceData | stripLightServiceData | lockServiceData | lockProServiceData | meterServiceData | meterPlusServiceData | meterProServiceData | meterProCO2ServiceData | motionSensorServiceData | outdoorMeterServiceData | plugMiniUSServiceData | plugMiniJPServiceData | blindTiltServiceData | ceilingLightServiceData | ceilingLightProServiceData | hub2ServiceData | batteryCirculatorFanServiceData | waterLeakDetectorServiceData | humidifierServiceData | humidifier2ServiceData | robotVacuumCleanerServiceData | keypadDetectorServiceData | relaySwitch1PMServiceData | relaySwitch1ServiceData
+  serviceData: botServiceData | colorBulbServiceData | contactSensorServiceData | curtainServiceData | curtain3ServiceData | stripLightServiceData | lockServiceData | lockProServiceData | meterServiceData | meterPlusServiceData | meterProServiceData | meterProCO2ServiceData | motionSensorServiceData | outdoorMeterServiceData | plugMiniUSServiceData | plugMiniJPServiceData | blindTiltServiceData | ceilingLightServiceData | ceilingLightProServiceData | hub2ServiceData | batteryCirculatorFanServiceData | waterLeakDetectorServiceData | humidifierServiceData | humidifier2ServiceData | robotVacuumCleanerServiceData | keypadDetectorServiceData | relaySwitch1PMServiceData | relaySwitch1ServiceData | remoteServiceData
   [key: string]: unknown
 }
 

@@ -360,3 +360,10 @@ export type relaySwitch1PMServiceData = serviceData & {
   voltage: number
   current: number
 }
+
+export type remoteServiceData = serviceData & {
+  model: SwitchBotBLEModel.Remote
+  modelName: SwitchBotBLEModelName.Remote
+  modelFriendlyName: SwitchBotBLEModelFriendlyName.Remote
+  battery: number
+}

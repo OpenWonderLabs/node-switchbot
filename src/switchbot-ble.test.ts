@@ -1,7 +1,7 @@
 import * as Noble from '@stoprocent/noble'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { SwitchBotBLE } from '../switchbot-ble.js'
+import { SwitchBotBLE } from './switchbot-ble.js'
 
 describe('switchBotBLE', () => {
   let switchBot: SwitchBotBLE

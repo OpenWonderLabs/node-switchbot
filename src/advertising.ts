@@ -2,9 +2,7 @@
  *
  * advertising.ts: Switchbot BLE API registration.
  */
-import type * as Noble from '@stoprocent/noble'
-
-import type { ad, NobleTypes, ServiceData } from './types/types.js'
+import type { ad, NobleTypes } from './types/types.js'
 
 import { Buffer } from 'node:buffer'
 
@@ -24,6 +22,7 @@ import { WoPlugMiniJP } from './device/woplugmini_jp.js'
 import { WoPresence } from './device/wopresence.js'
 import { WoRelaySwitch1 } from './device/worelayswitch1.js'
 import { WoRelaySwitch1PM } from './device/worelayswitch1pm.js'
+import { WoRemote } from './device/woremote.js'
 import { WoSensorTH } from './device/wosensorth.js'
 import { WoSensorTHPlus } from './device/wosensorthplus.js'
 import { WoSensorTHPro } from './device/wosensorthpro.js'
@@ -140,6 +139,8 @@ export class Advertising {
         return WoPresence.parseServiceData(serviceData, emitLog)
       case SwitchBotBLEModel.ContactSensor:
         return WoContact.parseServiceData(serviceData, emitLog)
+      case SwitchBotBLEModel.Remote:
+        return WoRemote.parseServiceData(serviceData, emitLog)
       case SwitchBotBLEModel.ColorBulb:
         return WoBulb.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.CeilingLight:

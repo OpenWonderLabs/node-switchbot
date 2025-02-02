@@ -1,10 +1,10 @@
-import type { NobleTypes } from '../types/types.js'
+import type { NobleTypes } from './types/types.js'
 
 import { Buffer } from 'node:buffer'
 
 import { describe, expect, it, vi } from 'vitest'
 
-import { Advertising } from '../advertising.js'
+import { Advertising } from './advertising.js'
 
 describe('advertising', () => {
   describe('parse', () => {

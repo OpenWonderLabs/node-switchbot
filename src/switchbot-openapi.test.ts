@@ -3,7 +3,7 @@ import type { Mock } from 'vitest'
 import { request } from 'undici'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { SwitchBotOpenAPI } from '../switchbot-openapi.js'
+import { SwitchBotOpenAPI } from './switchbot-openapi.js'
 
 vi.mock('undici', () => ({
   request: vi.fn(),

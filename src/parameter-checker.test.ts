@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { ParameterChecker } from '../parameter-checker.js'
+import { ParameterChecker } from './parameter-checker.js'
 
 describe('parameterChecker', () => {
   let checker: ParameterChecker
