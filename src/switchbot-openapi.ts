@@ -198,7 +198,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
       const configToken = token || this.token
       const configSecret = secret || this.secret
       const { body, statusCode } = await request(`${urls.devicesURL}/${deviceId}/status`, { headers: this.generateHeaders(configToken, configSecret) })
-      const response = await body.json() as deviceStatus
+      const { body: response } = await body.json() as deviceStatusRequest
       this.emitLog('debug', `Got device status: ${deviceId}`)
       this.emitLog('debug', `statusCode: ${statusCode}`)
       return { response, statusCode }
