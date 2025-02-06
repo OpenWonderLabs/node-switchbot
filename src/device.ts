@@ -2114,7 +2114,7 @@ export class WoLeak extends SwitchbotDevice {
    * @param {Buffer} serviceData - The service data buffer.
    * @param {Buffer} manufacturerData - The manufacturer data buffer.
    * @param {Function} emitLog - The function to emit log messages.
-   * @returns {Promise<leakServiceData | null>} - Parsed service data or null if invalid.
+   * @returns {Promise<waterLeakDetectorServiceData | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
     serviceData: Buffer,
@@ -2131,7 +2131,7 @@ export class WoLeak extends SwitchbotDevice {
       return null
     }
 
-    const waterLeakDetected = !!(manufacturerData.readUInt8(8) & 0b00000001) // Bit 0
+    const waterLeakDetected = manufacturerData.length > 8 && !!(manufacturerData.readUInt8(8) & 0b00000001) // Bit 0
     const deviceTampered = !!(manufacturerData.readUInt8(8) & 0b00000010) // Bit 1
     const batteryLevel = manufacturerData.readUInt8(7) & 0b01111111 // Bits 0-6
     const lowBattery = !!(manufacturerData.readUInt8(7) & 0b10000000) // Bit 7
