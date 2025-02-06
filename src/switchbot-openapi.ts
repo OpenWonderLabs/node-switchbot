@@ -135,10 +135,11 @@ export class SwitchBotOpenAPI extends EventEmitter {
    * @throws {Error} Throws an error if the request to get devices fails.
    */
   async getDevices(token?: string, secret?: string): Promise<{ response: devices, statusCode: number }> {
+    const url = urls.devicesURL
     try {
       const configToken = token || this.token
       const configSecret = secret || this.secret
-      const { body, statusCode } = await request(urls.devicesURL, { headers: this.generateHeaders(configToken, configSecret) })
+      const { body, statusCode } = await request(url, { headers: this.generateHeaders(configToken, configSecret) })
       const response = await body.json() as devices
       this.emitLog('debug', `Got devices: ${JSON.stringify(response)}`)
       this.emitLog('debug', `statusCode: ${statusCode}`)

@@ -1,4 +1,4 @@
-import type { ErrorObject, Rule } from './types/types.js'
+import type { ErrorObject, Rule } from './device.js'
 
 import { Buffer } from 'node:buffer'
 /* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
