@@ -261,7 +261,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
     try {
       const configToken = token || this.token
       const configSecret = secret || this.secret
-      const { body, statusCode } = await request(urls.setupWebhook, {
+      const requestOptions = {
         method: 'POST',
         headers: this.generateHeaders(configToken, configSecret),
         body: JSON.stringify({
@@ -269,7 +269,9 @@ export class SwitchBotOpenAPI extends EventEmitter {
           url,
           deviceList: 'ALL',
         }),
-      })
+        timeout: 20000, // Increase timeout to 20 seconds
+      }
+      const { body, statusCode } = await requestWithRetry(urls.setupWebhook, requestOptions)
       const response: any = await body.json() as setupWebhookResponse['body']
       await this.emitLog('debug', `setupWebhook: url:${url}, body:${JSON.stringify(response)}, statusCode:${statusCode}`)
       if (statusCode !== 200 || response?.statusCode !== 100) {
@@ -359,6 +361,18 @@ export class SwitchBotOpenAPI extends EventEmitter {
     } catch (e: any) {
       await this.emitLog('error', `Failed to delete webhook, Error: ${e.message ?? e}`)
       throw new APIError(`Failed to delete webhook: ${e.message ?? e}`, e.statusCode)
+    }
+  }
+}
+async function requestWithRetry(url: string, options: any, retries: number = 3): Promise<any> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      return await request(url, options)
+    } catch (error: any) {
+      if (attempt === retries) {
+        throw error
+      }
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt)) // Exponential backoff
     }
   }
 }
