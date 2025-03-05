@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [3.5.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.5.0) (2025-03-04)
+
+# *No New Releases During Lent*
+
+### What's Changed
+- Fix the return value of SwitchBotOpenAPI.getDeviceStatus() method [#290](https://github.com/OpenWonderLabs/node-switchbot/pull/290), Thanks [@kemuridama](https://github.com/kemuridama)
+- Fix circular dependencies
+- Housekeeping and update dependencies
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v3.4.0...v3.5.0
+
 ## [3.4.9](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.4.9) (2025-01-24)
 
 ### What's Changed

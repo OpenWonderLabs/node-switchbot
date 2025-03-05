@@ -2,7 +2,7 @@
  *
  * bledevicestatus.ts: @switchbot/homebridge-switchbot platform class.
  */
-import type { MacAddress, SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from './types.js'
+import type { MacAddress, SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../device.js'
 
 export interface switchbot {
   discover: (arg0: { duration?: any, model: string, quick: boolean, id?: MacAddress }) => Promise<any>
@@ -320,6 +320,15 @@ export type humidifier2ServiceData = serviceData & {
   autoMode: boolean
   percentage: number
   humidity: number
+  childLock: boolean
+  overHumidifyProtection: boolean
+  tankRemoved: boolean
+  tiltedAlert: boolean
+  filterMissing: boolean
+  temperature: number
+  filterRunTime: number
+  filterAlert: boolean
+  waterLevel: number
 }
 
 export type robotVacuumCleanerServiceData = serviceData & {
@@ -359,4 +368,11 @@ export type relaySwitch1PMServiceData = serviceData & {
   power: number
   voltage: number
   current: number
+}
+
+export type remoteServiceData = serviceData & {
+  model: SwitchBotBLEModel.Remote
+  modelName: SwitchBotBLEModelName.Remote
+  modelFriendlyName: SwitchBotBLEModelFriendlyName.Remote
+  battery: number
 }

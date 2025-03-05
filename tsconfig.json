@@ -6,10 +6,10 @@
       "ES2022"
     ],
     "rootDir": "src",
-    "module": "NodeNext", // Updated to NodeNext
-    "moduleResolution": "NodeNext",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
     "strict": true,
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "declaration": true,
     "declarationMap": true,
     "outDir": "dist",

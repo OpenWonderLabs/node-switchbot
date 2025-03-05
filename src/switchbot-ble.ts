@@ -2,39 +2,13 @@
  *
  * switchbot.ts: Switchbot BLE API registration.
  */
-import type { ad, NobleTypes, onadvertisement, ondiscover, Params, Rule } from './types/types.js'
+import type { ad, NobleTypes, onadvertisement, ondiscover, Params, Rule } from './device.js'
 
 import { EventEmitter } from 'node:events'
 
-import { Advertising } from './advertising.js'
-import { SwitchbotDevice } from './device.js'
-import { WoBlindTilt } from './device/woblindtilt.js'
-import { WoBulb } from './device/wobulb.js'
-import { WoCeilingLight } from './device/woceilinglight.js'
-import { WoContact } from './device/wocontact.js'
-import { WoCurtain } from './device/wocurtain.js'
-import { WoHand } from './device/wohand.js'
-import { WoHub2 } from './device/wohub2.js'
-import { WoHumi2 } from './device/wohumi2.js'
-import { WoHumi } from './device/wohumi.js'
-import { WoIOSensorTH } from './device/woiosensorth.js'
-import { WoKeypad } from './device/wokeypad.js'
-import { WoLeak } from './device/woleak.js'
-import { WoPlugMiniUS } from './device/woplugmini.js'
-import { WoPlugMiniJP } from './device/woplugmini_jp.js'
-import { WoPresence } from './device/wopresence.js'
-import { WoRelaySwitch1 } from './device/worelayswitch1.js'
-import { WoRelaySwitch1PM } from './device/worelayswitch1pm.js'
-import { WoSensorTH } from './device/wosensorth.js'
-import { WoSensorTHPlus } from './device/wosensorthplus.js'
-import { WoSensorTHPro } from './device/wosensorthpro.js'
-import { WoSensorTHProCO2 } from './device/wosensorthproco2.js'
-import { WoSmartLock } from './device/wosmartlock.js'
-import { WoSmartLockPro } from './device/wosmartlockpro.js'
-import { WoStrip } from './device/wostrip.js'
+import { Advertising, SwitchBotBLEModel, SwitchbotDevice, WoBlindTilt, WoBulb, WoCeilingLight, WoContact, WoCurtain, WoHand, WoHub2, WoHumi, WoHumi2, WoIOSensorTH, WoKeypad, WoLeak, WoPlugMiniJP, WoPlugMiniUS, WoPresence, WoRelaySwitch1, WoRelaySwitch1PM, WoRemote, WoSensorTH, WoSensorTHPlus, WoSensorTHPro, WoSensorTHProCO2, WoSmartLock, WoSmartLockPro, WoStrip } from './device.js'
 import { parameterChecker } from './parameter-checker.js'
 import { DEFAULT_DISCOVERY_DURATION, PRIMARY_SERVICE_UUID_LIST } from './settings.js'
-import { SwitchBotBLEModel } from './types/types.js'
 
 /**
  * SwitchBotBLE class to interact with SwitchBot devices.
@@ -237,6 +211,7 @@ export class SwitchBotBLE extends EventEmitter {
         case SwitchBotBLEModel.OutdoorMeter: return new WoIOSensorTH(peripheral, this.noble)
         case SwitchBotBLEModel.MotionSensor: return new WoPresence(peripheral, this.noble)
         case SwitchBotBLEModel.ContactSensor: return new WoContact(peripheral, this.noble)
+        case SwitchBotBLEModel.Remote: return new WoRemote(peripheral, this.noble)
         case SwitchBotBLEModel.ColorBulb: return new WoBulb(peripheral, this.noble)
         case SwitchBotBLEModel.CeilingLight:
         case SwitchBotBLEModel.CeilingLightPro: return new WoCeilingLight(peripheral, this.noble)
