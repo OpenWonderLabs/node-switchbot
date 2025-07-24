@@ -2763,34 +2763,59 @@ export class WoSensorTHProCO2 extends SwitchbotDevice {
     manufacturerData: Buffer,
     emitLog: (level: string, message: string) => void,
   ): Promise<meterProCO2ServiceData | null> {
-    if (serviceData.length !== 7) {
-      emitLog('debugerror', `[parseServiceData] Buffer length ${serviceData.length} !== 7!`)
+    if (serviceData.length !== 7 && serviceData.length !== 3) {
+      emitLog('debugerror', `[parseServiceData] Buffer length ${serviceData.length} !== 3 or 7!`)
       return null
     }
 
-    const [byte2, byte3, byte4, byte5, byte6] = [
-      serviceData.readUInt8(2),
-      serviceData.readUInt8(3),
-      serviceData.readUInt8(4),
-      serviceData.readUInt8(5),
-      manufacturerData.readUInt16BE(6),
-    ]
-    const tempSign = byte4 & 0b10000000 ? 1 : -1
-    const tempC = tempSign * ((byte4 & 0b01111111) + (byte3 & 0b00001111) / 10)
-    const tempF = Math.round(((tempC * 9) / 5 + 32) * 10) / 10
+    if (serviceData.length === 7) {
+      const [byte2, byte3, byte4, byte5, byte6] = [
+        serviceData.readUInt8(2),
+        serviceData.readUInt8(3),
+        serviceData.readUInt8(4),
+        serviceData.readUInt8(5),
+        manufacturerData.readUInt16BE(6),
+      ]
+      const tempSign = byte4 & 0b10000000 ? 1 : -1
+      const tempC = tempSign * ((byte4 & 0b01111111) + (byte3 & 0b00001111) / 10)
+      const tempF = Math.round(((tempC * 9) / 5 + 32) * 10) / 10
 
-    const data = {
-      model: SwitchBotBLEModel.MeterProCO2,
-      modelName: SwitchBotBLEModelName.MeterProCO2,
-      modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterProCO2,
-      celsius: tempC,
-      fahrenheit: tempF,
-      fahrenheit_mode: !!(byte5 & 0b10000000),
-      humidity: byte5 & 0b01111111,
-      battery: byte2 & 0b01111111,
-      co2: byte6,
+      return {
+        model: SwitchBotBLEModel.MeterProCO2,
+        modelName: SwitchBotBLEModelName.MeterProCO2,
+        modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterProCO2,
+        celsius: tempC,
+        fahrenheit: tempF,
+        fahrenheit_mode: !!(byte5 & 0b10000000),
+        humidity: byte5 & 0b01111111,
+        battery: byte2 & 0b01111111,
+        co2: byte6,
+      } as meterProCO2ServiceData
     }
-    return data as meterProCO2ServiceData
+    else {
+      const [mdByte10, mdByte11, mdByte12] = [
+        manufacturerData.readUInt8(10),
+        manufacturerData.readUInt8(11),
+        manufacturerData.readUInt8(12),
+      ]
+      const sdByte2 = serviceData.readUInt8(2)
+
+      const tempSign = mdByte11 & 0b10000000 ? 1 : -1
+      const tempC = tempSign * ((mdByte11 & 0b01111111) + (mdByte10 & 0b00001111) / 10)
+      const tempF = Math.round(((tempC * 9) / 5 + 32) * 10) / 10
+
+      return {
+        model: SwitchBotBLEModel.MeterProCO2,
+        modelName: SwitchBotBLEModelName.MeterProCO2,
+        modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterProCO2,
+        celsius: tempC,
+        fahrenheit: tempF,
+        fahrenheit_mode: !!(mdByte12 & 0b10000000),
+        humidity: mdByte12 & 0b01111111,
+        battery: sdByte2 & 0b01111111,
+        co2: manufacturerData.readUInt16BE(15),
+      } as meterProCO2ServiceData
+    }
   }
 }
 
