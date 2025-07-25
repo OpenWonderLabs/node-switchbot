@@ -2,7 +2,8 @@
  *
  * device.ts: Switchbot BLE API registration.
  */
-import type * as Noble from '@stoprocent/noble'
+import type Noble from '@stoprocent/noble'
+import type { Characteristic, Peripheral, Service } from '@stoprocent/noble'
 
 import type { batteryCirculatorFanServiceData, blindTiltServiceData, botServiceData, ceilingLightProServiceData, ceilingLightServiceData, colorBulbServiceData, contactSensorServiceData, curtain3ServiceData, curtainServiceData, hub2ServiceData, humidifier2ServiceData, humidifierServiceData, keypadDetectorServiceData, lockProServiceData, lockServiceData, meterPlusServiceData, meterProCO2ServiceData, meterProServiceData, meterServiceData, motionSensorServiceData, outdoorMeterServiceData, plugMiniJPServiceData, plugMiniUSServiceData, relaySwitch1PMServiceData, relaySwitch1ServiceData, remoteServiceData, robotVacuumCleanerServiceData, stripLightServiceData, waterLeakDetectorServiceData } from './types/bledevicestatus.js'
 
@@ -223,15 +224,15 @@ export interface ErrorObject {
 }
 
 export interface Chars {
-  write: Noble.Characteristic | null
-  notify: Noble.Characteristic | null
-  device: Noble.Characteristic | null
+  write: Characteristic | null
+  notify: Characteristic | null
+  device: Characteristic | null
 }
 
 export interface NobleTypes {
   noble: typeof Noble
   state: 'unknown' | 'resetting' | 'unsupported' | 'unauthorized' | 'poweredOff' | 'poweredOn'
-  peripheral: Noble.Peripheral
+  peripheral: Peripheral
 }
 
 export interface ServiceData {
@@ -273,7 +274,7 @@ export enum LogLevel {
  * Represents a Switchbot Device.
  */
 export class SwitchbotDevice extends EventEmitter {
-  private noble: NobleTypes['noble']
+  private noble: typeof Noble
   private peripheral: NobleTypes['peripheral']
   private characteristics: Chars | null = null
   private deviceId!: string
@@ -292,7 +293,7 @@ export class SwitchbotDevice extends EventEmitter {
    * @param peripheral The peripheral object from noble.
    * @param noble The Noble object.
    */
-  constructor(peripheral: NobleTypes['peripheral'], noble: NobleTypes['noble']) {
+  constructor(peripheral: NobleTypes['peripheral'], noble: typeof Noble) {
     super()
     this.peripheral = peripheral
     this.noble = noble
@@ -380,8 +381,8 @@ export class SwitchbotDevice extends EventEmitter {
    * @returns A Promise that resolves when the connection is complete.
    */
   public async internalConnect(): Promise<void> {
-    if (this.noble._state !== 'poweredOn') {
-      throw new Error(`The Bluetooth status is ${this.noble._state}, not poweredOn.`)
+    if (this.noble.state !== 'poweredOn') {
+      throw new Error(`The Bluetooth status is ${this.noble.state}, not poweredOn.`)
     }
 
     const state = this.connectionState
@@ -423,7 +424,7 @@ export class SwitchbotDevice extends EventEmitter {
     })
 
     try {
-      const services = await Promise.race([this.discoverServices(), timeoutPromise]) as Noble.Service[]
+      const services = await Promise.race([this.discoverServices(), timeoutPromise]) as NobleTypes['peripheral']['services']
       const chars: Chars = { write: null, notify: null, device: null }
 
       for (const service of services) {
@@ -455,7 +456,7 @@ export class SwitchbotDevice extends EventEmitter {
    * Discovers the device services.
    * @returns A Promise that resolves with the list of services.
    */
-  public async discoverServices(): Promise<Noble.Service[]> {
+  public async discoverServices(): Promise<NobleTypes['peripheral']['services']> {
     try {
       const services = await this.peripheral.discoverServicesAsync([])
       const primaryServices = services.filter(s => s.uuid === SERV_UUID_PRIMARY)
@@ -474,7 +475,7 @@ export class SwitchbotDevice extends EventEmitter {
    * @param service The service to discover characteristics for.
    * @returns A Promise that resolves with the list of characteristics.
    */
-  private async discoverCharacteristics(service: Noble.Service): Promise<Noble.Characteristic[]> {
+  private async discoverCharacteristics(service: Service): Promise<Characteristic[]> {
     return await service.discoverCharacteristicsAsync([])
   }
 
@@ -624,7 +625,7 @@ export class SwitchbotDevice extends EventEmitter {
    * @param char The characteristic to read from.
    * @returns A Promise that resolves with the data buffer.
    */
-  private async readCharacteristic(char: Noble.Characteristic): Promise<Buffer> {
+  private async readCharacteristic(char: Characteristic): Promise<Buffer> {
     const timer = setTimeout(() => {
       throw new Error('READ_TIMEOUT')
     }, READ_TIMEOUT_MSEC)
@@ -645,7 +646,7 @@ export class SwitchbotDevice extends EventEmitter {
    * @param buf The data buffer.
    * @returns A Promise that resolves when the write is complete.
    */
-  private async writeCharacteristic(char: Noble.Characteristic, buf: Buffer): Promise<void> {
+  private async writeCharacteristic(char: Characteristic, buf: Buffer): Promise<void> {
     const timer = setTimeout(() => {
       throw new Error('WRITE_TIMEOUT')
     }, WRITE_TIMEOUT_MSEC)
@@ -2791,8 +2792,7 @@ export class WoSensorTHProCO2 extends SwitchbotDevice {
         battery: byte2 & 0b01111111,
         co2: byte6,
       } as meterProCO2ServiceData
-    }
-    else {
+    } else {
       const [mdByte10, mdByte11, mdByte12] = [
         manufacturerData.readUInt8(10),
         manufacturerData.readUInt8(11),

@@ -79,7 +79,7 @@ export class SwitchBotBLE extends EventEmitter {
    */
   private async waitForPowerOn(): Promise<void> {
     await this.ready
-    if (this.noble && this.noble._state === 'poweredOn') {
+    if (this.noble && this.noble.state === 'poweredOn') {
       return
     }
 
