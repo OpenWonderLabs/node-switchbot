@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [3.5.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.5.1) (2025-07-25)
+
+### What's Changed
+- Support current Meter Pro CO2 with firmware 1.6 [#293](https://github.com/OpenWonderLabs/node-switchbot/pull/293), Thanks [@wweich](https://github.com/wweich)
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v3.5.0...v3.5.1
+
 ## [3.5.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.5.0) (2025-03-04)
 
 # *No New Releases During Lent*
