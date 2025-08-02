@@ -4,30 +4,28 @@
  */
 import type { MacAddress, SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../device.js'
 
-export interface switchbot {
-  discover: (arg0: { duration?: any, model: string, quick: boolean, id?: MacAddress }) => Promise<any>
-  wait: (arg0: number) => any
+/**
+ * BLE discovery and wait methods for SwitchBot devices.
+ */
+export interface SwitchBotScanner {
+  /** Discover BLE devices based on filter criteria */
+  discover: (args: { duration?: number, model: string, quick: boolean, id?: MacAddress }) => Promise<unknown>
+  /** Wait for given milliseconds */
+  wait: (ms: number) => void
 }
 
-interface serviceData {
+/**
+ * Common service data across BLE devices.
+ */
+interface BLEServiceData {
   model: SwitchBotBLEModel
   modelName: SwitchBotBLEModelName
   modelFriendlyName: SwitchBotBLEModelFriendlyName
 }
-
-export type botServiceData = serviceData & {
-  model: SwitchBotBLEModel.Bot
-  modelName: SwitchBotBLEModelName.Bot
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.Bot
-  mode: boolean
-  state: boolean
-  battery: number
-}
-
-export type colorBulbServiceData = serviceData & {
-  model: SwitchBotBLEModel.ColorBulb
-  modelName: SwitchBotBLEModelName.ColorBulb
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.ColorBulb
+/**
+ * Base interface for color-controllable devices.
+ */
+export interface ColorLightServiceDataBase extends BLEServiceData {
   color_temperature: number
   power: boolean
   state: boolean
@@ -42,7 +40,62 @@ export type colorBulbServiceData = serviceData & {
   loop_index: number
 }
 
-export type contactSensorServiceData = serviceData & {
+/**
+ * Base interface for temperature-humidity meter devices.
+ */
+export interface TemperatureServiceDataBase extends BLEServiceData {
+  celsius: number
+  fahrenheit: number
+  fahrenheit_mode: boolean
+  humidity: number
+  battery: number
+}
+
+/**
+ * Base interface for mini plug devices (US/JP share same schema).
+ */
+export interface PlugMiniServiceDataBase extends BLEServiceData {
+  state: string
+  delay: boolean
+  timer: boolean
+  syncUtcTime: boolean
+  wifiRssi: number
+  overload: boolean
+  currentPower: number
+}
+
+/**
+ * Base interface for lock-style devices.
+ */
+export interface LockBaseServiceData extends BLEServiceData {
+  battery: number
+  calibration: boolean
+  status: string
+  update_from_secondary_lock: boolean
+  door_open: boolean
+  double_lock_mode: boolean
+  unclosed_alarm: boolean
+  unlocked_alarm: boolean
+  auto_lock_paused: boolean
+  night_latch: boolean
+}
+
+export type botServiceData = BLEServiceData & {
+  model: SwitchBotBLEModel.Bot
+  modelName: SwitchBotBLEModelName.Bot
+  modelFriendlyName: SwitchBotBLEModelFriendlyName.Bot
+  mode: boolean
+  state: boolean
+  battery: number
+}
+
+export type colorBulbServiceData = ColorLightServiceDataBase & {
+  model: SwitchBotBLEModel.ColorBulb
+  modelName: SwitchBotBLEModelName.ColorBulb
+  modelFriendlyName: SwitchBotBLEModelFriendlyName.ColorBulb
+}
+
+export type contactSensorServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.ContactSensor
   modelName: SwitchBotBLEModelName.ContactSensor
   modelFriendlyName: SwitchBotBLEModelFriendlyName.ContactSensor
@@ -56,7 +109,7 @@ export type contactSensorServiceData = serviceData & {
   doorState: string
 }
 
-export type curtainServiceData = serviceData & {
+export type curtainServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.Curtain
   modelName: SwitchBotBLEModelName.Curtain
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Curtain
@@ -68,7 +121,7 @@ export type curtainServiceData = serviceData & {
   deviceChain: number
 }
 
-export type curtain3ServiceData = serviceData & {
+export type curtain3ServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.Curtain3
   modelName: SwitchBotBLEModelName.Curtain3
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Curtain3
@@ -80,112 +133,56 @@ export type curtain3ServiceData = serviceData & {
   deviceChain: number
 }
 
-export type stripLightServiceData = serviceData & {
+export type stripLightServiceData = ColorLightServiceDataBase & {
   model: SwitchBotBLEModel.StripLight
   modelName: SwitchBotBLEModelName.StripLight
   modelFriendlyName: SwitchBotBLEModelFriendlyName.StripLight
-  power: boolean
-  state: boolean
-  red: number
-  green: number
-  blue: number
-  brightness: number
-  delay: number
-  preset: number
-  color_mode: number
-  speed: number
-  loop_index: number
 }
 
-export type lockServiceData = serviceData & {
+export type lockServiceData = LockBaseServiceData & {
   model: SwitchBotBLEModel.Lock
   modelName: SwitchBotBLEModelName.Lock
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Lock
-  battery: number
-  calibration: boolean
-  status: string
-  update_from_secondary_lock: boolean
-  door_open: boolean
-  double_lock_mode: boolean
-  unclosed_alarm: boolean
-  unlocked_alarm: boolean
-  auto_lock_paused: boolean
-  night_latch: boolean
 }
 
-export type lockProServiceData = serviceData & {
+export type lockProServiceData = LockBaseServiceData & {
   model: SwitchBotBLEModel.LockPro
   modelName: SwitchBotBLEModelName.LockPro
   modelFriendlyName: SwitchBotBLEModelFriendlyName.LockPro
-  battery: number
-  calibration: boolean
-  status: string
-  update_from_secondary_lock: boolean
-  door_open: boolean
-  double_lock_mode: boolean
-  unclosed_alarm: boolean
-  unlocked_alarm: boolean
-  auto_lock_paused: boolean
-  night_latch: boolean
 }
 
-export type meterServiceData = serviceData & {
+export type meterServiceData = TemperatureServiceDataBase & {
   model: SwitchBotBLEModel.Meter
   modelName: SwitchBotBLEModelName.Meter
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Meter
-  celsius: number
-  fahrenheit: number
-  fahrenheit_mode: boolean
-  humidity: number
-  battery: number
 }
 
-export type meterPlusServiceData = serviceData & {
+export type meterPlusServiceData = TemperatureServiceDataBase & {
   model: SwitchBotBLEModel.MeterPlus
   modelName: SwitchBotBLEModelName.MeterPlus
   modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterPlus
-  celsius: number
-  fahrenheit: number
-  fahrenheit_mode: boolean
-  humidity: number
-  battery: number
 }
 
-export type meterProServiceData = serviceData & {
+export type meterProServiceData = TemperatureServiceDataBase & {
   model: SwitchBotBLEModel.MeterPro
   modelName: SwitchBotBLEModelName.MeterPro
   modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterPro
-  celsius: number
-  fahrenheit: number
-  fahrenheit_mode: boolean
-  humidity: number
-  battery: number
 }
 
-export type meterProCO2ServiceData = serviceData & {
+export type meterProCO2ServiceData = TemperatureServiceDataBase & {
   model: SwitchBotBLEModel.MeterProCO2
   modelName: SwitchBotBLEModelName.MeterProCO2
   modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterProCO2
-  celsius: number
-  fahrenheit: number
-  fahrenheit_mode: boolean
-  humidity: number
-  battery: number
   co2: number
 }
 
-export type outdoorMeterServiceData = serviceData & {
+export type outdoorMeterServiceData = TemperatureServiceDataBase & {
   model: SwitchBotBLEModel.OutdoorMeter
   modelName: SwitchBotBLEModelName.OutdoorMeter
   modelFriendlyName: SwitchBotBLEModelFriendlyName.OutdoorMeter
-  celsius: number
-  fahrenheit: number
-  fahrenheit_mode: boolean
-  humidity: number
-  battery: number
 }
 
-export type motionSensorServiceData = serviceData & {
+export type motionSensorServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.MotionSensor
   modelName: SwitchBotBLEModelName.MotionSensor
   modelFriendlyName: SwitchBotBLEModelFriendlyName.MotionSensor
@@ -199,33 +196,19 @@ export type motionSensorServiceData = serviceData & {
   is_light: boolean
 }
 
-export type plugMiniUSServiceData = serviceData & {
+export type plugMiniUSServiceData = PlugMiniServiceDataBase & {
   model: SwitchBotBLEModel.PlugMiniUS
   modelName: SwitchBotBLEModelName.PlugMini
   modelFriendlyName: SwitchBotBLEModelFriendlyName.PlugMini
-  state: string
-  delay: boolean
-  timer: boolean
-  syncUtcTime: boolean
-  wifiRssi: number
-  overload: boolean
-  currentPower: number
 }
 
-export type plugMiniJPServiceData = serviceData & {
+export type plugMiniJPServiceData = PlugMiniServiceDataBase & {
   model: SwitchBotBLEModel.PlugMiniJP
   modelName: SwitchBotBLEModelName.PlugMini
   modelFriendlyName: SwitchBotBLEModelFriendlyName.PlugMini
-  state: string
-  delay: boolean
-  timer: boolean
-  syncUtcTime: boolean
-  wifiRssi: number
-  overload: boolean
-  currentPower: number
 }
 
-export type blindTiltServiceData = serviceData & {
+export type blindTiltServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.BlindTilt
   modelName: SwitchBotBLEModelName.BlindTilt
   modelFriendlyName: SwitchBotBLEModelFriendlyName.BlindTilt
@@ -237,7 +220,7 @@ export type blindTiltServiceData = serviceData & {
   sequenceNumber: number
 }
 
-export type ceilingLightServiceData = serviceData & {
+export type ceilingLightServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.CeilingLight
   modelName: SwitchBotBLEModelName.CeilingLight
   modelFriendlyName: SwitchBotBLEModelFriendlyName.CeilingLight
@@ -255,7 +238,7 @@ export type ceilingLightServiceData = serviceData & {
   loop_index: number
 }
 
-export type ceilingLightProServiceData = serviceData & {
+export type ceilingLightProServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.CeilingLightPro
   modelName: SwitchBotBLEModelName.CeilingLightPro
   modelFriendlyName: SwitchBotBLEModelFriendlyName.CeilingLightPro
@@ -273,7 +256,7 @@ export type ceilingLightProServiceData = serviceData & {
   loop_index: number
 }
 
-export type hub2ServiceData = serviceData & {
+export type hub2ServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.Hub2
   modelName: SwitchBotBLEModelName.Hub2
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Hub2
@@ -284,7 +267,7 @@ export type hub2ServiceData = serviceData & {
   lightLevel: number
 }
 
-export type batteryCirculatorFanServiceData = serviceData & {
+export type batteryCirculatorFanServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.Unknown
   modelName: SwitchBotBLEModelName.Unknown
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Unknown
@@ -292,7 +275,7 @@ export type batteryCirculatorFanServiceData = serviceData & {
   fanSpeed: number
 }
 
-export type waterLeakDetectorServiceData = serviceData & {
+export type waterLeakDetectorServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.Leak
   modelName: SwitchBotBLEModelName.Leak
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Leak
@@ -302,7 +285,7 @@ export type waterLeakDetectorServiceData = serviceData & {
   low_battery: boolean
 }
 
-export type humidifierServiceData = serviceData & {
+export type humidifierServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.Humidifier
   modelName: SwitchBotBLEModelName.Humidifier
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Humidifier
@@ -312,7 +295,7 @@ export type humidifierServiceData = serviceData & {
   humidity: number
 }
 
-export type humidifier2ServiceData = serviceData & {
+export type humidifier2ServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.Humidifier2
   modelName: SwitchBotBLEModelName.Humidifier2
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Humidifier2
@@ -331,7 +314,7 @@ export type humidifier2ServiceData = serviceData & {
   waterLevel: number
 }
 
-export type robotVacuumCleanerServiceData = serviceData & {
+export type robotVacuumCleanerServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.Unknown
   modelName: SwitchBotBLEModelName.Unknown
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Unknown
@@ -339,7 +322,7 @@ export type robotVacuumCleanerServiceData = serviceData & {
   battery: number
 }
 
-export type keypadDetectorServiceData = serviceData & {
+export type keypadDetectorServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.Keypad
   modelName: SwitchBotBLEModelName.Keypad
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Keypad
@@ -349,7 +332,7 @@ export type keypadDetectorServiceData = serviceData & {
   low_battery: boolean
 }
 
-export type relaySwitch1ServiceData = serviceData & {
+export type relaySwitch1ServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.RelaySwitch1
   modelName: SwitchBotBLEModelName.RelaySwitch1
   modelFriendlyName: SwitchBotBLEModelFriendlyName.RelaySwitch1
@@ -358,7 +341,7 @@ export type relaySwitch1ServiceData = serviceData & {
   sequence_number: number
 }
 
-export type relaySwitch1PMServiceData = serviceData & {
+export type relaySwitch1PMServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.RelaySwitch1PM
   modelName: SwitchBotBLEModelName.RelaySwitch1PM
   modelFriendlyName: SwitchBotBLEModelFriendlyName.RelaySwitch1PM
@@ -370,9 +353,40 @@ export type relaySwitch1PMServiceData = serviceData & {
   current: number
 }
 
-export type remoteServiceData = serviceData & {
+export type remoteServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.Remote
   modelName: SwitchBotBLEModelName.Remote
   modelFriendlyName: SwitchBotBLEModelFriendlyName.Remote
   battery: number
 }
+
+export type BLEDeviceServiceData
+  = | batteryCirculatorFanServiceData
+    | blindTiltServiceData
+    | botServiceData
+    | ceilingLightServiceData
+    | ceilingLightProServiceData
+    | colorBulbServiceData
+    | contactSensorServiceData
+    | curtain3ServiceData
+    | curtainServiceData
+    | hub2ServiceData
+    | keypadDetectorServiceData
+    | lockProServiceData
+    | lockServiceData
+    | meterPlusServiceData
+    | meterProCO2ServiceData
+    | meterProServiceData
+    | meterServiceData
+    | motionSensorServiceData
+    | outdoorMeterServiceData
+    | plugMiniJPServiceData
+    | plugMiniUSServiceData
+    | relaySwitch1PMServiceData
+    | relaySwitch1ServiceData
+    | remoteServiceData
+    | robotVacuumCleanerServiceData
+    | stripLightServiceData
+    | waterLeakDetectorServiceData
+    | humidifier2ServiceData
+    | humidifierServiceData
