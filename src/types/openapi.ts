@@ -95,6 +95,14 @@ export type plug = device
 
 export type plugMini = device
 
+export type airPurifier = device
+
+export type airPurifierTable = device
+
+export type airPurifierVOC = device
+
+export type airPurifierTableVOC = device
+
 export type stripLight = device
 
 export type colorBulb = device
@@ -396,6 +404,34 @@ export type relaySwitch1PMStatus = deviceStatus & {
   electricCurrent: number
 }
 
+export type airPurifierStatus = deviceStatus & {
+  power: string
+  mode: number
+  childLock: number
+  version: string
+}
+
+export type airPurifierTableStatus = deviceStatus & {
+  power: string
+  mode: number
+  childLock: number
+  version: string
+}
+
+export type airPurifierVOCStatus = deviceStatus & {
+  power: string
+  mode: number
+  childLock: number
+  version: string
+}
+
+export type airPurifierTableVOCStatus = deviceStatus & {
+  power: string
+  mode: number
+  childLock: number
+  version: string
+}
+
 export interface webhookRequest {
   action: string
   url: string
@@ -674,6 +710,42 @@ export type relaySwitch1PMContext = deviceWebhookContext & {
   switchStatus: 0 | 1
   overload: boolean
   version: string
+}
+
+export type airPurifierVOCWebhookContext = deviceWebhookContext & {
+  power: string
+  mode: number
+  childLock: number
+}
+
+export type airPurifierTableVOCWebhookContext = deviceWebhookContext & {
+  power: string
+  mode: number
+  childLock: number
+}
+
+export type airPurifierPM25WebhookContext = deviceWebhookContext & {
+  power: string
+  mode: number
+  childLock: number
+}
+
+export type airPurifierTablePM25WebhookContext = deviceWebhookContext & {
+  power: string
+  mode: number
+  childLock: number
+}
+
+export type airPurifierWebhookContext = deviceWebhookContext & {
+  power: string
+  mode: number
+  childLock: number
+}
+
+export type airPurifierTableWebhookContext = deviceWebhookContext & {
+  power: string
+  mode: number
+  childLock: number
 }
 
 export interface infraredRemoteList {

@@ -5,7 +5,7 @@
 import type Noble from '@stoprocent/noble'
 import type { Characteristic, Peripheral, Service } from '@stoprocent/noble'
 
-import type { batteryCirculatorFanServiceData, blindTiltServiceData, botServiceData, ceilingLightProServiceData, ceilingLightServiceData, colorBulbServiceData, contactSensorServiceData, curtain3ServiceData, curtainServiceData, hub2ServiceData, humidifier2ServiceData, humidifierServiceData, keypadDetectorServiceData, lockProServiceData, lockServiceData, meterPlusServiceData, meterProCO2ServiceData, meterProServiceData, meterServiceData, motionSensorServiceData, outdoorMeterServiceData, plugMiniJPServiceData, plugMiniUSServiceData, relaySwitch1PMServiceData, relaySwitch1ServiceData, remoteServiceData, robotVacuumCleanerServiceData, stripLightServiceData, waterLeakDetectorServiceData } from './types/ble.js'
+import type { airPurifierServiceData, airPurifierTableServiceData, batteryCirculatorFanServiceData, blindTiltServiceData, botServiceData, ceilingLightProServiceData, ceilingLightServiceData, colorBulbServiceData, contactSensorServiceData, curtain3ServiceData, curtainServiceData, hub2ServiceData, humidifier2ServiceData, humidifierServiceData, keypadDetectorServiceData, lockProServiceData, lockServiceData, meterPlusServiceData, meterProCO2ServiceData, meterProServiceData, meterServiceData, motionSensorServiceData, outdoorMeterServiceData, plugMiniJPServiceData, plugMiniUSServiceData, relaySwitch1PMServiceData, relaySwitch1ServiceData, remoteServiceData, robotVacuumCleanerServiceData, stripLightServiceData, waterLeakDetectorServiceData } from './types/ble.js'
 
 import { Buffer } from 'node:buffer'
 import * as Crypto from 'node:crypto'
@@ -42,11 +42,39 @@ const DEVICE_COMMANDS = {
     SET_AUTO_MODE: '570105' as const,
     SET_MANUAL_MODE: '570106' as const,
   },
+  AIR_PURIFIER: {
+    TURN_ON: [0x57, 0x01, 0x01] as const,
+    TURN_OFF: [0x57, 0x01, 0x02] as const,
+    SET_MODE: [0x57, 0x02] as const,
+    SET_SPEED: [0x57, 0x03] as const,
+  },
   // Common commands used across multiple devices
   COMMON: {
     POWER_ON: [0x57, 0x01, 0x01] as const,
     POWER_OFF: [0x57, 0x01, 0x02] as const,
   },
+} as const
+
+/**
+ * Air quality level constants for air purifier devices.
+ */
+const AIR_QUALITY_LEVELS = {
+  EXCELLENT: 'excellent',
+  GOOD: 'good',
+  FAIR: 'fair',
+  POOR: 'poor',
+} as const
+
+/**
+ * Air purifier mode constants.
+ */
+const AIR_PURIFIER_MODES = {
+  MANUAL: 'manual',
+  AUTO: 'auto',
+  SLEEP: 'sleep',
+  LEVEL_1: 'level_1',
+  LEVEL_2: 'level_2',
+  LEVEL_3: 'level_3',
 } as const
 
 // Legacy constants for backward compatibility
@@ -104,6 +132,8 @@ export declare interface SwitchBotBLEDevice {
   CeilingLightPro: DeviceInfo
   BlindTilt: DeviceInfo
   Unknown: DeviceInfo
+  AirPurifier: DeviceInfo
+  AirPurifierTable: DeviceInfo
 }
 
 export enum SwitchBotModel {
@@ -153,6 +183,8 @@ export enum SwitchBotModel {
   RelaySwitch1 = 'W5502300',
   RelaySwitch1PM = 'W5502310',
   Unknown = 'Unknown',
+  AirPurifier = 'W5302300',
+  AirPurifierTable = 'W5302310',
 }
 
 export enum SwitchBotBLEModel {
@@ -184,6 +216,8 @@ export enum SwitchBotBLEModel {
   RelaySwitch1PM = '<',
   Remote = 'b',
   Unknown = 'Unknown',
+  AirPurifier = '+',
+  AirPurifierTable = '7',
 }
 
 export enum SwitchBotBLEModelName {
@@ -213,6 +247,8 @@ export enum SwitchBotBLEModelName {
   RelaySwitch1 = 'WoRelaySwitch1Plus',
   RelaySwitch1PM = 'WoRelaySwitch1PM',
   Remote = 'WoRemote',
+  AirPurifier = 'WoAirPurifier',
+  AirPurifierTable = 'WoAirPurifierTable',
   Unknown = 'Unknown',
 }
 
@@ -245,7 +281,13 @@ export enum SwitchBotBLEModelFriendlyName {
   RelaySwitch1 = 'Relay Switch 1',
   RelaySwitch1PM = 'Relay Switch 1PM',
   Remote = 'Remote',
+  AirPurifier = 'Air Purifier',
+  AirPurifierTable = 'Air Purifier Table',
   Unknown = 'Unknown',
+  AirPurifierVOC = 'Air Purifier VOC',
+  AirPurifierTableVOC = 'Air Purifier Table VOC',
+  AirPurifierPM2_5 = 'Air Purifier PM2.5',
+  AirPurifierTablePM2_5 = 'Air Purifier Table PM2.5',
 }
 
 export interface Params {
@@ -1015,6 +1057,10 @@ export class Advertising {
         return WoHub2.parseServiceData(manufacturerData, emitLog)
       case SwitchBotBLEModel.OutdoorMeter:
         return WoIOSensorTH.parseServiceData(serviceData, manufacturerData, emitLog)
+      case SwitchBotBLEModel.AirPurifier:
+        return WoAirPurifier.parseServiceData(serviceData, manufacturerData, emitLog)
+      case SwitchBotBLEModel.AirPurifierTable:
+        return WoAirPurifierTable.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.MotionSensor:
         return WoPresence.parseServiceData(serviceData, emitLog)
       case SwitchBotBLEModel.ContactSensor:
@@ -3634,6 +3680,306 @@ export class WoStrip extends SwitchbotDevice {
    * @returns {Promise<boolean>} - Resolves with true if the operation was successful.
    */
   public async operateStripLight(bytes: number[]): Promise<boolean> {
+    const req_buf = Buffer.from(bytes)
+    const res_buf = await this.command(req_buf)
+
+    if (res_buf.length !== 2) {
+      throw new Error(`Expecting a 2-byte response, got instead: 0x${res_buf.toString('hex')}`)
+    }
+
+    const code = res_buf.readUInt8(1)
+    if (code === 0x00 || code === 0x80) {
+      return code === 0x80
+    } else {
+      throw new Error(`The device returned an error: 0x${res_buf.toString('hex')}`)
+    }
+  }
+}
+
+/**
+ * Class representing a SwitchBot Air Purifier device.
+ * @extends SwitchbotDevice
+ */
+export class WoAirPurifier extends SwitchbotDevice {
+  /**
+   * Parses service data for air purifier devices.
+   * @param {Buffer | null} serviceData - The service data buffer.
+   * @param {Buffer | null} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
+   * @returns {airPurifierServiceData | null} - The parsed service data or null.
+   */
+  static parseServiceData(serviceData: Buffer | null, manufacturerData: Buffer | null, emitLog?: (level: string, message: string) => void): airPurifierServiceData | null {
+    if (!manufacturerData || manufacturerData.length < 14) {
+      return null
+    }
+
+    const deviceData = manufacturerData.subarray(6)
+
+    if (deviceData.length < 8) {
+      return null
+    }
+
+    const sequenceNumber = deviceData[0]
+    const isOn = Boolean(deviceData[1] & 0b10000000)
+    const mode = deviceData[1] & 0b00000111
+    const isAqiValid = Boolean(deviceData[2] & 0b00000100)
+    const childLock = Boolean(deviceData[2] & 0b00000010)
+    const speed = deviceData[3] & 0b01111111
+    const aqiLevelRaw = (deviceData[4] & 0b00000110) >> 1
+    const workTime = (deviceData[5] << 8) | deviceData[6]
+    const errCode = deviceData[7]
+
+    // Map AQI level to string using the defined constant
+    const aqiLevelValues = [
+      AIR_QUALITY_LEVELS.EXCELLENT,
+      AIR_QUALITY_LEVELS.GOOD,
+      AIR_QUALITY_LEVELS.FAIR,
+      AIR_QUALITY_LEVELS.POOR,
+    ]
+    const aqiLevel = aqiLevelValues[aqiLevelRaw] || 'unknown'
+
+    // Determine mode based on mode value and speed
+    let modeString: string | null = null
+    if (mode === 1) {
+      if (speed >= 0 && speed <= 33) {
+        modeString = AIR_PURIFIER_MODES.LEVEL_1
+      } else if (speed >= 34 && speed <= 66) {
+        modeString = AIR_PURIFIER_MODES.LEVEL_2
+      } else {
+        modeString = AIR_PURIFIER_MODES.LEVEL_3
+      }
+    } else if (mode > 1 && mode <= 4) {
+      const modeMap = [null, null, 'auto', 'sleep', 'manual']
+      modeString = modeMap[mode + 2] || null
+    }
+
+    if (emitLog) {
+      emitLog('debug', `Air Purifier Service Data: isOn=${isOn}, mode=${modeString}, speed=${speed}, AQI=${aqiLevel}`)
+    }
+
+    return {
+      model: SwitchBotBLEModel.AirPurifier,
+      modelName: SwitchBotBLEModelName.AirPurifier,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.AirPurifier,
+      isOn,
+      mode: modeString,
+      isAqiValid,
+      child_lock: childLock,
+      speed,
+      aqi_level: aqiLevel,
+      filter_element_working_time: workTime,
+      err_code: errCode,
+      sequence_number: sequenceNumber,
+    }
+  }
+
+  /**
+   * Sets the state of the air purifier.
+   * @param {number[]} reqByteArray - The request byte array.
+   * @returns {Promise<boolean>} - Resolves with a boolean indicating whether the operation was successful.
+   * @private
+   */
+  public async setState(reqByteArray: number[]): Promise<boolean> {
+    return this.operateAirPurifier(reqByteArray)
+  }
+
+  /**
+   * Turns the air purifier on.
+   * @returns {Promise<boolean>} - Resolves with true if the air purifier is turned on.
+   */
+  async turnOn(): Promise<boolean> {
+    return this.setState([...DEVICE_COMMANDS.AIR_PURIFIER.TURN_ON])
+  }
+
+  /**
+   * Turns the air purifier off.
+   * @returns {Promise<boolean>} - Resolves with true if the air purifier is turned off.
+   */
+  async turnOff(): Promise<boolean> {
+    return this.setState([...DEVICE_COMMANDS.AIR_PURIFIER.TURN_OFF])
+  }
+
+  /**
+   * Sets the speed of the air purifier.
+   * @param {number} speed - The speed value (0-100).
+   * @returns {Promise<boolean>} - Resolves with true if the operation was successful.
+   */
+  async setSpeed(speed: number): Promise<boolean> {
+    if (typeof speed !== 'number' || speed < 0 || speed > 100) {
+      throw new TypeError(`Invalid speed value: ${speed}`)
+    }
+    return this.setState([...DEVICE_COMMANDS.AIR_PURIFIER.SET_SPEED, speed])
+  }
+
+  /**
+   * Sets the mode of the air purifier.
+   * @param {number} mode - The mode value (1-4).
+   * @returns {Promise<boolean>} - Resolves with true if the operation was successful.
+   */
+  async setMode(mode: number): Promise<boolean> {
+    if (typeof mode !== 'number' || mode < 1 || mode > 4) {
+      throw new TypeError(`Invalid mode value: ${mode}`)
+    }
+    return this.setState([...DEVICE_COMMANDS.AIR_PURIFIER.SET_MODE, mode])
+  }
+
+  /**
+   * Operates the air purifier with the given byte array.
+   * @public
+   * @param {number[]} bytes - The byte array to send.
+   * @returns {Promise<boolean>} - Resolves with true if the operation was successful.
+   */
+  public async operateAirPurifier(bytes: number[]): Promise<boolean> {
+    const req_buf = Buffer.from(bytes)
+    const res_buf = await this.command(req_buf)
+
+    if (res_buf.length !== 2) {
+      throw new Error(`Expecting a 2-byte response, got instead: 0x${res_buf.toString('hex')}`)
+    }
+
+    const code = res_buf.readUInt8(1)
+    if (code === 0x00 || code === 0x80) {
+      return code === 0x80
+    } else {
+      throw new Error(`The device returned an error: 0x${res_buf.toString('hex')}`)
+    }
+  }
+}
+
+/**
+ * Class representing a SwitchBot Air Purifier Table device.
+ * @extends SwitchbotDevice
+ */
+export class WoAirPurifierTable extends SwitchbotDevice {
+  /**
+   * Parses service data for air purifier table devices.
+   * @param {Buffer | null} serviceData - The service data buffer.
+   * @param {Buffer | null} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
+   * @returns {airPurifierTableServiceData | null} - The parsed service data or null.
+   */
+  static parseServiceData(serviceData: Buffer | null, manufacturerData: Buffer | null, emitLog?: (level: string, message: string) => void): airPurifierTableServiceData | null {
+    if (!manufacturerData || manufacturerData.length < 14) {
+      return null
+    }
+
+    const deviceData = manufacturerData.subarray(6)
+
+    if (deviceData.length < 8) {
+      return null
+    }
+
+    const sequenceNumber = deviceData[0]
+    const isOn = Boolean(deviceData[1] & 0b10000000)
+    const mode = deviceData[1] & 0b00000111
+    const isAqiValid = Boolean(deviceData[2] & 0b00000100)
+    const childLock = Boolean(deviceData[2] & 0b00000010)
+    const speed = deviceData[3] & 0b01111111
+    const aqiLevelRaw = (deviceData[4] & 0b00000110) >> 1
+    const workTime = (deviceData[5] << 8) | deviceData[6]
+    const errCode = deviceData[7]
+
+    // Map AQI level to string using the defined constant
+    const aqiLevelValues = [
+      AIR_QUALITY_LEVELS.EXCELLENT,
+      AIR_QUALITY_LEVELS.GOOD,
+      AIR_QUALITY_LEVELS.FAIR,
+      AIR_QUALITY_LEVELS.POOR,
+    ]
+    const aqiLevel = aqiLevelValues[aqiLevelRaw] || 'unknown'
+
+    // Determine mode based on mode value and speed
+    let modeString: string | null = null
+    if (mode === 1) {
+      if (speed >= 0 && speed <= 33) {
+        modeString = AIR_PURIFIER_MODES.LEVEL_1
+      } else if (speed >= 34 && speed <= 66) {
+        modeString = AIR_PURIFIER_MODES.LEVEL_2
+      } else {
+        modeString = AIR_PURIFIER_MODES.LEVEL_3
+      }
+    } else if (mode > 1 && mode <= 4) {
+      const modeMap = [null, null, 'auto', 'sleep', 'manual']
+      modeString = modeMap[mode + 2] || null
+    }
+
+    if (emitLog) {
+      emitLog('debug', `Air Purifier Table Service Data: isOn=${isOn}, mode=${modeString}, speed=${speed}, AQI=${aqiLevel}`)
+    }
+
+    return {
+      model: SwitchBotBLEModel.AirPurifierTable,
+      modelName: SwitchBotBLEModelName.AirPurifierTable,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.AirPurifierTable,
+      isOn,
+      mode: modeString,
+      isAqiValid,
+      child_lock: childLock,
+      speed,
+      aqi_level: aqiLevel,
+      filter_element_working_time: workTime,
+      err_code: errCode,
+      sequence_number: sequenceNumber,
+    }
+  }
+
+  /**
+   * Sets the state of the air purifier table.
+   * @param {number[]} reqByteArray - The request byte array.
+   * @returns {Promise<boolean>} - Resolves with a boolean indicating whether the operation was successful.
+   * @private
+   */
+  public async setState(reqByteArray: number[]): Promise<boolean> {
+    return this.operateAirPurifierTable(reqByteArray)
+  }
+
+  /**
+   * Turns the air purifier table on.
+   * @returns {Promise<boolean>} - Resolves with true if the air purifier table is turned on.
+   */
+  async turnOn(): Promise<boolean> {
+    return this.setState([...DEVICE_COMMANDS.AIR_PURIFIER.TURN_ON])
+  }
+
+  /**
+   * Turns the air purifier table off.
+   * @returns {Promise<boolean>} - Resolves with true if the air purifier table is turned off.
+   */
+  async turnOff(): Promise<boolean> {
+    return this.setState([...DEVICE_COMMANDS.AIR_PURIFIER.TURN_OFF])
+  }
+
+  /**
+   * Sets the speed of the air purifier table.
+   * @param {number} speed - The speed value (0-100).
+   * @returns {Promise<boolean>} - Resolves with true if the operation was successful.
+   */
+  async setSpeed(speed: number): Promise<boolean> {
+    if (typeof speed !== 'number' || speed < 0 || speed > 100) {
+      throw new TypeError(`Invalid speed value: ${speed}`)
+    }
+    return this.setState([...DEVICE_COMMANDS.AIR_PURIFIER.SET_SPEED, speed])
+  }
+
+  /**
+   * Sets the mode of the air purifier table.
+   * @param {number} mode - The mode value (1-4).
+   * @returns {Promise<boolean>} - Resolves with true if the operation was successful.
+   */
+  async setMode(mode: number): Promise<boolean> {
+    if (typeof mode !== 'number' || mode < 1 || mode > 4) {
+      throw new TypeError(`Invalid mode value: ${mode}`)
+    }
+    return this.setState([...DEVICE_COMMANDS.AIR_PURIFIER.SET_MODE, mode])
+  }
+
+  /**
+   * Operates the air purifier table with the given byte array.
+   * @public
+   * @param {number[]} bytes - The byte array to send.
+   * @returns {Promise<boolean>} - Resolves with true if the operation was successful.
+   */
+  public async operateAirPurifierTable(bytes: number[]): Promise<boolean> {
     const req_buf = Buffer.from(bytes)
     const res_buf = await this.command(req_buf)
 

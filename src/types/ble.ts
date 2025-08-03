@@ -360,8 +360,40 @@ export type remoteServiceData = BLEServiceData & {
   battery: number
 }
 
+export type airPurifierServiceData = BLEServiceData & {
+  model: SwitchBotBLEModel.AirPurifier
+  modelName: SwitchBotBLEModelName.AirPurifier
+  modelFriendlyName: SwitchBotBLEModelFriendlyName.AirPurifier
+  isOn: boolean
+  mode: string | null
+  isAqiValid: boolean
+  child_lock: boolean
+  speed: number
+  aqi_level: string
+  filter_element_working_time: number
+  err_code: number
+  sequence_number: number
+}
+
+export type airPurifierTableServiceData = BLEServiceData & {
+  model: SwitchBotBLEModel.AirPurifierTable
+  modelName: SwitchBotBLEModelName.AirPurifierTable
+  modelFriendlyName: SwitchBotBLEModelFriendlyName.AirPurifierTable
+  isOn: boolean
+  mode: string | null
+  isAqiValid: boolean
+  child_lock: boolean
+  speed: number
+  aqi_level: string
+  filter_element_working_time: number
+  err_code: number
+  sequence_number: number
+}
+
 export type BLEDeviceServiceData
-  = | batteryCirculatorFanServiceData
+  = | airPurifierServiceData
+    | airPurifierTableServiceData
+    | batteryCirculatorFanServiceData
     | blindTiltServiceData
     | botServiceData
     | ceilingLightServiceData
