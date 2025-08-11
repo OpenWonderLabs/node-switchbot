@@ -278,6 +278,8 @@ export class SwitchBotBLE extends EventEmitter {
 
     const p = { model: params.model || '', id: params.id || '' }
 
+    this.noble.removeAllListeners('discover')
+    
     this.noble.on('discover', async (peripheral: NobleTypes['peripheral']) => {
       try {
         const ad = await Advertising.parse(peripheral, (level: string, message: string) => this.log(level as LogLevel, message))
