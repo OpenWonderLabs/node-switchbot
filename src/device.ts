@@ -2,8 +2,7 @@
  *
  * device.ts: Switchbot BLE API registration.
  */
-import type Noble from '@stoprocent/noble'
-import type { Characteristic, Peripheral, Service } from '@stoprocent/noble'
+import type { Characteristic, Noble, Peripheral, Service } from '@stoprocent/noble'
 
 import type { airPurifierServiceData, airPurifierTableServiceData, batteryCirculatorFanServiceData, blindTiltServiceData, botServiceData, ceilingLightProServiceData, ceilingLightServiceData, colorBulbServiceData, contactSensorServiceData, curtain3ServiceData, curtainServiceData, hub2ServiceData, humidifier2ServiceData, humidifierServiceData, keypadDetectorServiceData, lockProServiceData, lockServiceData, meterPlusServiceData, meterProCO2ServiceData, meterProServiceData, meterServiceData, motionSensorServiceData, outdoorMeterServiceData, plugMiniJPServiceData, plugMiniUSServiceData, relaySwitch1PMServiceData, relaySwitch1ServiceData, remoteServiceData, robotVacuumCleanerServiceData, stripLightServiceData, waterLeakDetectorServiceData } from './types/ble.js'
 
@@ -295,7 +294,7 @@ export interface Params {
   model?: string
   id?: string
   quick?: boolean
-  noble?: typeof Noble
+  noble?: Noble
 }
 
 export interface ErrorObject {
@@ -310,10 +309,7 @@ export interface Chars {
 }
 
 export interface NobleTypes {
-  noble: typeof Noble & {
-    state: 'unknown' | 'resetting' | 'unsupported' | 'unauthorized' | 'poweredOff' | 'poweredOn'
-  }
-  state: 'unknown' | 'resetting' | 'unsupported' | 'unauthorized' | 'poweredOff' | 'poweredOn'
+  noble: Noble
   peripheral: Peripheral
 }
 
@@ -553,7 +549,7 @@ export class ErrorUtils {
  * Represents a Switchbot Device.
  */
 export class SwitchbotDevice extends EventEmitter {
-  private noble: typeof Noble
+  private noble: Noble
   private peripheral: NobleTypes['peripheral']
   private characteristics: Chars | null = null
   private deviceId!: string
@@ -572,7 +568,7 @@ export class SwitchbotDevice extends EventEmitter {
    * @param peripheral The peripheral object from noble.
    * @param noble The Noble object.
    */
-  constructor(peripheral: NobleTypes['peripheral'], noble: typeof Noble) {
+  constructor(peripheral: NobleTypes['peripheral'], noble: Noble) {
     super()
     this.peripheral = peripheral
     this.noble = noble
