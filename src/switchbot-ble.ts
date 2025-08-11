@@ -77,39 +77,6 @@ export class SwitchBotBLE extends EventEmitter {
   }
 
   /**
-   * Waits for the noble object to be powered on.
-   *
-   * @returns {Promise<void>} - Resolves when the noble object is powered on.
-   */
-  private async waitForPowerOn(): Promise<void> {
-    await this.ready
-    if (this.noble && this.noble.state === 'poweredOn') {
-      return
-    }
-
-    return new Promise<void>((resolve, reject) => {
-      this.noble?.once('stateChange', (state: NobleTypes['state']) => {
-        switch (state) {
-          case 'unsupported':
-          case 'unauthorized':
-          case 'poweredOff':
-            reject(new Error(`Failed to initialize the Noble object: ${state}`))
-            break
-          case 'resetting':
-          case 'unknown':
-            reject(new Error(`Adapter is not ready: ${state}`))
-            break
-          case 'poweredOn':
-            resolve()
-            break
-          default:
-            reject(new Error(`Unknown state: ${state}`))
-        }
-      })
-    })
-  }
-
-  /**
    * Discovers Switchbot devices with enhanced error handling and logging.
    * @param params The discovery parameters.
    * @returns A Promise that resolves with an array of discovered Switchbot devices.
@@ -123,7 +90,7 @@ export class SwitchBotBLE extends EventEmitter {
       quick: { required: false, type: 'boolean' },
     })
 
-    await this.waitForPowerOn()
+    await this.noble.waitForPoweredOnAsync()
 
     if (!this.noble) {
       throw new Error('Noble BLE library failed to initialize properly')
@@ -303,7 +270,7 @@ export class SwitchBotBLE extends EventEmitter {
       id: { required: false, type: 'string', min: 12, max: 17 },
     })
 
-    await this.waitForPowerOn()
+    await this.noble.waitForPoweredOnAsync()
 
     if (!this.noble) {
       throw new Error('noble object failed to initialize')
