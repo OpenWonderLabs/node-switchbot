@@ -7,14 +7,14 @@ describe('switchBotBLE', () => {
     it('should create an instance without parameters', () => {
       const switchbot = new SwitchBotBLE()
       expect(switchbot).toBeInstanceOf(SwitchBotBLE)
-      expect(switchbot.ready).toBeInstanceOf(Promise)
+      expect(switchbot.nobleInitialized).toBeInstanceOf(Promise)
     })
 
     it('should create an instance with parameters', () => {
       const params = { duration: 5000 }
       const switchbot = new SwitchBotBLE(params)
       expect(switchbot).toBeInstanceOf(SwitchBotBLE)
-      expect(switchbot.ready).toBeInstanceOf(Promise)
+      expect(switchbot.nobleInitialized).toBeInstanceOf(Promise)
     })
   })
 

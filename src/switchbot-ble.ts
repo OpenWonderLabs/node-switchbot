@@ -14,7 +14,7 @@ import { DEFAULT_DISCOVERY_DURATION, PRIMARY_SERVICE_UUID_LIST } from './setting
  * SwitchBotBLE class to interact with SwitchBot devices.
  */
 export class SwitchBotBLE extends EventEmitter {
-  public ready: Promise<void>
+  public nobleInitialized: Promise<void>
   public noble: any
   ondiscover?: ondiscover
   onadvertisement?: onadvertisement
@@ -26,7 +26,7 @@ export class SwitchBotBLE extends EventEmitter {
    */
   constructor(params?: Params) {
     super()
-    this.ready = this.initialize(params)
+    this.nobleInitialized = this.initialize(params)
   }
 
   /**
@@ -55,6 +55,13 @@ export class SwitchBotBLE extends EventEmitter {
         this.noble = params.noble
       } else {
         this.noble = (await import('@stoprocent/noble')).default
+      }
+
+      try {
+        await this.noble.waitForPoweredOnAsync()
+        this.log(LogLevel.DEBUG, 'Noble powered on')
+      } catch (e: any) {
+        this.log(LogLevel.ERROR, `Failed waiting for powered on: ${JSON.stringify(e.message ?? e)}`)
       }
     } catch (e: any) {
       this.log(LogLevel.ERROR, `Failed to import noble: ${JSON.stringify(e.message ?? e)}`)
@@ -89,8 +96,6 @@ export class SwitchBotBLE extends EventEmitter {
       id: { required: false, type: 'string', min: 12, max: 17 },
       quick: { required: false, type: 'boolean' },
     })
-
-    await this.noble.waitForPoweredOnAsync()
 
     if (!this.noble) {
       throw new Error('Noble BLE library failed to initialize properly')
@@ -264,13 +269,11 @@ export class SwitchBotBLE extends EventEmitter {
    * @returns {Promise<void>} - Resolves when scanning starts successfully.
    */
   public async startScan(params: Params = {}): Promise<void> {
-    await this.ready
+    await this.nobleInitialized
     await this.validate(params, {
       model: { required: false, type: 'string', enum: Object.values(SwitchBotBLEModel) },
       id: { required: false, type: 'string', min: 12, max: 17 },
     })
-
-    await this.noble.waitForPoweredOnAsync()
 
     if (!this.noble) {
       throw new Error('noble object failed to initialize')
