@@ -40,7 +40,7 @@ export class SwitchBotBLE extends EventEmitter {
    */
   public log(level: LogLevel, message: string): void {
     // Emit log events asynchronously with level and message as separate args
-    setTimeout(() => this.emit('log', level, message), 0)
+    setTimeout(() => this.emit('log', { level, message }), 0)
   }
 
   /**

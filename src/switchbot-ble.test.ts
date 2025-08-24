@@ -22,8 +22,8 @@ describe('switchBotBLE', () => {
     const sw = new SwitchBotBLE()
     // Listen for a single 'log' event
     const eventPromise = new Promise<{ level: string, message: string }>((resolve) => {
-      sw.once('log', (level: string, message: string) => {
-        resolve({ level, message })
+      sw.once('log', (event) => {
+        resolve(event)
       })
     })
     sw.log(LogLevel.INFO, 'test message')
