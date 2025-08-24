@@ -4,7 +4,7 @@
  */
 import type { Characteristic, Noble, Peripheral, Service } from '@stoprocent/noble'
 
-import type { airPurifierServiceData, airPurifierTableServiceData, batteryCirculatorFanServiceData, blindTiltServiceData, botServiceData, ceilingLightProServiceData, ceilingLightServiceData, colorBulbServiceData, contactSensorServiceData, curtain3ServiceData, curtainServiceData, hub2ServiceData, humidifier2ServiceData, humidifierServiceData, keypadDetectorServiceData, lockProServiceData, lockServiceData, meterPlusServiceData, meterProCO2ServiceData, meterProServiceData, meterServiceData, motionSensorServiceData, outdoorMeterServiceData, plugMiniJPServiceData, plugMiniUSServiceData, relaySwitch1PMServiceData, relaySwitch1ServiceData, remoteServiceData, robotVacuumCleanerServiceData, stripLightServiceData, waterLeakDetectorServiceData } from './types/ble.js'
+import type { airPurifierServiceData, airPurifierTableServiceData, batteryCirculatorFanServiceData, blindTiltServiceData, botServiceData, ceilingLightProServiceData, ceilingLightServiceData, colorBulbServiceData, contactSensorServiceData, curtain3ServiceData, curtainServiceData, hub2ServiceData, hub3ServiceData, humidifier2ServiceData, humidifierServiceData, keypadDetectorServiceData, lockProServiceData, lockServiceData, meterPlusServiceData, meterProCO2ServiceData, meterProServiceData, meterServiceData, motionSensorServiceData, outdoorMeterServiceData, plugMiniJPServiceData, plugMiniUSServiceData, relaySwitch1PMServiceData, relaySwitch1ServiceData, remoteServiceData, robotVacuumCleanerServiceData, stripLightServiceData, waterLeakDetectorServiceData } from './types/ble.js'
 
 import { Buffer } from 'node:buffer'
 import * as Crypto from 'node:crypto'
@@ -93,7 +93,7 @@ export interface ad {
   id: string
   address: string
   rssi: number
-  serviceData: botServiceData | colorBulbServiceData | contactSensorServiceData | curtainServiceData | curtain3ServiceData | stripLightServiceData | ServiceData | lockProServiceData | ServiceData | meterPlusServiceData | meterProServiceData | meterProCO2ServiceData | motionSensorServiceData | outdoorMeterServiceData | plugMiniUSServiceData | plugMiniJPServiceData | blindTiltServiceData | ceilingLightServiceData | ceilingLightProServiceData | hub2ServiceData | batteryCirculatorFanServiceData | waterLeakDetectorServiceData | humidifierServiceData | humidifier2ServiceData | robotVacuumCleanerServiceData | keypadDetectorServiceData | relaySwitch1PMServiceData | relaySwitch1ServiceData | remoteServiceData
+  serviceData: airPurifierServiceData | airPurifierTableServiceData | botServiceData | colorBulbServiceData | contactSensorServiceData | curtainServiceData | curtain3ServiceData | stripLightServiceData | lockServiceData | lockProServiceData | meterServiceData | meterPlusServiceData | meterProServiceData | meterProCO2ServiceData | motionSensorServiceData | outdoorMeterServiceData | plugMiniUSServiceData | plugMiniJPServiceData | blindTiltServiceData | ceilingLightServiceData | ceilingLightProServiceData | hub2ServiceData | hub3ServiceData | batteryCirculatorFanServiceData | waterLeakDetectorServiceData | humidifierServiceData | humidifier2ServiceData | robotVacuumCleanerServiceData | keypadDetectorServiceData | relaySwitch1PMServiceData | relaySwitch1ServiceData | remoteServiceData
   [key: string]: unknown
 }
 
@@ -118,6 +118,7 @@ export declare interface SwitchBotBLEDevice {
   MeterPro: DeviceInfo
   MeterProCO2: DeviceInfo
   Hub2: DeviceInfo
+  Hub3: DeviceInfo
   OutdoorMeter: DeviceInfo
   MotionSensor: DeviceInfo
   ContactSensor: DeviceInfo
@@ -139,6 +140,7 @@ export enum SwitchBotModel {
   HubMini = 'W0202200',
   HubPlus = 'SwitchBot Hub S1',
   Hub2 = 'W3202100',
+  Hub3 = 'W3302100',
   Bot = 'SwitchBot S1',
   Curtain = 'W0701600',
   Curtain3 = 'W2400000',
@@ -197,6 +199,7 @@ export enum SwitchBotBLEModel {
   MeterPro = '4',
   MeterProCO2 = '5',
   Hub2 = 'v',
+  Hub3 = 'V',
   OutdoorMeter = 'w',
   MotionSensor = 's',
   ContactSensor = 'd',
@@ -222,6 +225,7 @@ export enum SwitchBotBLEModel {
 export enum SwitchBotBLEModelName {
   Bot = 'WoHand',
   Hub2 = 'WoHub2',
+  Hub3 = 'WoHub3',
   ColorBulb = 'WoBulb',
   Curtain = 'WoCurtain',
   Curtain3 = 'WoCurtain3',
@@ -254,6 +258,7 @@ export enum SwitchBotBLEModelName {
 export enum SwitchBotBLEModelFriendlyName {
   Bot = 'Bot',
   Hub2 = 'Hub 2',
+  Hub3 = 'Hub 3',
   ColorBulb = 'Color Bulb',
   Curtain = 'Curtain',
   Curtain3 = 'Curtain 3',
@@ -1051,6 +1056,8 @@ export class Advertising {
         return WoSensorTHProCO2.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.Hub2:
         return WoHub2.parseServiceData(manufacturerData, emitLog)
+      case SwitchBotBLEModel.Hub3:
+        return WoHub3.parseServiceData(manufacturerData, emitLog)
       case SwitchBotBLEModel.OutdoorMeter:
         return WoIOSensorTH.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.AirPurifier:
@@ -1995,6 +2002,52 @@ export class WoHub2 extends SwitchbotDevice {
       model: SwitchBotBLEModel.Hub2,
       modelName: SwitchBotBLEModelName.Hub2,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.Hub2,
+      celsius: tempC,
+      fahrenheit: tempF,
+      fahrenheit_mode: !!(byte2 & 0b10000000),
+      humidity: byte2 & 0b01111111,
+      lightLevel,
+    }
+
+    return data
+  }
+
+  constructor(peripheral: NobleTypes['peripheral'], noble: NobleTypes['noble']) {
+    super(peripheral, noble)
+  }
+}
+
+/**
+ * Class representing a WoHub3 device.
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/meter.md
+ */
+export class WoHub3 extends SwitchbotDevice {
+  /**
+   * Parses the service data for WoHub3.
+   * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
+   * @returns {Promise<hub3ServiceData | null>} - Parsed service data or null if invalid.
+   */
+  static async parseServiceData(
+    manufacturerData: Buffer,
+    emitLog: (level: string, message: string) => void,
+  ): Promise<hub3ServiceData | null> {
+    if (manufacturerData.length !== 16) {
+      emitLog('debugerror', `[parseServiceDataForWoHub3] Buffer length ${manufacturerData.length} !== 16!`)
+      return null
+    }
+
+    const [byte0, byte1, byte2, , , , , , , , , , byte12] = manufacturerData
+
+    const tempSign = byte1 & 0b10000000 ? 1 : -1
+    const tempC = tempSign * ((byte1 & 0b01111111) + (byte0 & 0b00001111) / 10)
+    const tempF = Math.round(((tempC * 9) / 5 + 32) * 10) / 10
+    const lightLevel = byte12 & 0b11111
+
+    const data: hub3ServiceData = {
+      model: SwitchBotBLEModel.Hub3,
+      modelName: SwitchBotBLEModelName.Hub3,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.Hub3,
       celsius: tempC,
       fahrenheit: tempF,
       fahrenheit_mode: !!(byte2 & 0b10000000),
