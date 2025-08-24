@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [3.6.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.6.0) (2025-07-27)
+
+### What's Changed
+- Housekeeping and update dependencies
+- **BREAKING**: Fixed compatibility with `@stoprocent/noble` v2.3.4 and `@stoprocent/bluetooth-hci-socket` v2.2.3
+- **Enhancement**: Added comprehensive input validation utilities (`ValidationUtils` class)
+- **Enhancement**: Improved error handling with more descriptive error messages
+- **Enhancement**: Added command constants to replace magic numbers for better maintainability
+- **Enhancement**: Enhanced type safety with proper TypeScript assertions
+- **Enhancement**: Improved buffer validation with configurable minimum length
+- **Enhancement**: Better resource cleanup in error scenarios with try-catch-finally blocks
+- **Enhancement**: Removed deprecated parameter checker in favor of modern validation
+- **Fix**: Updated `noble._state` to `noble.state` for compatibility with newer noble versions
+- **Fix**: Enhanced NobleTypes interface to properly support newer noble version
+- **Code Quality**: Improved JSDoc documentation throughout device classes
+- **Code Quality**: Standardized validation across all device classes
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v3.5.1...v3.6.0
+
 ## [3.5.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.5.1) (2025-07-25)
 
 ### What's Changed

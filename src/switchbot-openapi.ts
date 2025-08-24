@@ -4,10 +4,7 @@
  */
 import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 
-import type { pushResponse } from './types/devicepush.js'
-import type { devices } from './types/deviceresponse.js'
-import type { deviceStatus, deviceStatusRequest } from './types/devicestatus.js'
-import type { deleteWebhookResponse, queryWebhookResponse, setupWebhookResponse, updateWebhookResponse } from './types/devicewebhookstatus.js'
+import type { commandType, deleteWebhookResponse, devices, deviceStatus, deviceStatusRequest, pushRequest, pushResponseBody, queryWebhookResponse, setupWebhookResponse, updateWebhookResponse } from './types/openapi.js'
 
 import crypto, { randomUUID } from 'node:crypto'
 import { EventEmitter } from 'node:events'
@@ -65,7 +62,6 @@ class APIError extends Error {
 export class SwitchBotOpenAPI extends EventEmitter {
   private token: string
   private secret: string
-  private baseURL: string
 
   webhookEventListener?: Server | null = null
 
@@ -79,9 +75,10 @@ export class SwitchBotOpenAPI extends EventEmitter {
     super()
     this.token = token
     this.secret = secret
-    this.emitLog('info', `Token: ${token}, Secret: ${secret}`)
-    this.baseURL = urls.baseURL
-
+    // Log instance creation and token (secret is hidden)
+    this.emitLog('info', 'SwitchBotOpenAPI instance created')
+    this.emitLog('debug', `Token: ${token}`)
+    // Update baseURL if custom hostname provided
     if (hostname) {
       updateBaseURL(hostname)
     }
@@ -162,20 +159,28 @@ export class SwitchBotOpenAPI extends EventEmitter {
    * @returns A promise that resolves to an object containing the response body and status code.
    * @throws An error if the device control fails.
    */
-  async controlDevice(deviceId: string, command: string, parameter: string, commandType: string = 'command', token?: string, secret?: string): Promise<{ response: pushResponse['body'], statusCode: pushResponse['statusCode'] }> {
+  async controlDevice(
+    deviceId: string,
+    command: string,
+    parameter: string,
+    commandType: commandType = 'command',
+    token?: string,
+    secret?: string,
+  ): Promise<{ response: pushResponseBody, statusCode: number }> {
     try {
       const configToken = token || this.token
       const configSecret = secret || this.secret
-      const { body, statusCode } = await request(`${urls.devicesURL}/${deviceId}/commands`, {
-        method: 'POST',
-        headers: this.generateHeaders(configToken, configSecret),
-        body: JSON.stringify({
-          command,
-          parameter,
-          commandType,
-        }),
-      })
-      const response = await body.json() as pushResponse['body']
+      // Build request payload
+      const payload: pushRequest = { command, parameter, commandType }
+      const { body, statusCode } = await request(
+        `${urls.devicesURL}/${deviceId}/commands`,
+        {
+          method: 'POST',
+          headers: this.generateHeaders(configToken, configSecret),
+          body: JSON.stringify(payload),
+        },
+      )
+      const response = (await body.json()) as pushResponseBody
       this.emitLog('debug', `Controlled device: ${deviceId} with command: ${command} and parameter: ${parameter}`)
       this.emitLog('debug', `statusCode: ${statusCode}`)
       return { response, statusCode }
@@ -205,7 +210,7 @@ export class SwitchBotOpenAPI extends EventEmitter {
       return { response, statusCode }
     } catch (error: any) {
       this.emitLog('error', `Failed to get device status: ${error.message}`)
-      throw new Error(`Failed to get device status: ${error.message}`)
+      throw new APIError(`Failed to get device status: ${error.message}`, error.statusCode)
     }
   }
 
@@ -227,6 +232,11 @@ export class SwitchBotOpenAPI extends EventEmitter {
    */
   async setupWebhook(url: string, token?: string, secret?: string): Promise<void> {
     try {
+      // Close existing listener if any to avoid port conflicts
+      if (this.webhookEventListener) {
+        this.webhookEventListener.close()
+        this.webhookEventListener = null
+      }
       const xurl = new URL(url)
       const port = Number(xurl.port)
       const path = xurl.pathname
@@ -357,6 +367,11 @@ export class SwitchBotOpenAPI extends EventEmitter {
         await this.emitLog('error', `Failed to delete webhook. HTTP:${statusCode} API:${response?.statusCode} message:${response?.message}`)
       } else {
         await this.emitLog('info', 'Unregistered webhook to close listening.')
+        // Close listener server
+        if (this.webhookEventListener) {
+          this.webhookEventListener.close()
+          this.webhookEventListener = null
+        }
       }
     } catch (e: any) {
       await this.emitLog('error', `Failed to delete webhook, Error: ${e.message ?? e}`)

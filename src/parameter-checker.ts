@@ -9,6 +9,15 @@ import { EventEmitter } from 'node:events'
 
 export class ParameterChecker extends EventEmitter {
   private _error: ErrorObject | null = null
+  // Mapping of type names to checker methods
+  private readonly typeCheckers: Record<string, (v: unknown, r: Rule, n: string) => Promise<boolean>> = {
+    float: this.isFloat.bind(this),
+    integer: this.isInteger.bind(this),
+    boolean: this.isBoolean.bind(this),
+    array: this.isArray.bind(this),
+    object: this.isObject.bind(this),
+    string: this.isString.bind(this),
+  }
 
   /**
    * Emits a log event with the specified log level and message.
@@ -16,7 +25,7 @@ export class ParameterChecker extends EventEmitter {
    * @param level - The severity level of the log (e.g., 'info', 'warn', 'error').
    * @param message - The log message to be emitted.
    */
-  private async emitLog(level: string, message: string): Promise<void> {
+  private emitLog(level: string, message: string): void {
     this.emit('log', { level, message })
   }
 
@@ -76,24 +85,22 @@ export class ParameterChecker extends EventEmitter {
         continue
       }
 
-      const typeCheckers: Record<string, (v: unknown, r: Rule, n: string) => Promise<boolean>> = {
-        float: this.isFloat.bind(this),
-        integer: this.isInteger.bind(this),
-        boolean: this.isBoolean.bind(this),
-        array: this.isArray.bind(this),
-        object: this.isObject.bind(this),
-        string: this.isString.bind(this),
-      }
-
-      const checker = rule.type && typeCheckers[rule.type]
+      const checker = rule.type && this.typeCheckers[rule.type]
       if (checker) {
         if (!(await checker(value, rule, name))) {
           return false
         }
       } else {
-        this._error = { code: 'TYPE_UNKNOWN', message: `The rule specified for the \`${name}\` includes an unknown type: ${rule.type}` }
+        // Unknown type specified in rule
+        this.emitLog('error', `Unknown type "${rule.type}" in rule for parameter "${name}"`)
+        this._error = { code: 'TYPE_UNKNOWN', message: `Unknown type "${rule.type}" for parameter "${name}"` }
         return false
       }
+    }
+    // Warn about extra parameters not defined in rules
+    const extra = Object.keys(obj).filter(key => !(key in rules))
+    if (extra.length) {
+      this.emitLog('warn', `Ignoring extra parameters: ${extra.join(', ')}`)
     }
 
     this.emitLog('debug', 'All checks passed.')

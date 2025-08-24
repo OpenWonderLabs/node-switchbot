@@ -6,7 +6,7 @@ import type { ad, NobleTypes, onadvertisement, ondiscover, Params, Rule } from '
 
 import { EventEmitter } from 'node:events'
 
-import { Advertising, SwitchBotBLEModel, SwitchbotDevice, WoBlindTilt, WoBulb, WoCeilingLight, WoContact, WoCurtain, WoHand, WoHub2, WoHumi, WoHumi2, WoIOSensorTH, WoKeypad, WoLeak, WoPlugMiniJP, WoPlugMiniUS, WoPresence, WoRelaySwitch1, WoRelaySwitch1PM, WoRemote, WoSensorTH, WoSensorTHPlus, WoSensorTHPro, WoSensorTHProCO2, WoSmartLock, WoSmartLockPro, WoStrip } from './device.js'
+import { Advertising, LogLevel, SwitchBotBLEModel, SwitchbotDevice, WoBlindTilt, WoBulb, WoCeilingLight, WoContact, WoCurtain, WoHand, WoHub2, WoHumi, WoHumi2, WoIOSensorTH, WoKeypad, WoLeak, WoPlugMiniJP, WoPlugMiniUS, WoPresence, WoRelaySwitch1, WoRelaySwitch1PM, WoRemote, WoSensorTH, WoSensorTHPlus, WoSensorTHPro, WoSensorTHProCO2, WoSmartLock, WoSmartLockPro, WoStrip } from './device.js'
 import { parameterChecker } from './parameter-checker.js'
 import { DEFAULT_DISCOVERY_DURATION, PRIMARY_SERVICE_UUID_LIST } from './settings.js'
 
@@ -35,8 +35,12 @@ export class SwitchBotBLE extends EventEmitter {
    * @param level - The severity level of the log (e.g., 'info', 'warn', 'error').
    * @param message - The log message to be emitted.
    */
-  public async log(level: string, message: string): Promise<void> {
-    this.emit('log', { level, message })
+  /**
+   * Emits a log event with a defined LogLevel.
+   */
+  public log(level: LogLevel, message: string): void {
+    // Emit log events asynchronously with level and message as separate args
+    setTimeout(() => this.emit('log', level, message), 0)
   }
 
   /**
@@ -53,7 +57,7 @@ export class SwitchBotBLE extends EventEmitter {
         this.noble = (await import('@stoprocent/noble')).default
       }
     } catch (e: any) {
-      this.log('error', `Failed to import noble: ${JSON.stringify(e.message ?? e)}`)
+      this.log(LogLevel.ERROR, `Failed to import noble: ${JSON.stringify(e.message ?? e)}`)
     }
   }
 
@@ -67,46 +71,13 @@ export class SwitchBotBLE extends EventEmitter {
   public async validate(params: Params, schema: Record<string, unknown>): Promise<void> {
     const valid = parameterChecker.check(params as Record<string, Rule>, schema as Record<string, Rule>, false)
     if (!valid) {
-      this.log('error', `parameterChecker: ${JSON.stringify(parameterChecker.error!.message)}`)
+      this.log(LogLevel.ERROR, `parameterChecker: ${JSON.stringify(parameterChecker.error!.message)}`)
       throw new Error(parameterChecker.error!.message)
     }
   }
 
   /**
-   * Waits for the noble object to be powered on.
-   *
-   * @returns {Promise<void>} - Resolves when the noble object is powered on.
-   */
-  private async waitForPowerOn(): Promise<void> {
-    await this.ready
-    if (this.noble && this.noble._state === 'poweredOn') {
-      return
-    }
-
-    return new Promise<void>((resolve, reject) => {
-      this.noble?.once('stateChange', (state: NobleTypes['state']) => {
-        switch (state) {
-          case 'unsupported':
-          case 'unauthorized':
-          case 'poweredOff':
-            reject(new Error(`Failed to initialize the Noble object: ${state}`))
-            break
-          case 'resetting':
-          case 'unknown':
-            reject(new Error(`Adapter is not ready: ${state}`))
-            break
-          case 'poweredOn':
-            resolve()
-            break
-          default:
-            reject(new Error(`Unknown state: ${state}`))
-        }
-      })
-    })
-  }
-
-  /**
-   * Discovers Switchbot devices.
+   * Discovers Switchbot devices with enhanced error handling and logging.
    * @param params The discovery parameters.
    * @returns A Promise that resolves with an array of discovered Switchbot devices.
    */
@@ -119,10 +90,10 @@ export class SwitchBotBLE extends EventEmitter {
       quick: { required: false, type: 'boolean' },
     })
 
-    await this.waitForPowerOn()
+    await this.noble.waitForPoweredOnAsync()
 
     if (!this.noble) {
-      throw new Error('noble failed to initialize')
+      throw new Error('Noble BLE library failed to initialize properly')
     }
 
     const p = {
@@ -132,10 +103,18 @@ export class SwitchBotBLE extends EventEmitter {
       quick: !!params.quick,
     }
 
+    this.log(LogLevel.DEBUG, `Starting discovery with parameters: ${JSON.stringify(p)}`)
+
     const peripherals: Record<string, SwitchbotDevice> = {}
     let timer: NodeJS.Timeout
+    let isDiscoveryActive = true
 
     const finishDiscovery = async () => {
+      if (!isDiscoveryActive) {
+        return Object.values(peripherals)
+      }
+
+      isDiscoveryActive = false
       if (timer) {
         clearTimeout(timer)
       }
@@ -143,46 +122,72 @@ export class SwitchBotBLE extends EventEmitter {
         this.noble.removeAllListeners('discover')
         try {
           await this.noble.stopScanningAsync()
-          this.log('debug', 'Stopped Scanning for SwitchBot BLE devices.')
+          this.log(LogLevel.DEBUG, 'Successfully stopped scanning for SwitchBot BLE devices')
         } catch (e: any) {
-          this.log('error', `discover stopScanningAsync error: ${JSON.stringify(e.message ?? e)}`)
+          this.log(LogLevel.ERROR, `Failed to stop scanning: ${JSON.stringify(e.message ?? e)}`)
         }
       }
+
       const devices = Object.values(peripherals)
-      if (devices.length === 0) {
-        this.log('warn', 'No devices found during discovery.')
-      }
+      const deviceCount = devices.length
+      this.log(
+        deviceCount > 0 ? LogLevel.INFO : LogLevel.WARN,
+        `Discovery completed. Found ${deviceCount} device${deviceCount !== 1 ? 's' : ''}`,
+      )
+
       return devices
     }
 
     return new Promise<SwitchbotDevice[]>((resolve, reject) => {
       this.noble.on('discover', async (peripheral: NobleTypes['peripheral']) => {
-        const device = await this.createDevice(peripheral, p.id, p.model as SwitchBotBLEModel)
-        if (!device) {
-          return
-        }
-        peripherals[device.id!] = device
+        try {
+          const device = await this.createDevice(peripheral, p.id, p.model as SwitchBotBLEModel)
+          if (!device) {
+            return
+          }
 
-        if (this.ondiscover) {
-          this.ondiscover(device)
-        }
-        if (p.quick) {
-          resolve(await finishDiscovery())
+          if (peripherals[device.id!]) {
+            this.log(LogLevel.DEBUG, `Device ${device.id} already discovered, skipping duplicate`)
+            return
+          }
+
+          peripherals[device.id!] = device
+          this.log(LogLevel.DEBUG, `Discovered device: ${device.friendlyName} (${device.id}) at ${device.address}`)
+
+          if (this.ondiscover) {
+            try {
+              await this.ondiscover(device)
+            } catch (e: any) {
+              this.log(LogLevel.ERROR, `Error in ondiscover callback: ${e.message ?? e}`)
+            }
+          }
+
+          if (p.quick) {
+            this.log(LogLevel.DEBUG, 'Quick discovery mode: stopping after first device found')
+            resolve(await finishDiscovery())
+          }
+        } catch (e: any) {
+          this.log(LogLevel.ERROR, `Error processing discovered device: ${e.message ?? e}`)
         }
       })
 
+      // Start scanning with timeout handling
       this.noble.startScanningAsync(PRIMARY_SERVICE_UUID_LIST, false)
         .then(() => {
+          this.log(LogLevel.DEBUG, `Started scanning for ${p.duration}ms`)
           timer = setTimeout(async () => {
             const result = await finishDiscovery()
             if (result.length === 0) {
-              reject(new Error('No devices found during discovery.'))
+              reject(new Error(`No SwitchBot devices found after ${p.duration}ms discovery timeout`))
             } else {
               resolve(result)
             }
           }, p.duration)
         })
-        .catch(reject)
+        .catch((error) => {
+          this.log(LogLevel.ERROR, `Failed to start scanning: ${error.message ?? error}`)
+          reject(new Error(`Failed to start BLE scanning: ${error.message ?? error}`))
+        })
     })
   }
 
@@ -195,7 +200,7 @@ export class SwitchBotBLE extends EventEmitter {
    * @returns {Promise<SwitchbotDevice | null>} - The device object or null.
    */
   private async createDevice(peripheral: NobleTypes['peripheral'], id: ad['id'], model: SwitchBotBLEModel): Promise<SwitchbotDevice | null> {
-    const ad = await Advertising.parse(peripheral, this.log.bind(this))
+    const ad = await Advertising.parse(peripheral, (level: string, message: string) => this.log(level as LogLevel, message))
     if (ad && await this.filterAd(ad, id, model) && this.noble) {
       switch (ad.serviceData.model) {
         case SwitchBotBLEModel.Bot: return new WoHand(peripheral, this.noble)
@@ -265,7 +270,7 @@ export class SwitchBotBLE extends EventEmitter {
       id: { required: false, type: 'string', min: 12, max: 17 },
     })
 
-    await this.waitForPowerOn()
+    await this.noble.waitForPoweredOnAsync()
 
     if (!this.noble) {
       throw new Error('noble object failed to initialize')
@@ -273,24 +278,34 @@ export class SwitchBotBLE extends EventEmitter {
 
     const p = { model: params.model || '', id: params.id || '' }
 
+    this.noble.removeAllListeners('discover')
+    
     this.noble.on('discover', async (peripheral: NobleTypes['peripheral']) => {
-      const ad = await Advertising.parse(peripheral, this.log.bind(this))
-      this.emit('debug', `Advertisement: ${ad}`)
-      this.emit('debug', `Filter ID: ${p.id}`)
-      this.emit('debug', `Filter Model: ${p.model}`)
-      if (ad && await this.filterAd(ad, p.id, p.model)) {
-        this.emit('debug', `Advertisement passed filter: ${ad}`)
-        if (this.onadvertisement) {
-          this.onadvertisement(ad)
+      try {
+        const ad = await Advertising.parse(peripheral, (level: string, message: string) => this.log(level as LogLevel, message))
+        this.log(LogLevel.DEBUG, `Advertisement: ${JSON.stringify(ad)}`)
+        this.log(LogLevel.DEBUG, `Filter ID: ${p.id}`)
+        this.log(LogLevel.DEBUG, `Filter Model: ${p.model}`)
+        if (ad && await this.filterAd(ad, p.id, p.model)) {
+          this.log(LogLevel.DEBUG, `Advertisement passed filter: ${JSON.stringify(ad)}`)
+          if (this.onadvertisement) {
+            try {
+              await this.onadvertisement(ad)
+            } catch (e: any) {
+              this.log(LogLevel.ERROR, `Error in onadvertisement callback: ${e.message ?? e}`)
+            }
+          }
         }
+      } catch (e: any) {
+        this.log(LogLevel.ERROR, `Error parsing advertisement: ${e.message ?? e}`)
       }
     })
 
     try {
       await this.noble.startScanningAsync(PRIMARY_SERVICE_UUID_LIST, true)
-      this.log('debug', 'Started Scanning for SwitchBot BLE devices.')
+      this.log(LogLevel.DEBUG, 'Started Scanning for SwitchBot BLE devices.')
     } catch (e: any) {
-      this.log('error', `startScanningAsync error: ${JSON.stringify(e.message ?? e)}`)
+      this.log(LogLevel.ERROR, `startScanningAsync error: ${JSON.stringify(e.message ?? e)}`)
     }
   }
 
@@ -307,9 +322,9 @@ export class SwitchBotBLE extends EventEmitter {
     this.noble.removeAllListeners('discover')
     try {
       await this.noble.stopScanningAsync()
-      this.log('debug', 'Stopped Scanning for SwitchBot BLE devices.')
+      this.log(LogLevel.DEBUG, 'Stopped Scanning for SwitchBot BLE devices.')
     } catch (e: any) {
-      this.log('error', `stopScanningAsync error: ${JSON.stringify(e.message ?? e)}`)
+      this.log(LogLevel.ERROR, `stopScanningAsync error: ${JSON.stringify(e.message ?? e)}`)
     }
   }
 
@@ -328,4 +343,4 @@ export class SwitchBotBLE extends EventEmitter {
   }
 }
 
-export { SwitchbotDevice }
+export { LogLevel, SwitchbotDevice }
