@@ -284,6 +284,17 @@ export type hub2ServiceData = serviceData & {
   lightLevel: number
 }
 
+export type hub3ServiceData = serviceData & {
+  model: SwitchBotBLEModel.Hub3
+  modelName: SwitchBotBLEModelName.Hub3
+  modelFriendlyName: SwitchBotBLEModelFriendlyName.Hub3
+  celsius: number
+  fahrenheit: number
+  fahrenheit_mode: boolean
+  humidity: number
+  lightLevel: number
+}
+
 export type batteryCirculatorFanServiceData = serviceData & {
   model: SwitchBotBLEModel.Unknown
   modelName: SwitchBotBLEModelName.Unknown

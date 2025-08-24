@@ -35,6 +35,8 @@ export type curtain3 = device & {
 
 export type hub2 = device & {}
 
+export type hub3 = device & {}
+
 export type meter = device & {}
 
 export type meterPlus = device & {}

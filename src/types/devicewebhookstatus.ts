@@ -223,6 +223,13 @@ export type hub2WebhookContext = deviceWebhookContext & {
   scale: 'CELSIUS' | 'FAHRENHEIT'
 }
 
+export type hub3WebhookContext = deviceWebhookContext & {
+  temperature: number
+  humidity: number
+  lightLevel: number
+  scale: 'CELSIUS' | 'FAHRENHEIT'
+}
+
 export type batteryCirculatorFanWebhookContext = deviceWebhookContext & {
   mode: 'direct' | 'natural' | 'sleep' | 'baby'
   version: string

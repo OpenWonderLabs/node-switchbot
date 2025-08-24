@@ -192,6 +192,12 @@ export type hub2Status = deviceStatus & {
   humidity: number
 }
 
+export type hub3Status = deviceStatus & {
+  temperature: number
+  lightLevel: number
+  humidity: number
+}
+
 export type batteryCirculatorFanStatus = deviceStatus & {
   mode: 'direct' | 'natural' | 'sleep' | 'baby'
   version: string
