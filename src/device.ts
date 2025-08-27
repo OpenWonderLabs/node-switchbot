@@ -2,24 +2,90 @@
  *
  * device.ts: Switchbot BLE API registration.
  */
-import type * as Noble from '@stoprocent/noble'
+import type { Characteristic, Noble, Peripheral, Service } from '@stoprocent/noble'
 
-import type { batteryCirculatorFanServiceData, blindTiltServiceData, botServiceData, ceilingLightProServiceData, ceilingLightServiceData, colorBulbServiceData, contactSensorServiceData, curtain3ServiceData, curtainServiceData, hub2ServiceData, humidifier2ServiceData, humidifierServiceData, keypadDetectorServiceData, lockProServiceData, lockServiceData, meterPlusServiceData, meterProCO2ServiceData, meterProServiceData, meterServiceData, motionSensorServiceData, outdoorMeterServiceData, plugMiniJPServiceData, plugMiniUSServiceData, relaySwitch1PMServiceData, relaySwitch1ServiceData, remoteServiceData, robotVacuumCleanerServiceData, stripLightServiceData, waterLeakDetectorServiceData } from './types/bledevicestatus.js'
+import type { airPurifierServiceData, airPurifierTableServiceData, batteryCirculatorFanServiceData, blindTiltServiceData, botServiceData, ceilingLightProServiceData, ceilingLightServiceData, colorBulbServiceData, contactSensorServiceData, curtain3ServiceData, curtainServiceData, hub2ServiceData, hub3ServiceData, humidifier2ServiceData, humidifierServiceData, keypadDetectorServiceData, lockProServiceData, lockServiceData, meterPlusServiceData, meterProCO2ServiceData, meterProServiceData, meterServiceData, motionSensorServiceData, outdoorMeterServiceData, plugMiniJPServiceData, plugMiniUSServiceData, relaySwitch1PMServiceData, relaySwitch1ServiceData, remoteServiceData, robotVacuumCleanerServiceData, stripLightServiceData, waterLeakDetectorServiceData } from './types/ble.js'
 
 import { Buffer } from 'node:buffer'
 import * as Crypto from 'node:crypto'
 import { EventEmitter } from 'node:events'
 
-import { parameterChecker } from './parameter-checker.js'
 import { CHAR_UUID_DEVICE, CHAR_UUID_NOTIFY, CHAR_UUID_WRITE, READ_TIMEOUT_MSEC, SERV_UUID_PRIMARY, WoSmartLockCommands, WoSmartLockProCommands, WRITE_TIMEOUT_MSEC } from './settings.js'
 
-const HUMIDIFIER_COMMAND_HEADER = '5701'
-const TURN_ON_KEY = `${HUMIDIFIER_COMMAND_HEADER}0101`
-const TURN_OFF_KEY = `${HUMIDIFIER_COMMAND_HEADER}0102`
-const INCREASE_KEY = `${HUMIDIFIER_COMMAND_HEADER}0103`
-const DECREASE_KEY = `${HUMIDIFIER_COMMAND_HEADER}0104`
-const SET_AUTO_MODE_KEY = `${HUMIDIFIER_COMMAND_HEADER}0105`
-const SET_MANUAL_MODE_KEY = `${HUMIDIFIER_COMMAND_HEADER}0106`
+/**
+ * Command constants for various SwitchBot devices.
+ * Using readonly arrays to ensure immutability and better type safety.
+ */
+const DEVICE_COMMANDS = {
+  BLIND_TILT: {
+    OPEN: [0x57, 0x0F, 0x45, 0x01, 0x05, 0xFF, 0x32] as const,
+    CLOSE_UP: [0x57, 0x0F, 0x45, 0x01, 0x05, 0xFF, 0x64] as const,
+    CLOSE_DOWN: [0x57, 0x0F, 0x45, 0x01, 0x05, 0xFF, 0x00] as const,
+    PAUSE: [0x57, 0x0F, 0x45, 0x01, 0x00, 0xFF] as const,
+  },
+  BULB: {
+    BASE: [0x57, 0x0F, 0x47, 0x01] as const,
+    READ_STATE: [0x57, 0x0F, 0x48, 0x01] as const,
+    TURN_ON: [0x01, 0x01] as const,
+    TURN_OFF: [0x01, 0x02] as const,
+    SET_BRIGHTNESS: [0x02, 0x14] as const,
+    SET_COLOR_TEMP: [0x02, 0x17] as const,
+    SET_RGB: [0x02, 0x12] as const,
+  },
+  HUMIDIFIER: {
+    HEADER: '5701' as const,
+    TURN_ON: '570101' as const,
+    TURN_OFF: '570102' as const,
+    INCREASE: '570103' as const,
+    DECREASE: '570104' as const,
+    SET_AUTO_MODE: '570105' as const,
+    SET_MANUAL_MODE: '570106' as const,
+  },
+  AIR_PURIFIER: {
+    TURN_ON: [0x57, 0x01, 0x01] as const,
+    TURN_OFF: [0x57, 0x01, 0x02] as const,
+    SET_MODE: [0x57, 0x02] as const,
+    SET_SPEED: [0x57, 0x03] as const,
+  },
+  // Common commands used across multiple devices
+  COMMON: {
+    POWER_ON: [0x57, 0x01, 0x01] as const,
+    POWER_OFF: [0x57, 0x01, 0x02] as const,
+  },
+} as const
+
+/**
+ * Air quality level constants for air purifier devices.
+ */
+const AIR_QUALITY_LEVELS = {
+  EXCELLENT: 'excellent',
+  GOOD: 'good',
+  FAIR: 'fair',
+  POOR: 'poor',
+} as const
+
+/**
+ * Air purifier mode constants.
+ */
+const AIR_PURIFIER_MODES = {
+  MANUAL: 'manual',
+  AUTO: 'auto',
+  SLEEP: 'sleep',
+  LEVEL_1: 'level_1',
+  LEVEL_2: 'level_2',
+  LEVEL_3: 'level_3',
+} as const
+
+// Legacy constants for backward compatibility
+const BLIND_TILT_COMMANDS = DEVICE_COMMANDS.BLIND_TILT
+const BULB_COMMANDS = DEVICE_COMMANDS.BULB
+const HUMIDIFIER_COMMAND_HEADER = DEVICE_COMMANDS.HUMIDIFIER.HEADER
+const TURN_ON_KEY = DEVICE_COMMANDS.HUMIDIFIER.TURN_ON
+const TURN_OFF_KEY = DEVICE_COMMANDS.HUMIDIFIER.TURN_OFF
+const INCREASE_KEY = DEVICE_COMMANDS.HUMIDIFIER.INCREASE
+const DECREASE_KEY = DEVICE_COMMANDS.HUMIDIFIER.DECREASE
+const SET_AUTO_MODE_KEY = DEVICE_COMMANDS.HUMIDIFIER.SET_AUTO_MODE
+const SET_MANUAL_MODE_KEY = DEVICE_COMMANDS.HUMIDIFIER.SET_MANUAL_MODE
 
 export type MacAddress = string
 
@@ -27,7 +93,7 @@ export interface ad {
   id: string
   address: string
   rssi: number
-  serviceData: botServiceData | colorBulbServiceData | contactSensorServiceData | curtainServiceData | curtain3ServiceData | stripLightServiceData | lockServiceData | lockProServiceData | meterServiceData | meterPlusServiceData | meterProServiceData | meterProCO2ServiceData | motionSensorServiceData | outdoorMeterServiceData | plugMiniUSServiceData | plugMiniJPServiceData | blindTiltServiceData | ceilingLightServiceData | ceilingLightProServiceData | hub2ServiceData | batteryCirculatorFanServiceData | waterLeakDetectorServiceData | humidifierServiceData | humidifier2ServiceData | robotVacuumCleanerServiceData | keypadDetectorServiceData | relaySwitch1PMServiceData | relaySwitch1ServiceData | remoteServiceData
+  serviceData: airPurifierServiceData | airPurifierTableServiceData | botServiceData | colorBulbServiceData | contactSensorServiceData | curtainServiceData | curtain3ServiceData | stripLightServiceData | lockServiceData | lockProServiceData | meterServiceData | meterPlusServiceData | meterProServiceData | meterProCO2ServiceData | motionSensorServiceData | outdoorMeterServiceData | plugMiniUSServiceData | plugMiniJPServiceData | blindTiltServiceData | ceilingLightServiceData | ceilingLightProServiceData | hub2ServiceData | hub3ServiceData | batteryCirculatorFanServiceData | waterLeakDetectorServiceData | humidifierServiceData | humidifier2ServiceData | robotVacuumCleanerServiceData | keypadDetectorServiceData | relaySwitch1PMServiceData | relaySwitch1ServiceData | remoteServiceData
   [key: string]: unknown
 }
 
@@ -52,6 +118,7 @@ export declare interface SwitchBotBLEDevice {
   MeterPro: DeviceInfo
   MeterProCO2: DeviceInfo
   Hub2: DeviceInfo
+  Hub3: DeviceInfo
   OutdoorMeter: DeviceInfo
   MotionSensor: DeviceInfo
   ContactSensor: DeviceInfo
@@ -65,12 +132,15 @@ export declare interface SwitchBotBLEDevice {
   CeilingLightPro: DeviceInfo
   BlindTilt: DeviceInfo
   Unknown: DeviceInfo
+  AirPurifier: DeviceInfo
+  AirPurifierTable: DeviceInfo
 }
 
 export enum SwitchBotModel {
   HubMini = 'W0202200',
   HubPlus = 'SwitchBot Hub S1',
   Hub2 = 'W3202100',
+  Hub3 = 'W3302100',
   Bot = 'SwitchBot S1',
   Curtain = 'W0701600',
   Curtain3 = 'W2400000',
@@ -114,6 +184,8 @@ export enum SwitchBotModel {
   RelaySwitch1 = 'W5502300',
   RelaySwitch1PM = 'W5502310',
   Unknown = 'Unknown',
+  AirPurifier = 'W5302300',
+  AirPurifierTable = 'W5302310',
 }
 
 export enum SwitchBotBLEModel {
@@ -127,6 +199,7 @@ export enum SwitchBotBLEModel {
   MeterPro = '4',
   MeterProCO2 = '5',
   Hub2 = 'v',
+  Hub3 = 'V',
   OutdoorMeter = 'w',
   MotionSensor = 's',
   ContactSensor = 'd',
@@ -145,11 +218,14 @@ export enum SwitchBotBLEModel {
   RelaySwitch1PM = '<',
   Remote = 'b',
   Unknown = 'Unknown',
+  AirPurifier = '+',
+  AirPurifierTable = '7',
 }
 
 export enum SwitchBotBLEModelName {
   Bot = 'WoHand',
   Hub2 = 'WoHub2',
+  Hub3 = 'WoHub3',
   ColorBulb = 'WoBulb',
   Curtain = 'WoCurtain',
   Curtain3 = 'WoCurtain3',
@@ -174,12 +250,15 @@ export enum SwitchBotBLEModelName {
   RelaySwitch1 = 'WoRelaySwitch1Plus',
   RelaySwitch1PM = 'WoRelaySwitch1PM',
   Remote = 'WoRemote',
+  AirPurifier = 'WoAirPurifier',
+  AirPurifierTable = 'WoAirPurifierTable',
   Unknown = 'Unknown',
 }
 
 export enum SwitchBotBLEModelFriendlyName {
   Bot = 'Bot',
   Hub2 = 'Hub 2',
+  Hub3 = 'Hub 3',
   ColorBulb = 'Color Bulb',
   Curtain = 'Curtain',
   Curtain3 = 'Curtain 3',
@@ -206,7 +285,13 @@ export enum SwitchBotBLEModelFriendlyName {
   RelaySwitch1 = 'Relay Switch 1',
   RelaySwitch1PM = 'Relay Switch 1PM',
   Remote = 'Remote',
+  AirPurifier = 'Air Purifier',
+  AirPurifierTable = 'Air Purifier Table',
   Unknown = 'Unknown',
+  AirPurifierVOC = 'Air Purifier VOC',
+  AirPurifierTableVOC = 'Air Purifier Table VOC',
+  AirPurifierPM2_5 = 'Air Purifier PM2.5',
+  AirPurifierTablePM2_5 = 'Air Purifier Table PM2.5',
 }
 
 export interface Params {
@@ -214,7 +299,7 @@ export interface Params {
   model?: string
   id?: string
   quick?: boolean
-  noble?: typeof Noble
+  noble?: Noble
 }
 
 export interface ErrorObject {
@@ -223,15 +308,14 @@ export interface ErrorObject {
 }
 
 export interface Chars {
-  write: Noble.Characteristic | null
-  notify: Noble.Characteristic | null
-  device: Noble.Characteristic | null
+  write: Characteristic | null
+  notify: Characteristic | null
+  device: Characteristic | null
 }
 
 export interface NobleTypes {
-  noble: typeof Noble
-  state: 'unknown' | 'resetting' | 'unsupported' | 'unauthorized' | 'poweredOff' | 'poweredOn'
-  peripheral: Noble.Peripheral
+  noble: Noble
+  peripheral: Peripheral
 }
 
 export interface ServiceData {
@@ -270,10 +354,207 @@ export enum LogLevel {
 }
 
 /**
+ * Utility class for comprehensive input validation with improved error messages.
+ */
+export class ValidationUtils {
+  /**
+   * Validates percentage value (0-100).
+   * @param value - The value to validate
+   * @param paramName - The parameter name for error reporting
+   * @throws {RangeError} When value is not within valid range
+   * @throws {TypeError} When value is not a number
+   */
+  static validatePercentage(value: number, paramName: string = 'value'): void {
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+      throw new TypeError(`${paramName} must be a valid number, got: ${value}`)
+    }
+    if (value < 0 || value > 100) {
+      throw new RangeError(`${paramName} must be between 0 and 100 inclusive, got: ${value}`)
+    }
+  }
+
+  /**
+   * Validates RGB color value (0-255).
+   * @param value - The color value to validate
+   * @param colorName - The color name for error reporting
+   * @throws {RangeError} When value is not within valid range
+   * @throws {TypeError} When value is not a number
+   */
+  static validateRGB(value: number, colorName: string = 'color'): void {
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+      throw new TypeError(`${colorName} must be a valid number, got: ${value}`)
+    }
+    if (!Number.isInteger(value) || value < 0 || value > 255) {
+      throw new RangeError(`${colorName} must be an integer between 0 and 255 inclusive, got: ${value}`)
+    }
+  }
+
+  /**
+   * Validates buffer and throws descriptive error.
+   * @param buffer - The buffer to validate
+   * @param expectedLength - Optional expected length
+   * @param paramName - The parameter name for error reporting
+   * @throws {TypeError} When buffer is not a Buffer
+   * @throws {RangeError} When buffer length doesn't match expected
+   */
+  static validateBuffer(buffer: any, expectedLength?: number, paramName: string = 'buffer'): asserts buffer is Buffer {
+    if (!Buffer.isBuffer(buffer)) {
+      throw new TypeError(`${paramName} must be a Buffer instance, got: ${typeof buffer}`)
+    }
+    if (expectedLength !== undefined && buffer.length !== expectedLength) {
+      throw new RangeError(`${paramName} must have exactly ${expectedLength} bytes, got: ${buffer.length} bytes`)
+    }
+  }
+
+  /**
+   * Validates string input with comprehensive checks.
+   * @param value - The value to validate
+   * @param paramName - The parameter name for error reporting
+   * @param minLength - Minimum required length
+   * @param maxLength - Optional maximum length
+   * @throws {TypeError} When value is not a string
+   * @throws {RangeError} When string length is invalid
+   */
+  static validateString(
+    value: any,
+    paramName: string = 'value',
+    minLength: number = 1,
+    maxLength?: number,
+  ): asserts value is string {
+    if (typeof value !== 'string') {
+      throw new TypeError(`${paramName} must be a string, got: ${typeof value}`)
+    }
+    if (value.length < minLength) {
+      throw new RangeError(`${paramName} must have at least ${minLength} character(s), got: ${value.length}`)
+    }
+    if (maxLength !== undefined && value.length > maxLength) {
+      throw new RangeError(`${paramName} must have at most ${maxLength} character(s), got: ${value.length}`)
+    }
+  }
+
+  /**
+   * Validates numeric range with enhanced checks.
+   * @param value - The value to validate
+   * @param min - Minimum allowed value
+   * @param max - Maximum allowed value
+   * @param paramName - The parameter name for error reporting
+   * @param mustBeInteger - Whether the value must be an integer
+   * @throws {TypeError} When value is not a number
+   * @throws {RangeError} When value is outside valid range
+   */
+  static validateRange(
+    value: number,
+    min: number,
+    max: number,
+    paramName: string = 'value',
+    mustBeInteger: boolean = false,
+  ): void {
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+      throw new TypeError(`${paramName} must be a valid number, got: ${value}`)
+    }
+    if (mustBeInteger && !Number.isInteger(value)) {
+      throw new TypeError(`${paramName} must be an integer, got: ${value}`)
+    }
+    if (value < min || value > max) {
+      throw new RangeError(`${paramName} must be between ${min} and ${max} inclusive, got: ${value}`)
+    }
+  }
+
+  /**
+   * Validates MAC address format.
+   * @param address - The MAC address to validate
+   * @param paramName - The parameter name for error reporting
+   * @throws {TypeError} When address is not a string
+   * @throws {Error} When address format is invalid
+   */
+  static validateMacAddress(address: any, paramName: string = 'address'): asserts address is string {
+    if (typeof address !== 'string') {
+      throw new TypeError(`${paramName} must be a string`)
+    }
+    const macRegex = /^(?:[0-9A-F]{2}[:-]){5}[0-9A-F]{2}$|^[0-9A-F]{12}$/i
+    if (!macRegex.test(address)) {
+      throw new Error(`${paramName} must be a valid MAC address format, got: ${address}`)
+    }
+  }
+
+  /**
+   * Validates that a value is one of the allowed enum values.
+   * @param value - The value to validate
+   * @param allowedValues - Array of allowed values
+   * @param paramName - The parameter name for error reporting
+   * @throws {Error} When value is not in allowed values
+   */
+  static validateEnum<T>(value: any, allowedValues: readonly T[], paramName: string = 'value'): asserts value is T {
+    if (!allowedValues.includes(value)) {
+      throw new Error(`${paramName} must be one of: ${allowedValues.join(', ')}, got: ${value}`)
+    }
+  }
+}
+
+/**
+ * Enhanced error handling utilities.
+ */
+export class ErrorUtils {
+  /**
+   * Creates a timeout error with context.
+   * @param operation - The operation that timed out
+   * @param timeoutMs - The timeout duration in milliseconds
+   * @returns A descriptive timeout error
+   */
+  static createTimeoutError(operation: string, timeoutMs: number): Error {
+    return new Error(`Operation '${operation}' timed out after ${timeoutMs}ms`)
+  }
+
+  /**
+   * Creates a connection error with context.
+   * @param deviceId - The device ID that failed to connect
+   * @param cause - The underlying cause of the connection failure
+   * @returns A descriptive connection error
+   */
+  static createConnectionError(deviceId: string, cause?: Error): Error {
+    const message = `Failed to connect to device ${deviceId}`
+    return cause ? new Error(`${message}: ${cause.message}`) : new Error(message)
+  }
+
+  /**
+   * Creates a command error with context.
+   * @param command - The command that failed
+   * @param deviceId - The device ID
+   * @param cause - The underlying cause
+   * @returns A descriptive command error
+   */
+  static createCommandError(command: string, deviceId: string, cause?: Error): Error {
+    const message = `Command '${command}' failed for device ${deviceId}`
+    return cause ? new Error(`${message}: ${cause.message}`) : new Error(message)
+  }
+
+  /**
+   * Wraps an async operation with timeout and enhanced error handling.
+   * @param operation - The async operation to wrap
+   * @param timeoutMs - Timeout in milliseconds
+   * @param operationName - Name of the operation for error messages
+   * @returns Promise that resolves with the operation result or rejects with timeout
+   */
+  static async withTimeout<T>(
+    operation: Promise<T>,
+    timeoutMs: number,
+    operationName: string,
+  ): Promise<T> {
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(this.createTimeoutError(operationName, timeoutMs))
+      }, timeoutMs)
+    })
+
+    return Promise.race([operation, timeoutPromise])
+  }
+}
+
+/**
  * Represents a Switchbot Device.
  */
 export class SwitchbotDevice extends EventEmitter {
-  private noble: NobleTypes['noble']
+  private noble: Noble
   private peripheral: NobleTypes['peripheral']
   private characteristics: Chars | null = null
   private deviceId!: string
@@ -283,16 +564,16 @@ export class SwitchbotDevice extends EventEmitter {
   private deviceFriendlyName!: SwitchBotBLEModelFriendlyName
   private explicitlyConnected = false
   private isConnected = false
-  private onNotify: (buf: Buffer) => void = () => {}
-  private onDisconnect: () => Promise<void> = async () => {}
-  private onConnect: () => Promise<void> = async () => {}
+  private onNotify: (buf: Buffer) => void = () => { }
+  private onDisconnect: () => Promise<void> = async () => { }
+  private onConnect: () => Promise<void> = async () => { }
 
   /**
    * Initializes a new instance of the SwitchbotDevice class.
    * @param peripheral The peripheral object from noble.
    * @param noble The Noble object.
    */
-  constructor(peripheral: NobleTypes['peripheral'], noble: NobleTypes['noble']) {
+  constructor(peripheral: NobleTypes['peripheral'], noble: Noble) {
     super()
     this.peripheral = peripheral
     this.noble = noble
@@ -380,8 +661,8 @@ export class SwitchbotDevice extends EventEmitter {
    * @returns A Promise that resolves when the connection is complete.
    */
   public async internalConnect(): Promise<void> {
-    if (this.noble._state !== 'poweredOn') {
-      throw new Error(`The Bluetooth status is ${this.noble._state}, not poweredOn.`)
+    if (this.noble.state !== 'poweredOn') {
+      throw new Error(`The Bluetooth status is ${this.noble.state}, not poweredOn.`)
     }
 
     const state = this.connectionState
@@ -423,7 +704,7 @@ export class SwitchbotDevice extends EventEmitter {
     })
 
     try {
-      const services = await Promise.race([this.discoverServices(), timeoutPromise]) as Noble.Service[]
+      const services = await Promise.race([this.discoverServices(), timeoutPromise]) as NobleTypes['peripheral']['services']
       const chars: Chars = { write: null, notify: null, device: null }
 
       for (const service of services) {
@@ -455,7 +736,7 @@ export class SwitchbotDevice extends EventEmitter {
    * Discovers the device services.
    * @returns A Promise that resolves with the list of services.
    */
-  public async discoverServices(): Promise<Noble.Service[]> {
+  public async discoverServices(): Promise<NobleTypes['peripheral']['services']> {
     try {
       const services = await this.peripheral.discoverServicesAsync([])
       const primaryServices = services.filter(s => s.uuid === SERV_UUID_PRIMARY)
@@ -474,8 +755,9 @@ export class SwitchbotDevice extends EventEmitter {
    * @param service The service to discover characteristics for.
    * @returns A Promise that resolves with the list of characteristics.
    */
-  private async discoverCharacteristics(service: Noble.Service): Promise<Noble.Characteristic[]> {
-    return await service.discoverCharacteristicsAsync([])
+  // Discover characteristics without extra async/await
+  private discoverCharacteristics(service: Service): Promise<Characteristic[]> {
+    return service.discoverCharacteristicsAsync([])
   }
 
   /**
@@ -540,12 +822,18 @@ export class SwitchbotDevice extends EventEmitter {
    */
   async getDeviceName(): Promise<string> {
     await this.internalConnect()
-    if (!this.characteristics?.device) {
-      throw new Error(`The device does not support the characteristic UUID 0x${CHAR_UUID_DEVICE}.`)
+    try {
+      if (!this.characteristics?.device) {
+        throw new Error(`Characteristic ${CHAR_UUID_DEVICE} not supported`)
+      }
+      const buf = await this.readCharacteristic(this.characteristics.device)
+      return buf.toString('utf8')
+    } catch (error: any) {
+      const deviceContext = `device ${this.deviceId || 'unknown'}`
+      throw ErrorUtils.createCommandError('getDeviceName', deviceContext, error)
+    } finally {
+      await this.internalDisconnect()
     }
-    const buf = await this.readCharacteristic(this.characteristics.device)
-    await this.internalDisconnect()
-    return buf.toString('utf8')
   }
 
   /**
@@ -554,23 +842,26 @@ export class SwitchbotDevice extends EventEmitter {
    * @returns A Promise that resolves when the name is set.
    */
   async setDeviceName(name: string): Promise<void> {
-    const valid = parameterChecker.check(
-      { name },
-      { name: { required: true, type: 'string', minBytes: 1, maxBytes: 100 } },
-      true,
-    )
+    ValidationUtils.validateString(name, 'name', 1)
 
-    if (!valid) {
-      throw new Error(parameterChecker.error!.message)
+    // Additional validation for device name length
+    const nameBuffer = Buffer.from(name, 'utf8')
+    if (nameBuffer.length > 100) {
+      throw new RangeError('Device name cannot exceed 100 bytes when encoded as UTF-8')
     }
 
-    const buf = Buffer.from(name, 'utf8')
     await this.internalConnect()
-    if (!this.characteristics?.device) {
-      throw new Error(`The device does not support the characteristic UUID 0x${CHAR_UUID_DEVICE}.`)
+    try {
+      if (!this.characteristics?.device) {
+        throw new Error(`Characteristic ${CHAR_UUID_DEVICE} not supported`)
+      }
+      await this.writeCharacteristic(this.characteristics.device, nameBuffer)
+    } catch (error: any) {
+      const deviceContext = `device ${this.deviceId || 'unknown'}`
+      throw ErrorUtils.createCommandError('setDeviceName', deviceContext, error)
+    } finally {
+      await this.internalDisconnect()
     }
-    await this.writeCharacteristic(this.characteristics.device, buf)
-    await this.internalDisconnect()
   }
 
   /**
@@ -579,20 +870,24 @@ export class SwitchbotDevice extends EventEmitter {
    * @returns A Promise that resolves with the response buffer.
    */
   async command(reqBuf: Buffer): Promise<Buffer> {
-    if (!Buffer.isBuffer(reqBuf)) {
-      throw new TypeError('The specified data is not acceptable for writing.')
-    }
+    ValidationUtils.validateBuffer(reqBuf, undefined, 'reqBuf')
 
     await this.internalConnect()
     if (!this.characteristics?.write) {
-      throw new Error('No characteristics available.')
+      throw new Error('No write characteristic available for command execution')
     }
 
-    await this.writeCharacteristic(this.characteristics.write, reqBuf)
-    const resBuf = await this.waitForCommandResponse()
-    await this.internalDisconnect()
-
-    return resBuf
+    try {
+      await this.writeCharacteristic(this.characteristics.write, reqBuf)
+      const resBuf = await this.waitForCommandResponse()
+      return resBuf
+    } catch (error: any) {
+      const deviceContext = `device ${this.deviceId || 'unknown'}`
+      // Use ErrorUtils for enriched error context
+      throw ErrorUtils.createCommandError('execute command', deviceContext, error)
+    } finally {
+      await this.internalDisconnect()
+    }
   }
 
   /**
@@ -620,42 +915,41 @@ export class SwitchbotDevice extends EventEmitter {
   }
 
   /**
-   * Reads data from a characteristic with a timeout.
+   * Reads data from a characteristic with enhanced timeout and error handling.
    * @param char The characteristic to read from.
    * @returns A Promise that resolves with the data buffer.
    */
-  private async readCharacteristic(char: Noble.Characteristic): Promise<Buffer> {
-    const timer = setTimeout(() => {
-      throw new Error('READ_TIMEOUT')
-    }, READ_TIMEOUT_MSEC)
-
+  private async readCharacteristic(char: Characteristic): Promise<Buffer> {
     try {
-      const result = await char.readAsync()
-      clearTimeout(timer)
-      return result
+      return await ErrorUtils.withTimeout(
+        char.readAsync(),
+        READ_TIMEOUT_MSEC,
+        `read characteristic ${char.uuid}`,
+      )
     } catch (error) {
-      clearTimeout(timer)
-      throw error
+      const deviceContext = `device ${this.deviceId || 'unknown'}`
+      throw ErrorUtils.createCommandError(`read characteristic ${char.uuid}`, deviceContext, error as Error)
     }
   }
 
   /**
-   * Writes data to a characteristic with a timeout.
+   * Writes data to a characteristic with enhanced timeout and error handling.
    * @param char The characteristic to write to.
    * @param buf The data buffer.
    * @returns A Promise that resolves when the write is complete.
    */
-  private async writeCharacteristic(char: Noble.Characteristic, buf: Buffer): Promise<void> {
-    const timer = setTimeout(() => {
-      throw new Error('WRITE_TIMEOUT')
-    }, WRITE_TIMEOUT_MSEC)
+  private async writeCharacteristic(char: Characteristic, buf: Buffer): Promise<void> {
+    ValidationUtils.validateBuffer(buf, undefined, 'write buffer')
 
     try {
-      await char.writeAsync(buf, false)
-      clearTimeout(timer)
+      return await ErrorUtils.withTimeout(
+        char.writeAsync(buf, false),
+        WRITE_TIMEOUT_MSEC,
+        `write to characteristic ${char.uuid}`,
+      )
     } catch (error) {
-      clearTimeout(timer)
-      throw error
+      const deviceContext = `device ${this.deviceId || 'unknown'}`
+      throw ErrorUtils.createCommandError(`write to characteristic ${char.uuid}`, deviceContext, error as Error)
     }
   }
 }
@@ -664,7 +958,7 @@ export class SwitchbotDevice extends EventEmitter {
  * Represents the advertising data parser for SwitchBot devices.
  */
 export class Advertising {
-  constructor() {}
+  constructor() { }
 
   /**
    * Parses the advertisement data coming from SwitchBot device.
@@ -720,10 +1014,11 @@ export class Advertising {
    * Validates if the buffer is a valid Buffer object with a minimum length.
    *
    * @param {any} buffer - The buffer to validate.
+   * @param {number} minLength - The minimum required length.
    * @returns {boolean} - True if the buffer is valid, false otherwise.
    */
-  private static validateBuffer(buffer: any): boolean {
-    return buffer && Buffer.isBuffer(buffer) && buffer.length >= 3
+  private static validateBuffer(buffer: any, minLength: number = 3): boolean {
+    return buffer && Buffer.isBuffer(buffer) && buffer.length >= minLength
   }
 
   /**
@@ -761,8 +1056,14 @@ export class Advertising {
         return WoSensorTHProCO2.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.Hub2:
         return WoHub2.parseServiceData(manufacturerData, emitLog)
+      case SwitchBotBLEModel.Hub3:
+        return WoHub3.parseServiceData(manufacturerData, emitLog)
       case SwitchBotBLEModel.OutdoorMeter:
         return WoIOSensorTH.parseServiceData(serviceData, manufacturerData, emitLog)
+      case SwitchBotBLEModel.AirPurifier:
+        return WoAirPurifier.parseServiceData(serviceData, manufacturerData, emitLog)
+      case SwitchBotBLEModel.AirPurifierTable:
+        return WoAirPurifierTable.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.MotionSensor:
         return WoPresence.parseServiceData(serviceData, emitLog)
       case SwitchBotBLEModel.ContactSensor:
@@ -879,7 +1180,7 @@ export class WoBlindTilt extends SwitchbotDevice {
    * @returns {Promise<void>}
    */
   async open(): Promise<void> {
-    await this.operateBlindTilt([0x57, 0x0F, 0x45, 0x01, 0x05, 0xFF, 0x32])
+    await this.operateBlindTilt([...BLIND_TILT_COMMANDS.OPEN])
   }
 
   /**
@@ -887,7 +1188,7 @@ export class WoBlindTilt extends SwitchbotDevice {
    * @returns {Promise<void>}
    */
   async closeUp(): Promise<void> {
-    await this.operateBlindTilt([0x57, 0x0F, 0x45, 0x01, 0x05, 0xFF, 0x64])
+    await this.operateBlindTilt([...BLIND_TILT_COMMANDS.CLOSE_UP])
   }
 
   /**
@@ -895,7 +1196,7 @@ export class WoBlindTilt extends SwitchbotDevice {
    * @returns {Promise<void>}
    */
   async closeDown(): Promise<void> {
-    await this.operateBlindTilt([0x57, 0x0F, 0x45, 0x01, 0x05, 0xFF, 0x00])
+    await this.operateBlindTilt([...BLIND_TILT_COMMANDS.CLOSE_DOWN])
   }
 
   /**
@@ -985,7 +1286,7 @@ export class WoBlindTilt extends SwitchbotDevice {
    * @returns {Promise<void>}
    */
   async pause(): Promise<void> {
-    await this.operateBlindTilt([0x57, 0x0F, 0x45, 0x01, 0x00, 0xFF])
+    await this.operateBlindTilt([...BLIND_TILT_COMMANDS.PAUSE])
   }
 
   /**
@@ -995,13 +1296,11 @@ export class WoBlindTilt extends SwitchbotDevice {
    * @returns {Promise<void>}
    */
   async runToPos(percent: number, mode: number): Promise<void> {
-    if (typeof percent !== 'number' || percent < 0 || percent > 100) {
-      throw new RangeError('Percent must be a number between 0 and 100')
-    }
-    if (typeof mode !== 'number' || mode < 0 || mode > 1) {
-      throw new RangeError('Mode must be a number between 0 and 1')
-    }
-    await this.operateBlindTilt([0x57, 0x0F, 0x45, 0x01, 0x05, mode, percent])
+    ValidationUtils.validatePercentage(percent, 'percent')
+    ValidationUtils.validateRange(mode, 0, 1, 'mode', true)
+
+    const adjustedPercent = this.reverse ? 100 - percent : percent
+    await this.operateBlindTilt([0x57, 0x0F, 0x45, 0x01, 0x05, mode, adjustedPercent])
   }
 
   /**
@@ -1088,7 +1387,7 @@ export class WoBulb extends SwitchbotDevice {
    * @returns {Promise<boolean>} - Resolves with a boolean indicating whether the bulb is ON (true) or OFF (false).
    */
   async readState(): Promise<boolean> {
-    return this.operateBulb([0x57, 0x0F, 0x48, 0x01])
+    return this.operateBulb([...BULB_COMMANDS.READ_STATE])
   }
 
   /**
@@ -1098,8 +1397,7 @@ export class WoBulb extends SwitchbotDevice {
    * @private
    */
   public async setState(reqByteArray: number[]): Promise<boolean> {
-    const base = [0x57, 0x0F, 0x47, 0x01]
-    return this.operateBulb(base.concat(reqByteArray))
+    return this.operateBulb([...BULB_COMMANDS.BASE, ...reqByteArray])
   }
 
   /**
@@ -1107,7 +1405,7 @@ export class WoBulb extends SwitchbotDevice {
    * @returns {Promise<boolean>} - Resolves with a boolean indicating whether the bulb is ON (true).
    */
   async turnOn(): Promise<boolean> {
-    return this.setState([0x01, 0x01])
+    return this.setState([...BULB_COMMANDS.TURN_ON])
   }
 
   /**
@@ -1115,7 +1413,7 @@ export class WoBulb extends SwitchbotDevice {
    * @returns {Promise<boolean>} - Resolves with a boolean indicating whether the bulb is OFF (false).
    */
   async turnOff(): Promise<boolean> {
-    return this.setState([0x01, 0x02])
+    return this.setState([...BULB_COMMANDS.TURN_OFF])
   }
 
   /**
@@ -1124,10 +1422,8 @@ export class WoBulb extends SwitchbotDevice {
    * @returns {Promise<boolean>} - Resolves with a boolean indicating whether the operation was successful.
    */
   async setBrightness(brightness: number): Promise<boolean> {
-    if (brightness < 0 || brightness > 100) {
-      throw new RangeError('Brightness must be between 0 and 100')
-    }
-    return this.setState([0x02, 0x14, brightness])
+    ValidationUtils.validatePercentage(brightness, 'brightness')
+    return this.setState([...BULB_COMMANDS.SET_BRIGHTNESS, brightness])
   }
 
   /**
@@ -1136,10 +1432,8 @@ export class WoBulb extends SwitchbotDevice {
    * @returns {Promise<boolean>} - Resolves with a boolean indicating whether the operation was successful.
    */
   async setColorTemperature(color_temperature: number): Promise<boolean> {
-    if (color_temperature < 0 || color_temperature > 100) {
-      throw new RangeError('Color temperature must be between 0 and 100')
-    }
-    return this.setState([0x02, 0x17, color_temperature])
+    ValidationUtils.validatePercentage(color_temperature, 'color_temperature')
+    return this.setState([...BULB_COMMANDS.SET_COLOR_TEMP, color_temperature])
   }
 
   /**
@@ -1151,10 +1445,11 @@ export class WoBulb extends SwitchbotDevice {
    * @returns {Promise<boolean>} - Resolves with a boolean indicating whether the operation was successful.
    */
   async setRGB(brightness: number, red: number, green: number, blue: number): Promise<boolean> {
-    if (brightness < 0 || brightness > 100 || red < 0 || red > 255 || green < 0 || green > 255 || blue < 0 || blue > 255) {
-      throw new RangeError('Invalid RGB or brightness values')
-    }
-    return this.setState([0x02, 0x12, brightness, red, green, blue])
+    ValidationUtils.validatePercentage(brightness, 'brightness')
+    ValidationUtils.validateRGB(red, 'red')
+    ValidationUtils.validateRGB(green, 'green')
+    ValidationUtils.validateRGB(blue, 'blue')
+    return this.setState([...BULB_COMMANDS.SET_RGB, brightness, red, green, blue])
   }
 
   /**
@@ -1707,6 +2002,52 @@ export class WoHub2 extends SwitchbotDevice {
       model: SwitchBotBLEModel.Hub2,
       modelName: SwitchBotBLEModelName.Hub2,
       modelFriendlyName: SwitchBotBLEModelFriendlyName.Hub2,
+      celsius: tempC,
+      fahrenheit: tempF,
+      fahrenheit_mode: !!(byte2 & 0b10000000),
+      humidity: byte2 & 0b01111111,
+      lightLevel,
+    }
+
+    return data
+  }
+
+  constructor(peripheral: NobleTypes['peripheral'], noble: NobleTypes['noble']) {
+    super(peripheral, noble)
+  }
+}
+
+/**
+ * Class representing a WoHub3 device.
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/meter.md
+ */
+export class WoHub3 extends SwitchbotDevice {
+  /**
+   * Parses the service data for WoHub3.
+   * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
+   * @returns {Promise<hub3ServiceData | null>} - Parsed service data or null if invalid.
+   */
+  static async parseServiceData(
+    manufacturerData: Buffer,
+    emitLog: (level: string, message: string) => void,
+  ): Promise<hub3ServiceData | null> {
+    if (manufacturerData.length !== 16) {
+      emitLog('debugerror', `[parseServiceDataForWoHub3] Buffer length ${manufacturerData.length} !== 16!`)
+      return null
+    }
+
+    const [byte0, byte1, byte2, , , , , , , , , , byte12] = manufacturerData
+
+    const tempSign = byte1 & 0b10000000 ? 1 : -1
+    const tempC = tempSign * ((byte1 & 0b01111111) + (byte0 & 0b00001111) / 10)
+    const tempF = Math.round(((tempC * 9) / 5 + 32) * 10) / 10
+    const lightLevel = byte12 & 0b11111
+
+    const data: hub3ServiceData = {
+      model: SwitchBotBLEModel.Hub3,
+      modelName: SwitchBotBLEModelName.Hub3,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.Hub3,
       celsius: tempC,
       fahrenheit: tempF,
       fahrenheit_mode: !!(byte2 & 0b10000000),
@@ -2791,8 +3132,7 @@ export class WoSensorTHProCO2 extends SwitchbotDevice {
         battery: byte2 & 0b01111111,
         co2: byte6,
       } as meterProCO2ServiceData
-    }
-    else {
+    } else {
       const [mdByte10, mdByte11, mdByte12] = [
         manufacturerData.readUInt8(10),
         manufacturerData.readUInt8(11),
@@ -3299,6 +3639,7 @@ export class WoStrip extends SwitchbotDevice {
       red: byte3,
       green: byte4,
       blue: byte5,
+      color_temperature: 0, // Add a default value or extract from serviceData if available
       delay: byte8 & 0b10000000,
       preset: byte8 & 0b00001000,
       color_mode: byte8 & 0b00000111,
@@ -3388,6 +3729,306 @@ export class WoStrip extends SwitchbotDevice {
    * @returns {Promise<boolean>} - Resolves with true if the operation was successful.
    */
   public async operateStripLight(bytes: number[]): Promise<boolean> {
+    const req_buf = Buffer.from(bytes)
+    const res_buf = await this.command(req_buf)
+
+    if (res_buf.length !== 2) {
+      throw new Error(`Expecting a 2-byte response, got instead: 0x${res_buf.toString('hex')}`)
+    }
+
+    const code = res_buf.readUInt8(1)
+    if (code === 0x00 || code === 0x80) {
+      return code === 0x80
+    } else {
+      throw new Error(`The device returned an error: 0x${res_buf.toString('hex')}`)
+    }
+  }
+}
+
+/**
+ * Class representing a SwitchBot Air Purifier device.
+ * @extends SwitchbotDevice
+ */
+export class WoAirPurifier extends SwitchbotDevice {
+  /**
+   * Parses service data for air purifier devices.
+   * @param {Buffer | null} serviceData - The service data buffer.
+   * @param {Buffer | null} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
+   * @returns {airPurifierServiceData | null} - The parsed service data or null.
+   */
+  static parseServiceData(serviceData: Buffer | null, manufacturerData: Buffer | null, emitLog?: (level: string, message: string) => void): airPurifierServiceData | null {
+    if (!manufacturerData || manufacturerData.length < 14) {
+      return null
+    }
+
+    const deviceData = manufacturerData.subarray(6)
+
+    if (deviceData.length < 8) {
+      return null
+    }
+
+    const sequenceNumber = deviceData[0]
+    const isOn = Boolean(deviceData[1] & 0b10000000)
+    const mode = deviceData[1] & 0b00000111
+    const isAqiValid = Boolean(deviceData[2] & 0b00000100)
+    const childLock = Boolean(deviceData[2] & 0b00000010)
+    const speed = deviceData[3] & 0b01111111
+    const aqiLevelRaw = (deviceData[4] & 0b00000110) >> 1
+    const workTime = (deviceData[5] << 8) | deviceData[6]
+    const errCode = deviceData[7]
+
+    // Map AQI level to string using the defined constant
+    const aqiLevelValues = [
+      AIR_QUALITY_LEVELS.EXCELLENT,
+      AIR_QUALITY_LEVELS.GOOD,
+      AIR_QUALITY_LEVELS.FAIR,
+      AIR_QUALITY_LEVELS.POOR,
+    ]
+    const aqiLevel = aqiLevelValues[aqiLevelRaw] || 'unknown'
+
+    // Determine mode based on mode value and speed
+    let modeString: string | null = null
+    if (mode === 1) {
+      if (speed >= 0 && speed <= 33) {
+        modeString = AIR_PURIFIER_MODES.LEVEL_1
+      } else if (speed >= 34 && speed <= 66) {
+        modeString = AIR_PURIFIER_MODES.LEVEL_2
+      } else {
+        modeString = AIR_PURIFIER_MODES.LEVEL_3
+      }
+    } else if (mode > 1 && mode <= 4) {
+      const modeMap = [null, null, 'auto', 'sleep', 'manual']
+      modeString = modeMap[mode + 2] || null
+    }
+
+    if (emitLog) {
+      emitLog('debug', `Air Purifier Service Data: isOn=${isOn}, mode=${modeString}, speed=${speed}, AQI=${aqiLevel}`)
+    }
+
+    return {
+      model: SwitchBotBLEModel.AirPurifier,
+      modelName: SwitchBotBLEModelName.AirPurifier,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.AirPurifier,
+      isOn,
+      mode: modeString,
+      isAqiValid,
+      child_lock: childLock,
+      speed,
+      aqi_level: aqiLevel,
+      filter_element_working_time: workTime,
+      err_code: errCode,
+      sequence_number: sequenceNumber,
+    }
+  }
+
+  /**
+   * Sets the state of the air purifier.
+   * @param {number[]} reqByteArray - The request byte array.
+   * @returns {Promise<boolean>} - Resolves with a boolean indicating whether the operation was successful.
+   * @private
+   */
+  public async setState(reqByteArray: number[]): Promise<boolean> {
+    return this.operateAirPurifier(reqByteArray)
+  }
+
+  /**
+   * Turns the air purifier on.
+   * @returns {Promise<boolean>} - Resolves with true if the air purifier is turned on.
+   */
+  async turnOn(): Promise<boolean> {
+    return this.setState([...DEVICE_COMMANDS.AIR_PURIFIER.TURN_ON])
+  }
+
+  /**
+   * Turns the air purifier off.
+   * @returns {Promise<boolean>} - Resolves with true if the air purifier is turned off.
+   */
+  async turnOff(): Promise<boolean> {
+    return this.setState([...DEVICE_COMMANDS.AIR_PURIFIER.TURN_OFF])
+  }
+
+  /**
+   * Sets the speed of the air purifier.
+   * @param {number} speed - The speed value (0-100).
+   * @returns {Promise<boolean>} - Resolves with true if the operation was successful.
+   */
+  async setSpeed(speed: number): Promise<boolean> {
+    if (typeof speed !== 'number' || speed < 0 || speed > 100) {
+      throw new TypeError(`Invalid speed value: ${speed}`)
+    }
+    return this.setState([...DEVICE_COMMANDS.AIR_PURIFIER.SET_SPEED, speed])
+  }
+
+  /**
+   * Sets the mode of the air purifier.
+   * @param {number} mode - The mode value (1-4).
+   * @returns {Promise<boolean>} - Resolves with true if the operation was successful.
+   */
+  async setMode(mode: number): Promise<boolean> {
+    if (typeof mode !== 'number' || mode < 1 || mode > 4) {
+      throw new TypeError(`Invalid mode value: ${mode}`)
+    }
+    return this.setState([...DEVICE_COMMANDS.AIR_PURIFIER.SET_MODE, mode])
+  }
+
+  /**
+   * Operates the air purifier with the given byte array.
+   * @public
+   * @param {number[]} bytes - The byte array to send.
+   * @returns {Promise<boolean>} - Resolves with true if the operation was successful.
+   */
+  public async operateAirPurifier(bytes: number[]): Promise<boolean> {
+    const req_buf = Buffer.from(bytes)
+    const res_buf = await this.command(req_buf)
+
+    if (res_buf.length !== 2) {
+      throw new Error(`Expecting a 2-byte response, got instead: 0x${res_buf.toString('hex')}`)
+    }
+
+    const code = res_buf.readUInt8(1)
+    if (code === 0x00 || code === 0x80) {
+      return code === 0x80
+    } else {
+      throw new Error(`The device returned an error: 0x${res_buf.toString('hex')}`)
+    }
+  }
+}
+
+/**
+ * Class representing a SwitchBot Air Purifier Table device.
+ * @extends SwitchbotDevice
+ */
+export class WoAirPurifierTable extends SwitchbotDevice {
+  /**
+   * Parses service data for air purifier table devices.
+   * @param {Buffer | null} serviceData - The service data buffer.
+   * @param {Buffer | null} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
+   * @returns {airPurifierTableServiceData | null} - The parsed service data or null.
+   */
+  static parseServiceData(serviceData: Buffer | null, manufacturerData: Buffer | null, emitLog?: (level: string, message: string) => void): airPurifierTableServiceData | null {
+    if (!manufacturerData || manufacturerData.length < 14) {
+      return null
+    }
+
+    const deviceData = manufacturerData.subarray(6)
+
+    if (deviceData.length < 8) {
+      return null
+    }
+
+    const sequenceNumber = deviceData[0]
+    const isOn = Boolean(deviceData[1] & 0b10000000)
+    const mode = deviceData[1] & 0b00000111
+    const isAqiValid = Boolean(deviceData[2] & 0b00000100)
+    const childLock = Boolean(deviceData[2] & 0b00000010)
+    const speed = deviceData[3] & 0b01111111
+    const aqiLevelRaw = (deviceData[4] & 0b00000110) >> 1
+    const workTime = (deviceData[5] << 8) | deviceData[6]
+    const errCode = deviceData[7]
+
+    // Map AQI level to string using the defined constant
+    const aqiLevelValues = [
+      AIR_QUALITY_LEVELS.EXCELLENT,
+      AIR_QUALITY_LEVELS.GOOD,
+      AIR_QUALITY_LEVELS.FAIR,
+      AIR_QUALITY_LEVELS.POOR,
+    ]
+    const aqiLevel = aqiLevelValues[aqiLevelRaw] || 'unknown'
+
+    // Determine mode based on mode value and speed
+    let modeString: string | null = null
+    if (mode === 1) {
+      if (speed >= 0 && speed <= 33) {
+        modeString = AIR_PURIFIER_MODES.LEVEL_1
+      } else if (speed >= 34 && speed <= 66) {
+        modeString = AIR_PURIFIER_MODES.LEVEL_2
+      } else {
+        modeString = AIR_PURIFIER_MODES.LEVEL_3
+      }
+    } else if (mode > 1 && mode <= 4) {
+      const modeMap = [null, null, 'auto', 'sleep', 'manual']
+      modeString = modeMap[mode + 2] || null
+    }
+
+    if (emitLog) {
+      emitLog('debug', `Air Purifier Table Service Data: isOn=${isOn}, mode=${modeString}, speed=${speed}, AQI=${aqiLevel}`)
+    }
+
+    return {
+      model: SwitchBotBLEModel.AirPurifierTable,
+      modelName: SwitchBotBLEModelName.AirPurifierTable,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.AirPurifierTable,
+      isOn,
+      mode: modeString,
+      isAqiValid,
+      child_lock: childLock,
+      speed,
+      aqi_level: aqiLevel,
+      filter_element_working_time: workTime,
+      err_code: errCode,
+      sequence_number: sequenceNumber,
+    }
+  }
+
+  /**
+   * Sets the state of the air purifier table.
+   * @param {number[]} reqByteArray - The request byte array.
+   * @returns {Promise<boolean>} - Resolves with a boolean indicating whether the operation was successful.
+   * @private
+   */
+  public async setState(reqByteArray: number[]): Promise<boolean> {
+    return this.operateAirPurifierTable(reqByteArray)
+  }
+
+  /**
+   * Turns the air purifier table on.
+   * @returns {Promise<boolean>} - Resolves with true if the air purifier table is turned on.
+   */
+  async turnOn(): Promise<boolean> {
+    return this.setState([...DEVICE_COMMANDS.AIR_PURIFIER.TURN_ON])
+  }
+
+  /**
+   * Turns the air purifier table off.
+   * @returns {Promise<boolean>} - Resolves with true if the air purifier table is turned off.
+   */
+  async turnOff(): Promise<boolean> {
+    return this.setState([...DEVICE_COMMANDS.AIR_PURIFIER.TURN_OFF])
+  }
+
+  /**
+   * Sets the speed of the air purifier table.
+   * @param {number} speed - The speed value (0-100).
+   * @returns {Promise<boolean>} - Resolves with true if the operation was successful.
+   */
+  async setSpeed(speed: number): Promise<boolean> {
+    if (typeof speed !== 'number' || speed < 0 || speed > 100) {
+      throw new TypeError(`Invalid speed value: ${speed}`)
+    }
+    return this.setState([...DEVICE_COMMANDS.AIR_PURIFIER.SET_SPEED, speed])
+  }
+
+  /**
+   * Sets the mode of the air purifier table.
+   * @param {number} mode - The mode value (1-4).
+   * @returns {Promise<boolean>} - Resolves with true if the operation was successful.
+   */
+  async setMode(mode: number): Promise<boolean> {
+    if (typeof mode !== 'number' || mode < 1 || mode > 4) {
+      throw new TypeError(`Invalid mode value: ${mode}`)
+    }
+    return this.setState([...DEVICE_COMMANDS.AIR_PURIFIER.SET_MODE, mode])
+  }
+
+  /**
+   * Operates the air purifier table with the given byte array.
+   * @public
+   * @param {number[]} bytes - The byte array to send.
+   * @returns {Promise<boolean>} - Resolves with true if the operation was successful.
+   */
+  public async operateAirPurifierTable(bytes: number[]): Promise<boolean> {
     const req_buf = Buffer.from(bytes)
     const res_buf = await this.command(req_buf)
 
