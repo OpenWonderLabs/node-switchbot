@@ -5,11 +5,10 @@
  */
 let baseURL = 'https://api.switch-bot.com'
 
-let devicesURL = `${baseURL}/v1.1/devices`
-let setupWebhook = `${baseURL}/v1.1/webhook/setupWebhook`
-let queryWebhook = `${baseURL}/v1.1/webhook/queryWebhook`
-let updateWebhook = `${baseURL}/v1.1/webhook/updateWebhook`
-let deleteWebhook = `${baseURL}/v1.1/webhook/deleteWebhook`
+// API version used for endpoint paths
+const API_VERSION = '/v1.1'
+
+// URLs are generated dynamically via getters below
 
 /**
  * Updates the base URL for the SwitchBot API endpoints.
@@ -17,20 +16,27 @@ let deleteWebhook = `${baseURL}/v1.1/webhook/deleteWebhook`
  */
 export function updateBaseURL(newBaseURL: string): void {
   baseURL = newBaseURL
-  devicesURL = `${baseURL}/v1.1/devices`
-  setupWebhook = `${baseURL}/v1.1/webhook/setupWebhook`
-  queryWebhook = `${baseURL}/v1.1/webhook/queryWebhook`
-  updateWebhook = `${baseURL}/v1.1/webhook/updateWebhook`
-  deleteWebhook = `${baseURL}/v1.1/webhook/deleteWebhook`
 }
 
 export const urls = {
-  get baseURL() { return baseURL },
-  get devicesURL() { return devicesURL },
-  get setupWebhook() { return setupWebhook },
-  get queryWebhook() { return queryWebhook },
-  get updateWebhook() { return updateWebhook },
-  get deleteWebhook() { return deleteWebhook },
+  get baseURL() {
+    return baseURL
+  },
+  get devicesURL() {
+    return `${baseURL}${API_VERSION}/devices`
+  },
+  get setupWebhook() {
+    return `${baseURL}${API_VERSION}/webhook/setupWebhook`
+  },
+  get queryWebhook() {
+    return `${baseURL}${API_VERSION}/webhook/queryWebhook`
+  },
+  get updateWebhook() {
+    return `${baseURL}${API_VERSION}/webhook/updateWebhook`
+  },
+  get deleteWebhook() {
+    return `${baseURL}${API_VERSION}/webhook/deleteWebhook`
+  },
 }
 
 /**

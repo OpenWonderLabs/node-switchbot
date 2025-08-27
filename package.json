@@ -1,7 +1,7 @@
 {
   "name": "node-switchbot",
   "type": "module",
-  "version": "3.5.1",
+  "version": "3.6.0",
   "description": "The node-switchbot is a Node.js module which allows you to control your Switchbot Devices through Bluetooth (BLE).",
   "author": "OpenWonderLabs (https://github.com/OpenWonderLabs)",
   "license": "MIT",
@@ -51,30 +51,32 @@
   },
   "readmeFilename": "README.md",
   "dependencies": {
-    "@stoprocent/noble": "^1.19.1",
+    "@stoprocent/noble": "^2.3.5",
     "async-mutex": "^0.5.0",
-    "undici": "7.4.0"
+    "undici": "^7.15.0"
   },
   "optionalDependencies": {
-    "@stoprocent/bluetooth-hci-socket": "^1.5.2"
+    "@stoprocent/bluetooth-hci-socket": "^2.2.3"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.4.0",
+    "@antfu/eslint-config": "^5.2.1",
     "@types/aes-js": "^3.1.4",
     "@types/debug": "^4.1.12",
     "@types/fs-extra": "^11.0.4",
     "@types/mdast": "^4.0.4",
-    "@types/node": "^22.13.9",
-    "@types/semver": "^7.5.8",
+    "@types/node": "^24.3.0",
+    "@types/semver": "^7.7.0",
     "@types/source-map-support": "^0.5.10",
-    "@vitest/coverage-v8": "^3.0.7",
-    "eslint": "^9.21.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.34.0",
     "eslint-plugin-format": "^1.0.1",
-    "nodemon": "^3.1.9",
-    "shx": "^0.3.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-import-x": "^4.16.1",
+    "nodemon": "^3.1.10",
+    "shx": "^0.4.0",
     "ts-node": "^10.9.2",
-    "typedoc": "^0.27.9",
-    "typescript": "^5.8.2",
-    "vitest": "^3.0.7"
+    "typedoc": "^0.28.11",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   }
 }
