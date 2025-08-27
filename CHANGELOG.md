@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
-## [3.6.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.6.0) (2025-07-27)
+## [3.6.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.6.0) (2025-08-27)
 
 ### What's Changed
 - Housekeeping and update dependencies
@@ -18,6 +18,10 @@ All notable changes to this project will be documented in this file. This projec
 - **Fix**: Enhanced NobleTypes interface to properly support newer noble version
 - **Code Quality**: Improved JSDoc documentation throughout device classes
 - **Code Quality**: Standardized validation across all device classes
+- **Docs**: Updated BLE.md and OpenAPI.md for new validation and error handling features
+- **Internal**: Refactored device instantiation logic for consistency
+- **Internal**: Improved test coverage for validation utilities and error scenarios
+- **Chore**: Synced package scripts and documentation with latest development workflow
 
 **Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v3.5.1...v3.6.0
 
