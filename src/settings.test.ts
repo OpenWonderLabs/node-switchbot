@@ -7,6 +7,7 @@ import {
   COMMAND_TIMEOUT_MSEC,
   READ_TIMEOUT_MSEC,
   SERV_UUID_PRIMARY,
+  updateBaseURL,
   urls,
   WoSmartLockCommands,
   WoSmartLockProCommands,
@@ -65,5 +66,18 @@ describe('switchBot API Settings', () => {
     expect(WoSmartLockCommands.LOCK).toBe('570f4e01011000')
     expect(WoSmartLockCommands.ENABLE_NOTIFICATIONS).toBe('570e01001e00008101')
     expect(WoSmartLockCommands.DISABLE_NOTIFICATIONS).toBe('570e00')
+  })
+
+  it('should update URLs when baseURL is changed', () => {
+    const original = urls.baseURL
+    const custom = 'https://custom.api'
+    updateBaseURL(custom)
+    expect(urls.devicesURL).toBe(`${custom}/v1.1/devices`)
+    expect(urls.setupWebhook).toBe(`${custom}/v1.1/webhook/setupWebhook`)
+    expect(urls.queryWebhook).toBe(`${custom}/v1.1/webhook/queryWebhook`)
+    expect(urls.updateWebhook).toBe(`${custom}/v1.1/webhook/updateWebhook`)
+    expect(urls.deleteWebhook).toBe(`${custom}/v1.1/webhook/deleteWebhook`)
+    // restore original baseURL
+    updateBaseURL(original)
   })
 })

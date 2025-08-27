@@ -2,13 +2,13 @@
  *
  * index.ts: Switchbot BLE API registration.
  */
+// Primary module exports
 export * from './device.js'
+export { ParameterChecker, parameterChecker } from './parameter-checker.js'
+export { updateBaseURL, urls } from './settings.js'
 export * from './switchbot-ble.js'
 export * from './switchbot-openapi.js'
-export * from './types/bledevicestatus.js'
-export * from './types/devicelist.js'
-export * from './types/devicepush.js'
-export * from './types/deviceresponse.js'
-export * from './types/devicestatus.js'
-export * from './types/devicewebhookstatus.js'
-export * from './types/irdevicelist.js'
+
+// Type definitions
+export * from './types/ble.js'
+export * from './types/openapi.js'
