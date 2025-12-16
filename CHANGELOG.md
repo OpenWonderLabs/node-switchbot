@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [3.7.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.7.0) (2025-12-16)
+
+### What's Changed
+- Add support for presence sensor
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v3.6.0...v3.7.0
+
 ## [3.6.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.6.0) (2025-08-27)
 
 ### What's Changed
@@ -571,3 +578,6 @@ dnicolson
 ### What's Changed
 
 - Initial commit 
+
+
+[def]: h
