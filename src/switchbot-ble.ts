@@ -220,6 +220,7 @@ export class SwitchBotBLE extends EventEmitter {
         case SwitchBotBLEModel.Hub2: return new WoHub2(peripheral, this.noble)
         case SwitchBotBLEModel.OutdoorMeter: return new WoIOSensorTH(peripheral, this.noble)
         case SwitchBotBLEModel.MotionSensor: return new WoPresence(peripheral, this.noble)
+        case SwitchBotBLEModel.PresenceSensor: return new WoPresence(peripheral, this.noble)
         case SwitchBotBLEModel.ContactSensor: return new WoContact(peripheral, this.noble)
         case SwitchBotBLEModel.Remote: return new WoRemote(peripheral, this.noble)
         case SwitchBotBLEModel.ColorBulb: return new WoBulb(peripheral, this.noble)
@@ -282,7 +283,7 @@ export class SwitchBotBLE extends EventEmitter {
     const p = { model: params.model || '', id: params.id || '' }
 
     this.noble.removeAllListeners('discover')
-    
+
     this.noble.on('discover', async (peripheral: NobleTypes['peripheral']) => {
       try {
         const ad = await Advertising.parse(peripheral, (level: string, message: string) => this.log(level as LogLevel, message))

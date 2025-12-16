@@ -4,7 +4,7 @@
  */
 import type { Characteristic, Noble, Peripheral, Service } from '@stoprocent/noble'
 
-import type { airPurifierServiceData, airPurifierTableServiceData, batteryCirculatorFanServiceData, blindTiltServiceData, botServiceData, ceilingLightProServiceData, ceilingLightServiceData, colorBulbServiceData, contactSensorServiceData, curtain3ServiceData, curtainServiceData, hub2ServiceData, hub3ServiceData, humidifier2ServiceData, humidifierServiceData, keypadDetectorServiceData, lockProServiceData, lockServiceData, meterPlusServiceData, meterProCO2ServiceData, meterProServiceData, meterServiceData, motionSensorServiceData, outdoorMeterServiceData, plugMiniJPServiceData, plugMiniUSServiceData, relaySwitch1PMServiceData, relaySwitch1ServiceData, remoteServiceData, robotVacuumCleanerServiceData, stripLightServiceData, waterLeakDetectorServiceData } from './types/ble.js'
+import type { airPurifierServiceData, airPurifierTableServiceData, batteryCirculatorFanServiceData, blindTiltServiceData, botServiceData, ceilingLightProServiceData, ceilingLightServiceData, colorBulbServiceData, contactSensorServiceData, curtain3ServiceData, curtainServiceData, hub2ServiceData, hub3ServiceData, humidifier2ServiceData, humidifierServiceData, keypadDetectorServiceData, lockProServiceData, lockServiceData, meterPlusServiceData, meterProCO2ServiceData, meterProServiceData, meterServiceData, motionSensorServiceData, outdoorMeterServiceData, plugMiniJPServiceData, plugMiniUSServiceData, presenceSensorServiceData, relaySwitch1PMServiceData, relaySwitch1ServiceData, remoteServiceData, robotVacuumCleanerServiceData, stripLightServiceData, waterLeakDetectorServiceData } from './types/ble.js'
 
 import { Buffer } from 'node:buffer'
 import * as Crypto from 'node:crypto'
@@ -93,7 +93,7 @@ export interface ad {
   id: string
   address: string
   rssi: number
-  serviceData: airPurifierServiceData | airPurifierTableServiceData | botServiceData | colorBulbServiceData | contactSensorServiceData | curtainServiceData | curtain3ServiceData | stripLightServiceData | lockServiceData | lockProServiceData | meterServiceData | meterPlusServiceData | meterProServiceData | meterProCO2ServiceData | motionSensorServiceData | outdoorMeterServiceData | plugMiniUSServiceData | plugMiniJPServiceData | blindTiltServiceData | ceilingLightServiceData | ceilingLightProServiceData | hub2ServiceData | hub3ServiceData | batteryCirculatorFanServiceData | waterLeakDetectorServiceData | humidifierServiceData | humidifier2ServiceData | robotVacuumCleanerServiceData | keypadDetectorServiceData | relaySwitch1PMServiceData | relaySwitch1ServiceData | remoteServiceData
+  serviceData: airPurifierServiceData | airPurifierTableServiceData | botServiceData | colorBulbServiceData | contactSensorServiceData | curtainServiceData | curtain3ServiceData | stripLightServiceData | lockServiceData | lockProServiceData | meterServiceData | meterPlusServiceData | meterProServiceData | meterProCO2ServiceData | motionSensorServiceData | presenceSensorServiceData | outdoorMeterServiceData | plugMiniUSServiceData | plugMiniJPServiceData | blindTiltServiceData | ceilingLightServiceData | ceilingLightProServiceData | hub2ServiceData | hub3ServiceData | batteryCirculatorFanServiceData | waterLeakDetectorServiceData | humidifierServiceData | humidifier2ServiceData | robotVacuumCleanerServiceData | keypadDetectorServiceData | relaySwitch1PMServiceData | relaySwitch1ServiceData | remoteServiceData
   [key: string]: unknown
 }
 
@@ -121,6 +121,7 @@ export declare interface SwitchBotBLEDevice {
   Hub3: DeviceInfo
   OutdoorMeter: DeviceInfo
   MotionSensor: DeviceInfo
+  PresenceSensor: DeviceInfo
   ContactSensor: DeviceInfo
   ColorBulb: DeviceInfo
   StripLight: DeviceInfo
@@ -154,6 +155,7 @@ export enum SwitchBotModel {
   MeterProCO2 = 'W4900010',
   OutdoorMeter = 'W3400010',
   MotionSensor = 'W1101500',
+  PresenceSensor = 'W8200000',
   ContactSensor = 'W1201500',
   ColorBulb = 'W1401400',
   StripLight = 'W1701100',
@@ -202,6 +204,7 @@ export enum SwitchBotBLEModel {
   Hub3 = 'V',
   OutdoorMeter = 'w',
   MotionSensor = 's',
+  PresenceSensor = 'p',
   ContactSensor = 'd',
   ColorBulb = 'u',
   StripLight = 'r',
@@ -237,6 +240,7 @@ export enum SwitchBotBLEModelName {
   MeterProCO2 = 'WoSensorTHPc',
   Lock = 'WoSmartLock',
   LockPro = 'WoSmartLockPro',
+  PresenceSensor = 'WoPresence',
   PlugMini = 'WoPlugMini',
   StripLight = 'WoStrip',
   OutdoorMeter = 'WoIOSensorTH',
@@ -277,6 +281,7 @@ export enum SwitchBotBLEModelFriendlyName {
   OutdoorMeter = 'Outdoor Meter',
   ContactSensor = 'Contact Sensor',
   MotionSensor = 'Motion Sensor',
+  PresenceSensor = 'Presence Sensor',
   BlindTilt = 'Blind Tilt',
   CeilingLight = 'Ceiling Light',
   CeilingLightPro = 'Ceiling Light Pro',
@@ -1066,6 +1071,8 @@ export class Advertising {
         return WoAirPurifierTable.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.MotionSensor:
         return WoPresence.parseServiceData(serviceData, emitLog)
+      case SwitchBotBLEModel.PresenceSensor:
+        return WoPresence.parsePresenceSensorServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.ContactSensor:
         return WoContact.parseServiceData(serviceData, emitLog)
       case SwitchBotBLEModel.Remote:
@@ -2741,6 +2748,8 @@ export class WoPlugMiniUS extends SwitchbotDevice {
   }
 }
 
+const PRESENCE_SENSOR_BATTERY_RANGE_MAP = ['<10%', '10-19%', '20-59%', '>=60%'] as const
+
 /**
  * Class representing a WoPresence device.
  * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/meter.md
@@ -2775,6 +2784,46 @@ export class WoPresence extends SwitchbotDevice {
       sense_distance: (byte5 & 0b00001100) >> 2,
       lightLevel: (byte5 & 0b00000011) === 1 ? 'dark' : (byte5 & 0b00000011) === 2 ? 'bright' : 'unknown',
       is_light: !!(byte5 & 0b00000010),
+    }
+
+    return data
+  }
+
+  /**
+   * Parses the manufacturer data for presence sensors.
+   * @param {Buffer | null} serviceData - The optional service data buffer.
+   * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
+   * @returns {Promise<presenceSensorServiceData | null>} - Parsed service data or null if invalid.
+   */
+  static async parsePresenceSensorServiceData(
+    serviceData: Buffer | null,
+    manufacturerData: Buffer,
+    emitLog: (level: string, message: string) => void,
+  ): Promise<presenceSensorServiceData | null> {
+    if (!manufacturerData || manufacturerData.length < 12) {
+      emitLog('debugerror', `[parsePresenceSensorServiceData] Manufacturer buffer length ${manufacturerData?.length ?? 0} < 12!`)
+      return null
+    }
+
+    const statusByte = manufacturerData[7]
+    const batteryBits = (statusByte >> 2) & 0b11
+
+    const data: presenceSensorServiceData = {
+      model: SwitchBotBLEModel.PresenceSensor,
+      modelName: SwitchBotBLEModelName.PresenceSensor,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.PresenceSensor,
+      sequenceNumber: manufacturerData[6],
+      adaptiveState: !!(statusByte & 0b10000000),
+      motionDetected: !!(statusByte & 0b01000000),
+      batteryRange: PRESENCE_SENSOR_BATTERY_RANGE_MAP[batteryBits] ?? 'Unknown',
+      triggerFlag: manufacturerData[10],
+      ledState: !!(manufacturerData[11] & 0b10000000),
+      lightLevel: manufacturerData[11] & 0x0F,
+    }
+
+    if (serviceData && serviceData.length >= 3) {
+      data.battery = serviceData[2] & 0x7F
     }
 
     return data

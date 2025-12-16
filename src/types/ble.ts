@@ -195,6 +195,19 @@ export type motionSensorServiceData = BLEServiceData & {
   lightLevel: string
   is_light: boolean
 }
+export type presenceSensorServiceData = BLEServiceData & {
+  model: SwitchBotBLEModel.PresenceSensor
+  modelName: SwitchBotBLEModelName.PresenceSensor
+  modelFriendlyName: SwitchBotBLEModelFriendlyName.PresenceSensor
+  sequenceNumber: number
+  adaptiveState: boolean
+  motionDetected: boolean
+  batteryRange: string
+  triggerFlag: number
+  ledState: boolean
+  lightLevel: number
+  battery?: number
+}
 
 export type plugMiniUSServiceData = PlugMiniServiceDataBase & {
   model: SwitchBotBLEModel.PlugMiniUS
@@ -424,6 +437,7 @@ export type BLEDeviceServiceData
     | meterServiceData
     | motionSensorServiceData
     | outdoorMeterServiceData
+    | presenceSensorServiceData
     | plugMiniJPServiceData
     | plugMiniUSServiceData
     | relaySwitch1PMServiceData

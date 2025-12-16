@@ -83,6 +83,8 @@ export type remote = device
 
 export type motionSensor = device
 
+export type occupancySensor = device
+
 export type contactSensor = device
 
 export type waterLeakDetector = device
@@ -260,6 +262,13 @@ export type motionSensorStatus = deviceStatus & {
   battery: number
   moveDetected: boolean
   brightness: 'bright' | 'dim'
+}
+
+export type occupancySensorStatus = deviceStatus & {
+  battery: number
+  version: string
+  Detected: boolean
+  lightLevel: number // 1~20
 }
 
 export type contactSensorStatus = deviceStatus & {
@@ -508,6 +517,12 @@ export type curtain3WebhookContext = deviceWebhookContext & {
 export type motionSensorWebhookContext = deviceWebhookContext & {
   detectionState: 'NOT_DETECTED' | 'DETECTED'
   battery: number // 0~100
+}
+
+export type occupancySensorWebhookContext = deviceWebhookContext & {
+  detectionState: 'NOT_DETECTED' | 'DETECTED'
+  battery: number // 0~100
+  lightLevel: number // 1~20
 }
 
 export type contactSensorWebhookContext = deviceWebhookContext & {
