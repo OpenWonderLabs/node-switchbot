@@ -83,7 +83,7 @@ export type remote = device
 
 export type motionSensor = device
 
-export type occupancySensor = device
+export type presenceSensor = device
 
 export type contactSensor = device
 
@@ -264,7 +264,7 @@ export type motionSensorStatus = deviceStatus & {
   brightness: 'bright' | 'dim'
 }
 
-export type occupancySensorStatus = deviceStatus & {
+export type presenceSensorStatus = deviceStatus & {
   battery: number
   version: string
   Detected: boolean
@@ -519,7 +519,7 @@ export type motionSensorWebhookContext = deviceWebhookContext & {
   battery: number // 0~100
 }
 
-export type occupancySensorWebhookContext = deviceWebhookContext & {
+export type presenceSensorWebhookContext = deviceWebhookContext & {
   detectionState: 'NOT_DETECTED' | 'DETECTED'
   battery: number // 0~100
   lightLevel: number // 1~20
