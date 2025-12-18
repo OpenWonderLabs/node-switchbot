@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [3.6.2](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.6.2) (2025-12-18)
+
+## What's Changed
+- small little presence sensor changes
+
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v3.6.1...v3.6.2
+
 ## [3.6.1](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.6.1) (2025-12-16)
 
 ## What's Changed
@@ -9,7 +16,7 @@ All notable changes to this project will be documented in this file. This projec
 * Add support for presence sensor by @Donavan Becker in https://github.com/OpenWonderLabs/node-switchbot/commit/d2eafba
 * v3.6.0  by @Donavan Becker in https://github.com/OpenWonderLabs/node-switchbot/pull/298
 
-**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v3.5.1...v3.6.1
+**Full Changelog**: https://github.com/OpenWonderLabs/node-switchbot/compare/v3.6.0...v3.6.1
 
 ## [3.6.0](https://github.com/OpenWonderLabs/node-switchbot/releases/tag/v3.6.0) (2025-08-27)
 
@@ -579,7 +586,4 @@ dnicolson
 
 ### What's Changed
 
-- Initial commit 
-
-
-[def]: h
+- Initial commit
