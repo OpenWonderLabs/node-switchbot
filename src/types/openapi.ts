@@ -235,7 +235,7 @@ export interface baseDeviceStatus {
 export type botStatus = baseDeviceStatus & {
   power: string
   battery: number
-  mode: 'pressMode' | 'switchMode' | 'customizeMode'
+  deviceMode: 'pressMode' | 'switchMode' | 'customizeMode'
 }
 
 export type curtainStatus = baseDeviceStatus & {
