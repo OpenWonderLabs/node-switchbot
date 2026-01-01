@@ -188,7 +188,43 @@ export interface deviceStatusRequest {
   body: deviceStatus
 }
 
-export interface deviceStatus extends device {
+export type deviceStatus =
+  | botStatus
+  | curtainStatus
+  | meterStatus
+  | meterPlusStatus
+  | meterProStatus
+  | meterProCO2Status
+  | outdoorMeterStatus
+  | lockStatus
+  | lockProStatus
+  | motionSensorStatus
+  | presenceSensorStatus
+  | contactSensorStatus
+  | waterLeakDetectorStatus
+  | ceilingLightStatus
+  | ceilingLightProStatus
+  | plugStatus
+  | plugMiniStatus
+  | stripLightStatus
+  | colorBulbStatus
+  | robotVacuumCleanerS1Status
+  | robotVacuumCleanerS1PlusStatus
+  | floorCleaningRobotS10Status
+  | humidifierStatus
+  | humidifier2Status
+  | blindTiltStatus
+  | hub2Status
+  | batteryCirculatorFanStatus
+  | circulatorFanStatus
+  | relaySwitch1Status
+  | relaySwitch1PMStatus
+  | airPurifierStatus
+  | airPurifierTableStatus
+  | airPurifierVOCStatus
+  | airPurifierTableVOCStatus
+
+export interface baseDeviceStatus {
   // properties on all devices
   deviceId: string
   deviceType: string
@@ -196,13 +232,13 @@ export interface deviceStatus extends device {
   version: number
 };
 
-export type botStatus = deviceStatus & {
+export type botStatus = baseDeviceStatus & {
   power: string
   battery: number
   mode: 'pressMode' | 'switchMode' | 'customizeMode'
 }
 
-export type curtainStatus = deviceStatus & {
+export type curtainStatus = baseDeviceStatus & {
   calibrate: boolean
   group: boolean
   moving: boolean
@@ -211,26 +247,26 @@ export type curtainStatus = deviceStatus & {
   lightLevel?: 'bright' | 'dim'
 }
 
-export type meterStatus = deviceStatus & {
+export type meterStatus = baseDeviceStatus & {
   temperature: number
   battery: number
   humidity: number
 }
 
-export type meterPlusStatus = deviceStatus & {
+export type meterPlusStatus = baseDeviceStatus & {
   temperature: number
   battery: number
   humidity: number
 }
 
-export type meterProStatus = deviceStatus & {
+export type meterProStatus = baseDeviceStatus & {
   temperature: number
   battery: number
   humidity: number
   version: string
 }
 
-export type meterProCO2Status = deviceStatus & {
+export type meterProCO2Status = baseDeviceStatus & {
   temperature: number
   battery: number
   humidity: number
@@ -238,69 +274,69 @@ export type meterProCO2Status = deviceStatus & {
   CO2: number
 }
 
-export type outdoorMeterStatus = deviceStatus & {
+export type outdoorMeterStatus = baseDeviceStatus & {
   battery: number
   temperature: number
   humidity: number
 }
 
-export type lockStatus = deviceStatus & {
+export type lockStatus = baseDeviceStatus & {
   lockState: string
   doorState: string
   moveDetected: boolean
   battery: number
 }
 
-export type lockProStatus = deviceStatus & {
+export type lockProStatus = baseDeviceStatus & {
   lockState: string
   doorState: string
   moveDetected: boolean
   battery: number
 }
 
-export type motionSensorStatus = deviceStatus & {
+export type motionSensorStatus = baseDeviceStatus & {
   battery: number
   moveDetected: boolean
   brightness: 'bright' | 'dim'
 }
 
-export type presenceSensorStatus = deviceStatus & {
+export type presenceSensorStatus = baseDeviceStatus & {
   battery: number
   version: string
   Detected: boolean
   lightLevel: number // 1~20
 }
 
-export type contactSensorStatus = deviceStatus & {
+export type contactSensorStatus = baseDeviceStatus & {
   battery: number
   moveDetected: boolean
   openState: 'open' | 'close' | 'timeOutNotClose'
   brightness: 'bright' | 'dim'
 }
 
-export type waterLeakDetectorStatus = deviceStatus & {
+export type waterLeakDetectorStatus = baseDeviceStatus & {
   battery: number
   status: 0 /* dry */ | 1 /* leak detected */
 }
 
-export type ceilingLightStatus = deviceStatus & {
+export type ceilingLightStatus = baseDeviceStatus & {
   power: boolean
   brightness: number
   colorTemperature: number
 }
 
-export type ceilingLightProStatus = deviceStatus & {
+export type ceilingLightProStatus = baseDeviceStatus & {
   power: boolean
   brightness: number
   colorTemperature: number
 }
 
-export type plugStatus = deviceStatus & {
+export type plugStatus = baseDeviceStatus & {
   power: string
   version: string
 }
 
-export type plugMiniStatus = deviceStatus & {
+export type plugMiniStatus = baseDeviceStatus & {
   voltage: Float64Array
   weight: Float64Array
   electricityOfDay: number
@@ -308,32 +344,32 @@ export type plugMiniStatus = deviceStatus & {
   power: string
 }
 
-export type stripLightStatus = deviceStatus & {
+export type stripLightStatus = baseDeviceStatus & {
   power: string
   brightness: number
   color: string
 }
 
-export type colorBulbStatus = deviceStatus & {
+export type colorBulbStatus = baseDeviceStatus & {
   power: string
   brightness: number
   color: string
   colorTemperature: number
 }
 
-export type robotVacuumCleanerS1Status = deviceStatus & {
+export type robotVacuumCleanerS1Status = baseDeviceStatus & {
   workingStatus: string
   onlineStatus: string
   battery: number
 }
 
-export type robotVacuumCleanerS1PlusStatus = deviceStatus & {
+export type robotVacuumCleanerS1PlusStatus = baseDeviceStatus & {
   workingStatus: string
   onlineStatus: string
   battery: number
 }
 
-export type floorCleaningRobotS10Status = deviceStatus & {
+export type floorCleaningRobotS10Status = baseDeviceStatus & {
   workingStatus: string
   onlineStatus: string
   battery: number
@@ -341,7 +377,7 @@ export type floorCleaningRobotS10Status = deviceStatus & {
   taskType: string
 }
 
-export type humidifierStatus = deviceStatus & {
+export type humidifierStatus = baseDeviceStatus & {
   power: string
   humidity: number
   temperature: number
@@ -352,7 +388,7 @@ export type humidifierStatus = deviceStatus & {
   lackWater: boolean
 }
 
-export type humidifier2Status = deviceStatus & {
+export type humidifier2Status = baseDeviceStatus & {
   power: string
   humidity: number
   temperature: number
@@ -363,7 +399,7 @@ export type humidifier2Status = deviceStatus & {
   lackWater: boolean
 }
 
-export type blindTiltStatus = deviceStatus & {
+export type blindTiltStatus = baseDeviceStatus & {
   calibrate: boolean
   battery: number
   direction: string
@@ -371,13 +407,13 @@ export type blindTiltStatus = deviceStatus & {
   lightLevel?: 'bright' | 'dim'
 }
 
-export type hub2Status = deviceStatus & {
+export type hub2Status = baseDeviceStatus & {
   temperature: number
   lightLevel: number
   humidity: number
 }
 
-export type batteryCirculatorFanStatus = deviceStatus & {
+export type batteryCirculatorFanStatus = baseDeviceStatus & {
   mode: 'direct' | 'natural' | 'sleep' | 'baby'
   version: string
   battery: number
@@ -389,7 +425,7 @@ export type batteryCirculatorFanStatus = deviceStatus & {
   fanSpeed: number
 }
 
-export type circulatorFanStatus = deviceStatus & {
+export type circulatorFanStatus = baseDeviceStatus & {
   mode: 'direct' | 'natural' | 'sleep' | 'baby'
   version: string
   power: string
@@ -399,12 +435,12 @@ export type circulatorFanStatus = deviceStatus & {
   fanSpeed: number
 }
 
-export type relaySwitch1Status = deviceStatus & {
+export type relaySwitch1Status = baseDeviceStatus & {
   switchStatus: 0 | 1
   version: string
 }
 
-export type relaySwitch1PMStatus = deviceStatus & {
+export type relaySwitch1PMStatus = baseDeviceStatus & {
   switchStatus: 0 | 1
   voltage: number
   version: string
@@ -413,28 +449,28 @@ export type relaySwitch1PMStatus = deviceStatus & {
   electricCurrent: number
 }
 
-export type airPurifierStatus = deviceStatus & {
+export type airPurifierStatus = baseDeviceStatus & {
   power: string
   mode: number
   childLock: number
   version: string
 }
 
-export type airPurifierTableStatus = deviceStatus & {
+export type airPurifierTableStatus = baseDeviceStatus & {
   power: string
   mode: number
   childLock: number
   version: string
 }
 
-export type airPurifierVOCStatus = deviceStatus & {
+export type airPurifierVOCStatus = baseDeviceStatus & {
   power: string
   mode: number
   childLock: number
   version: string
 }
 
-export type airPurifierTableVOCStatus = deviceStatus & {
+export type airPurifierTableVOCStatus = baseDeviceStatus & {
   power: string
   mode: number
   childLock: number
