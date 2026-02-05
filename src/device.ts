@@ -163,6 +163,7 @@ export enum SwitchBotModel {
   PlugMiniJP = 'W2001400/W2001401',
   Lock = 'W1601700',
   LockPro = 'W3500000',
+  LockUltra = 'W3600000',
   Keypad = 'W2500010',
   KeypadTouch = 'W2500020',
   K10 = 'K10+',
@@ -212,6 +213,7 @@ export enum SwitchBotBLEModel {
   PlugMiniJP = 'j', // Only available in Japan.
   Lock = 'o',
   LockPro = '$',
+  LockUltra = 'U',
   CeilingLight = 'q', // Currently only available in Japan.
   CeilingLightPro = 'n', // Currently only available in Japan.
   BlindTilt = 'x',
@@ -240,6 +242,7 @@ export enum SwitchBotBLEModelName {
   MeterProCO2 = 'WoSensorTHPc',
   Lock = 'WoSmartLock',
   LockPro = 'WoSmartLockPro',
+  LockUltra = 'WoSmartLockUltra',
   PresenceSensor = 'WoPresence',
   PlugMini = 'WoPlugMini',
   StripLight = 'WoStrip',
@@ -271,6 +274,7 @@ export enum SwitchBotBLEModelFriendlyName {
   Meter = 'Meter',
   Lock = 'Lock',
   LockPro = 'Lock Pro',
+  LockUltra = 'Lock Ultra',
   PlugMini = 'Plug Mini',
   StripLight = 'Strip Light',
   MeterPlus = 'Meter Plus',
@@ -1093,6 +1097,8 @@ export class Advertising {
         return WoSmartLock.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.LockPro:
         return WoSmartLockPro.parseServiceData(serviceData, manufacturerData, emitLog)
+      case SwitchBotBLEModel.LockUltra:
+        return WoSmartLockUltra.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.BlindTilt:
         return WoBlindTilt.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.Leak:
@@ -3645,6 +3651,30 @@ export class WoSmartLockPro extends SwitchbotDevice {
       throw new Error(`The device returned an error: 0x${buf.toString('hex')}`)
     }
     return buf
+  }
+}
+
+/**
+ * Class representing a WoSmartLockUltra device.
+ * Reuses the LockPro parsing and encrypted command behavior but reports a distinct model.
+ */
+export class WoSmartLockUltra extends WoSmartLockPro {
+  constructor(peripheral: NobleTypes['peripheral'], noble: NobleTypes['noble']) {
+    super(peripheral, noble)
+  }
+
+  static async parseServiceData(
+    serviceData: Buffer,
+    manufacturerData: Buffer,
+    emitLog: (level: string, message: string) => void,
+  ) {
+    const data = await WoSmartLockPro.parseServiceData(serviceData, manufacturerData, emitLog)
+    if (!data) return null
+    const out = data as any
+    out.model = SwitchBotBLEModel.LockUltra
+    out.modelName = SwitchBotBLEModelName.LockUltra
+    out.modelFriendlyName = SwitchBotBLEModelFriendlyName.LockUltra
+    return out
   }
 }
 

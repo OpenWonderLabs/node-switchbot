@@ -73,3 +73,14 @@ export enum WoSmartLockCommands {
   ENABLE_NOTIFICATIONS = '570e01001e00008101',
   DISABLE_NOTIFICATIONS = '570e00',
 }
+
+// Lock Ultra uses the same command structure as Lock Pro (AES/IV based).
+export enum WoSmartLockUltraCommands {
+  GET_CKIV = '570f2103',
+  LOCK_INFO = '570f4f8102',
+  UNLOCK = '570f4e0101000080',
+  UNLOCK_NO_UNLATCH = '570f4e01010000a0',
+  LOCK = '570f4e0101000000',
+  ENABLE_NOTIFICATIONS = '570e01001e00008101',
+  DISABLE_NOTIFICATIONS = '570e00',
+}
