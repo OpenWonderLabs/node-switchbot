@@ -991,7 +991,13 @@ export class Advertising {
     const serviceData = ad.serviceData[0]?.data
     const manufacturerData = ad.manufacturerData
 
-    if (!Advertising.validateBuffer(serviceData) || !Advertising.validateBuffer(manufacturerData)) {
+    // Service data must exist and contain at least the model byte (1 byte minimum)
+    // At least one of serviceData or manufacturerData should have sufficient data (3+ bytes)
+    if (!Advertising.validateBuffer(serviceData, 1)) {
+      return null
+    }
+
+    if (!Advertising.validateBuffer(serviceData, 3) && !Advertising.validateBuffer(manufacturerData, 3)) {
       return null
     }
 

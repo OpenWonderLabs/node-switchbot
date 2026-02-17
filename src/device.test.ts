@@ -2,7 +2,7 @@ import { Buffer } from 'node:buffer'
 
 import { describe, expect, it } from 'vitest'
 
-import { ErrorUtils, LogLevel, ValidationUtils } from './device.js'
+import { Advertising, ErrorUtils, LogLevel, ValidationUtils, WoAirPurifier } from './device.js'
 
 describe('validationUtils', () => {
   describe('validatePercentage', () => {
@@ -174,5 +174,120 @@ describe('logLevel', () => {
     expect(LogLevel.DEBUGERROR).toBe('debugerror')
     expect(LogLevel.DEBUG).toBe('debug')
     expect(LogLevel.INFO).toBe('info')
+  })
+})
+
+describe('advertising', () => {
+  describe('parse', () => {
+    it('should parse Air Purifier with minimal serviceData', async () => {
+      // Air Purifier devices have minimal serviceData (only model byte)
+      // but all actual data in manufacturerData
+      const peripheral = {
+        id: '3c84277658fe',
+        address: '3c:84:27:76:8c:fe',
+        rssi: -65,
+        advertisement: {
+          serviceData: [
+            {
+              uuid: 'cba20d00224d11e69fb80002a5d5c51b',
+              data: Buffer.from('+'), // Only model byte for Air Purifier
+            },
+          ],
+          manufacturerData: Buffer.from([
+            0x59, 0x00, 0x12, 0x34, 0x56, 0x78, // Header
+            0x01, // sequenceNumber
+            0x80 | 0x02, // isOn=true, mode=2
+            0x04 | 0x00, // isAqiValid=true, childLock=false
+            0x50, // speed=80
+            0x02, // aqiLevelRaw=1 (good)
+            0x00, 0x64, // workTime=100
+            0x00, // errCode=0
+          ]),
+        },
+      } as any
+
+      const emitLog = () => {}
+      const result = await Advertising.parse(peripheral, emitLog)
+
+      expect(result).not.toBeNull()
+      expect(result?.serviceData.model).toBe('+')
+      expect(result?.serviceData.modelName).toBe('WoAirPurifier')
+      // Type-safe property access
+      if (result && 'isOn' in result.serviceData) {
+        expect(result.serviceData.isOn).toBe(true)
+        expect(result.serviceData.speed).toBe(80)
+        expect(result.serviceData.aqi_level).toBe('good')
+      }
+    })
+
+    it('should return null when serviceData is missing', async () => {
+      const peripheral = {
+        id: 'test',
+        address: 'aa:bb:cc:dd:ee:ff',
+        rssi: -50,
+        advertisement: {
+          serviceData: [],
+        },
+      } as any
+
+      const emitLog = () => {}
+      const result = await Advertising.parse(peripheral, emitLog)
+
+      expect(result).toBeNull()
+    })
+
+    it('should return null when neither serviceData nor manufacturerData has sufficient data', async () => {
+      const peripheral = {
+        id: 'test',
+        address: 'aa:bb:cc:dd:ee:ff',
+        rssi: -50,
+        advertisement: {
+          serviceData: [
+            {
+              uuid: 'test',
+              data: Buffer.from('X'), // Only 1 byte
+            },
+          ],
+          manufacturerData: Buffer.from([0x01]), // Only 1 byte
+        },
+      } as any
+
+      const emitLog = () => {}
+      const result = await Advertising.parse(peripheral, emitLog)
+
+      expect(result).toBeNull()
+    })
+  })
+
+  describe('parseServiceData', () => {
+    it('should parse Air Purifier service data correctly', () => {
+      const serviceData = Buffer.from('+')
+      const manufacturerData = Buffer.from([
+        0x59, 0x00, 0x12, 0x34, 0x56, 0x78,
+        0x01, // sequenceNumber
+        0x80 | 0x01, // isOn=true, mode=1 (manual levels)
+        0x04 | 0x02, // isAqiValid=true, childLock=true
+        0x42, // speed=66 (level_2)
+        0x04, // aqiLevelRaw=2 (fair)
+        0x01, 0x00, // workTime=256
+        0x01, // errCode=1
+      ])
+
+      const emitLog = () => {}
+      const result = WoAirPurifier.parseServiceData(serviceData, manufacturerData, emitLog)
+
+      expect(result).not.toBeNull()
+      expect(result?.model).toBe('+')
+      expect(result?.modelName).toBe('WoAirPurifier')
+      expect(result?.isOn).toBe(true)
+      expect(result?.mode).toBe('level_2')
+      expect(result?.speed).toBe(66)
+      expect(result?.aqi_level).toBe('fair')
+      expect(result?.isAqiValid).toBe(true)
+      expect(result?.child_lock).toBe(true)
+      expect(result?.filter_element_working_time).toBe(256)
+      expect(result?.err_code).toBe(1)
+      expect(result?.sequence_number).toBe(1)
+    })
   })
 })
