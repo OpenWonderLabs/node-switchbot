@@ -51,7 +51,7 @@
   },
   "readmeFilename": "README.md",
   "dependencies": {
-    "@stoprocent/noble": "^2.3.5",
+    "@stoprocent/noble": "^2.3.14",
     "async-mutex": "^0.5.0",
     "undici": "^7.15.0"
   },
