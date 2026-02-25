@@ -617,6 +617,10 @@ export type plugMiniJPWebhookContext = deviceWebhookContext & {
   powerState: 'ON' | 'OFF'
 }
 
+export type plugMiniEUWebhookContext = deviceWebhookContext & {
+  powerState: 'ON' | 'OFF'
+}
+
 export type robotVacuumCleanerS1WebhookContext = deviceWebhookContext & {
   workingStatus: 'Standby' | 'Clearing' | 'Paused' | 'GotoChargeBase' | 'Charging' | 'ChargeDone' | 'Dormant' | 'InTrouble' | 'InRemoteControl' | 'InDustCollecting'
   onlineStatus: 'online' | 'offline'

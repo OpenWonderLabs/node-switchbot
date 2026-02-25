@@ -221,6 +221,12 @@ export type plugMiniJPServiceData = PlugMiniServiceDataBase & {
   modelFriendlyName: SwitchBotBLEModelFriendlyName.PlugMini
 }
 
+export type plugMiniEUServiceData = PlugMiniServiceDataBase & {
+  model: SwitchBotBLEModel.PlugMiniEU
+  modelName: SwitchBotBLEModelName.PlugMini
+  modelFriendlyName: SwitchBotBLEModelFriendlyName.PlugMini
+}
+
 export type blindTiltServiceData = BLEServiceData & {
   model: SwitchBotBLEModel.BlindTilt
   modelName: SwitchBotBLEModelName.BlindTilt
@@ -440,6 +446,7 @@ export type BLEDeviceServiceData
     | presenceSensorServiceData
     | plugMiniJPServiceData
     | plugMiniUSServiceData
+    | plugMiniEUServiceData
     | relaySwitch1PMServiceData
     | relaySwitch1ServiceData
     | remoteServiceData
