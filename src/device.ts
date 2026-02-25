@@ -2709,7 +2709,6 @@ export class WoPlugMiniEU extends SwitchbotDevice {
 
   /**
    * Sets the state of the plug.
-   * @private
    * @param {number[]} reqByteArray - The request byte array.
    * @returns {Promise<boolean>} - Resolves with a boolean that tells whether the plug is ON (true) or OFF (false).
    */

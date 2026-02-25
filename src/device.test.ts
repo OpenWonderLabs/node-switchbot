@@ -2,7 +2,7 @@ import { Buffer } from 'node:buffer'
 
 import { describe, expect, it } from 'vitest'
 
-import { Advertising, ErrorUtils, LogLevel, ValidationUtils, WoAirPurifier } from './device.js'
+import { Advertising, ErrorUtils, LogLevel, ValidationUtils, WoAirPurifier, WoPlugMiniEU } from './device.js'
 
 describe('validationUtils', () => {
   describe('validatePercentage', () => {
@@ -288,6 +288,99 @@ describe('advertising', () => {
       expect(result?.filter_element_working_time).toBe(256)
       expect(result?.err_code).toBe(1)
       expect(result?.sequence_number).toBe(1)
+    })
+
+    it('should parse Plug Mini EU service data correctly', async () => {
+      // bytes 0-8: header/MAC/sequence (unused by parser), bytes 9-13: state/flags/rssi/power
+      const manufacturerData = Buffer.from([
+        0x09, 0x69, // UUID
+        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, // MAC
+        0x01, // sequence number
+        0x80, // byte9: state=on
+        0x07, // byte10: delay=1, timer=1, syncUtcTime=1
+        0x3C, // byte11: wifiRssi=60
+        0x83, // byte12: overload=1, power MSB=3
+        0xE8, // byte13: power LSB=232 => currentPower=(3*256+232)/10=100.0W
+      ])
+
+      const emitLog = () => {}
+      const result = await WoPlugMiniEU.parseServiceData(manufacturerData, emitLog)
+
+      expect(result).not.toBeNull()
+      expect(result?.model).toBe('l')
+      expect(result?.modelName).toBe('WoPlugMini')
+      expect(result?.state).toBe('on')
+      expect(result?.delay).toBe(true)
+      expect(result?.timer).toBe(true)
+      expect(result?.syncUtcTime).toBe(true)
+      expect(result?.wifiRssi).toBe(60)
+      expect(result?.overload).toBe(true)
+      expect(result?.currentPower).toBe(100.0)
+    })
+
+    it('should parse Plug Mini EU state=off correctly', async () => {
+      const manufacturerData = Buffer.from([
+        0x09, 0x69, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x01,
+        0x00, // byte9: state=off
+        0x00, // byte10: no flags
+        0x00, // byte11: wifiRssi=0
+        0x00, // byte12: no overload, power MSB=0
+        0x00, // byte13: power LSB=0
+      ])
+
+      const emitLog = () => {}
+      const result = await WoPlugMiniEU.parseServiceData(manufacturerData, emitLog)
+
+      expect(result).not.toBeNull()
+      expect(result?.state).toBe('off')
+      expect(result?.delay).toBe(false)
+      expect(result?.overload).toBe(false)
+      expect(result?.currentPower).toBe(0)
+    })
+
+    it('should return null when Plug Mini EU manufacturerData length is not 14', async () => {
+      const manufacturerData = Buffer.from([0x01, 0x02, 0x03])
+      const errors: string[] = []
+      const emitLog = (level: string, msg: string) => { errors.push(msg) }
+
+      const result = await WoPlugMiniEU.parseServiceData(manufacturerData, emitLog)
+
+      expect(result).toBeNull()
+      expect(errors.length).toBeGreaterThan(0)
+      expect(errors[0]).toContain('should be 14')
+    })
+
+    it('should route Plug Mini EU via Advertising.parse', async () => {
+      const peripheral = {
+        id: 'aabbccddee01',
+        address: 'aa:bb:cc:dd:ee:01',
+        rssi: -70,
+        advertisement: {
+          serviceData: [
+            {
+              uuid: 'fd3d',
+              data: Buffer.from('l'), // PlugMiniEU model byte
+            },
+          ],
+          manufacturerData: Buffer.from([
+            0x09, 0x69,
+            0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
+            0x01, // sequence
+            0x80, // state=on
+            0x00, // flags
+            0x28, // wifiRssi=40
+            0x00, // no overload, power=0
+            0x00,
+          ]),
+        },
+      } as any
+
+      const emitLog = () => {}
+      const result = await Advertising.parse(peripheral, emitLog)
+
+      expect(result).not.toBeNull()
+      expect(result?.serviceData.model).toBe('l')
+      expect(result?.serviceData.modelName).toBe('WoPlugMini')
     })
   })
 })
