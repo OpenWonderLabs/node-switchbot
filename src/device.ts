@@ -4,7 +4,7 @@
  */
 import type { Characteristic, Noble, Peripheral, Service } from '@stoprocent/noble'
 
-import type { airPurifierServiceData, airPurifierTableServiceData, batteryCirculatorFanServiceData, blindTiltServiceData, botServiceData, ceilingLightProServiceData, ceilingLightServiceData, colorBulbServiceData, contactSensorServiceData, curtain3ServiceData, curtainServiceData, hub2ServiceData, hub3ServiceData, humidifier2ServiceData, humidifierServiceData, keypadDetectorServiceData, lockProServiceData, lockServiceData, meterPlusServiceData, meterProCO2ServiceData, meterProServiceData, meterServiceData, motionSensorServiceData, outdoorMeterServiceData, plugMiniJPServiceData, plugMiniUSServiceData, presenceSensorServiceData, relaySwitch1PMServiceData, relaySwitch1ServiceData, remoteServiceData, robotVacuumCleanerServiceData, stripLightServiceData, waterLeakDetectorServiceData } from './types/ble.js'
+import type { airPurifierServiceData, airPurifierTableServiceData, batteryCirculatorFanServiceData, blindTiltServiceData, botServiceData, ceilingLightProServiceData, ceilingLightServiceData, colorBulbServiceData, contactSensorServiceData, curtain3ServiceData, curtainServiceData, hub2ServiceData, hub3ServiceData, humidifier2ServiceData, humidifierServiceData, keypadDetectorServiceData, lockProServiceData, lockServiceData, meterPlusServiceData, meterProCO2ServiceData, meterProServiceData, meterServiceData, motionSensorServiceData, outdoorMeterServiceData, plugMiniEUServiceData, plugMiniJPServiceData, plugMiniUSServiceData, presenceSensorServiceData, relaySwitch1PMServiceData, relaySwitch1ServiceData, remoteServiceData, robotVacuumCleanerServiceData, stripLightServiceData, waterLeakDetectorServiceData } from './types/ble.js'
 
 import { Buffer } from 'node:buffer'
 import * as Crypto from 'node:crypto'
@@ -93,7 +93,7 @@ export interface ad {
   id: string
   address: string
   rssi: number
-  serviceData: airPurifierServiceData | airPurifierTableServiceData | botServiceData | colorBulbServiceData | contactSensorServiceData | curtainServiceData | curtain3ServiceData | stripLightServiceData | lockServiceData | lockProServiceData | meterServiceData | meterPlusServiceData | meterProServiceData | meterProCO2ServiceData | motionSensorServiceData | presenceSensorServiceData | outdoorMeterServiceData | plugMiniUSServiceData | plugMiniJPServiceData | blindTiltServiceData | ceilingLightServiceData | ceilingLightProServiceData | hub2ServiceData | hub3ServiceData | batteryCirculatorFanServiceData | waterLeakDetectorServiceData | humidifierServiceData | humidifier2ServiceData | robotVacuumCleanerServiceData | keypadDetectorServiceData | relaySwitch1PMServiceData | relaySwitch1ServiceData | remoteServiceData
+  serviceData: airPurifierServiceData | airPurifierTableServiceData | botServiceData | colorBulbServiceData | contactSensorServiceData | curtainServiceData | curtain3ServiceData | stripLightServiceData | lockServiceData | lockProServiceData | meterServiceData | meterPlusServiceData | meterProServiceData | meterProCO2ServiceData | motionSensorServiceData | presenceSensorServiceData | outdoorMeterServiceData | plugMiniUSServiceData | plugMiniJPServiceData | plugMiniEUServiceData | blindTiltServiceData | ceilingLightServiceData | ceilingLightProServiceData | hub2ServiceData | hub3ServiceData | batteryCirculatorFanServiceData | waterLeakDetectorServiceData | humidifierServiceData | humidifier2ServiceData | robotVacuumCleanerServiceData | keypadDetectorServiceData | relaySwitch1PMServiceData | relaySwitch1ServiceData | remoteServiceData
   [key: string]: unknown
 }
 
@@ -127,6 +127,7 @@ export declare interface SwitchBotBLEDevice {
   StripLight: DeviceInfo
   PlugMiniUS: DeviceInfo
   PlugMiniJP: DeviceInfo
+  PlugMiniEU: DeviceInfo
   Lock: DeviceInfo
   LockPro: DeviceInfo
   CeilingLight: DeviceInfo
@@ -161,6 +162,7 @@ export enum SwitchBotModel {
   StripLight = 'W1701100',
   PlugMiniUS = 'W1901400/W1901401',
   PlugMiniJP = 'W2001400/W2001401',
+  PlugMiniEU = 'W7732300',
   Lock = 'W1601700',
   LockPro = 'W3500000',
   LockUltra = 'W3600000',
@@ -211,6 +213,7 @@ export enum SwitchBotBLEModel {
   StripLight = 'r',
   PlugMiniUS = 'g',
   PlugMiniJP = 'j', // Only available in Japan.
+  PlugMiniEU = 'l', // Only available in Europe.
   Lock = 'o',
   LockPro = '$',
   LockUltra = 'U',
@@ -1099,6 +1102,8 @@ export class Advertising {
         return WoPlugMiniUS.parseServiceData(manufacturerData, emitLog)
       case SwitchBotBLEModel.PlugMiniJP:
         return WoPlugMiniJP.parseServiceData(manufacturerData, emitLog)
+      case SwitchBotBLEModel.PlugMiniEU:
+        return WoPlugMiniEU.parseServiceData(manufacturerData, emitLog)
       case SwitchBotBLEModel.Lock:
         return WoSmartLock.parseServiceData(serviceData, manufacturerData, emitLog)
       case SwitchBotBLEModel.LockPro:
@@ -2583,6 +2588,127 @@ export class WoPlugMiniJP extends SwitchbotDevice {
   /**
    * Sets the state of the plug.
    * @private
+   * @param {number[]} reqByteArray - The request byte array.
+   * @returns {Promise<boolean>} - Resolves with a boolean that tells whether the plug is ON (true) or OFF (false).
+   */
+  public async setState(reqByteArray: number[]): Promise<boolean> {
+    const base = [0x57, 0x0F, 0x50, 0x01]
+    return this.operatePlug([...base, ...reqByteArray])
+  }
+
+  /**
+   * Turns on the plug.
+   * @returns {Promise<boolean>} - Resolves with a boolean that tells whether the plug is ON (true) or OFF (false).
+   */
+  async turnOn(): Promise<boolean> {
+    return this.setState([0x01, 0x80])
+  }
+
+  /**
+   * Turns off the plug.
+   * @returns {Promise<boolean>} - Resolves with a boolean that tells whether the plug is ON (true) or OFF (false).
+   */
+  async turnOff(): Promise<boolean> {
+    return this.setState([0x01, 0x00])
+  }
+
+  /**
+   * Toggles the state of the plug.
+   * @returns {Promise<boolean>} - Resolves with a boolean that tells whether the plug is ON (true) or OFF (false).
+   */
+  async toggle(): Promise<boolean> {
+    return this.setState([0x02, 0x80])
+  }
+
+  /**
+   * Operates the plug with the given bytes.
+   * @param {number[]} bytes - The byte array to send to the plug.
+   * @returns {Promise<boolean>} - Resolves with a boolean that tells whether the plug is ON (true) or OFF (false).
+   */
+  public async operatePlug(bytes: number[]): Promise<boolean> {
+    const reqBuf = Buffer.from(bytes)
+    const resBytes = await this.command(reqBuf)
+    const resBuf = Buffer.from(resBytes)
+
+    if (resBuf.length !== 2) {
+      throw new Error(`Expecting a 2-byte response, got instead: 0x${resBuf.toString('hex')}`)
+    }
+
+    const code = resBuf.readUInt8(1)
+    if (code === 0x00 || code === 0x80) {
+      return code === 0x80
+    } else {
+      throw new Error(`The device returned an error: 0x${resBuf.toString('hex')}`)
+    }
+  }
+}
+
+/**
+ * Class representing a WoPlugMini EU device.
+ * @see https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/plugmini.md
+ */
+export class WoPlugMiniEU extends SwitchbotDevice {
+  constructor(peripheral: NobleTypes['peripheral'], noble: NobleTypes['noble']) {
+    super(peripheral, noble)
+  }
+
+  /**
+   * Parses the service data for WoPlugMini EU.
+   * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Function} emitLog - The function to emit log messages.
+   * @returns {Promise<plugMiniEUServiceData | null>} - Parsed service data or null if invalid.
+   */
+  static async parseServiceData(
+    manufacturerData: Buffer,
+    emitLog: (level: string, message: string) => void,
+  ): Promise<plugMiniEUServiceData | null> {
+    if (manufacturerData.length !== 14) {
+      emitLog('debugerror', `[parseServiceDataForWoPlugMiniEU] Buffer length ${manufacturerData.length} should be 14`)
+      return null
+    }
+
+    const [byte9, byte10, byte11, byte12, byte13] = [
+      manufacturerData.readUInt8(9),
+      manufacturerData.readUInt8(10),
+      manufacturerData.readUInt8(11),
+      manufacturerData.readUInt8(12),
+      manufacturerData.readUInt8(13),
+    ]
+
+    const state = byte9 === 0x00 ? 'off' : byte9 === 0x80 ? 'on' : null
+    const delay = !!(byte10 & 0b00000001)
+    const timer = !!(byte10 & 0b00000010)
+    const syncUtcTime = !!(byte10 & 0b00000100)
+    const wifiRssi = byte11
+    const overload = !!(byte12 & 0b10000000)
+    const currentPower = (((byte12 & 0b01111111) << 8) + byte13) / 10 // in watt
+
+    const data = {
+      model: SwitchBotBLEModel.PlugMiniEU,
+      modelName: SwitchBotBLEModelName.PlugMini,
+      modelFriendlyName: SwitchBotBLEModelFriendlyName.PlugMini,
+      state: state ?? 'unknown',
+      delay,
+      timer,
+      syncUtcTime,
+      wifiRssi,
+      overload,
+      currentPower,
+    }
+
+    return data as plugMiniEUServiceData
+  }
+
+  /**
+   * Reads the state of the plug.
+   * @returns {Promise<boolean>} - Resolves with a boolean that tells whether the plug is ON (true) or OFF (false).
+   */
+  public async readState(): Promise<boolean> {
+    return this.operatePlug([0x57, 0x0F, 0x51, 0x01])
+  }
+
+  /**
+   * Sets the state of the plug.
    * @param {number[]} reqByteArray - The request byte array.
    * @returns {Promise<boolean>} - Resolves with a boolean that tells whether the plug is ON (true) or OFF (false).
    */
