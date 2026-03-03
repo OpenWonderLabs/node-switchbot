@@ -2537,11 +2537,11 @@ export class WoPlugMiniJP extends SwitchbotDevice {
    * @returns {Promise<plugMiniJPServiceData | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
-    manufacturerData: Buffer,
+    manufacturerData: Buffer | undefined,
     emitLog: (level: string, message: string) => void,
   ): Promise<plugMiniJPServiceData | null> {
-    if (manufacturerData.length !== 14) {
-      emitLog('debugerror', `[parseServiceDataForWoPlugMiniJP] Buffer length ${manufacturerData.length} should be 14`)
+    if (!manufacturerData || manufacturerData.length !== 14) {
+      emitLog('debugerror', `[parseServiceDataForWoPlugMiniJP] Buffer length ${manufacturerData?.length ?? 0} should be 14`)
       return null
     }
 
@@ -2659,11 +2659,11 @@ export class WoPlugMiniEU extends SwitchbotDevice {
    * @returns {Promise<plugMiniEUServiceData | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
-    manufacturerData: Buffer,
+    manufacturerData: Buffer | undefined,
     emitLog: (level: string, message: string) => void,
   ): Promise<plugMiniEUServiceData | null> {
-    if (manufacturerData.length !== 14) {
-      emitLog('debugerror', `[parseServiceDataForWoPlugMiniEU] Buffer length ${manufacturerData.length} should be 14`)
+    if (!manufacturerData || manufacturerData.length !== 14) {
+      emitLog('debugerror', `[parseServiceDataForWoPlugMiniEU] Buffer length ${manufacturerData?.length ?? 0} should be 14`)
       return null
     }
 
@@ -2780,11 +2780,11 @@ export class WoPlugMiniUS extends SwitchbotDevice {
    * @returns {Promise<plugMiniUSServiceData | null>} - Parsed service data or null if invalid.
    */
   static async parseServiceData(
-    manufacturerData: Buffer,
+    manufacturerData: Buffer | undefined,
     emitLog: (level: string, message: string) => void,
   ): Promise<plugMiniUSServiceData | null> {
-    if (manufacturerData.length !== 14) {
-      emitLog('debugerror', `[parseServiceDataForWoPlugMini] Buffer length ${manufacturerData.length} should be 14`)
+    if (!manufacturerData || manufacturerData.length !== 14) {
+      emitLog('debugerror', `[parseServiceDataForWoPlugMini] Buffer length ${manufacturerData?.length ?? 0} should be 14`)
       return null
     }
 
