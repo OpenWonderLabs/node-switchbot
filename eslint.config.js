@@ -13,25 +13,6 @@ export default antfu(
       'jsdoc/check-alignment': 'error',
       'jsdoc/check-line-alignment': 'error',
       'perfectionist/sort-exports': 'error',
-      'perfectionist/sort-imports': [
-        'error',
-        {
-          groups: [
-            'builtin-type',
-            'external-type',
-            'internal-type',
-            ['parent-type', 'sibling-type', 'index-type'],
-            'builtin',
-            'external',
-            'internal',
-            ['parent', 'sibling', 'index'],
-            'object',
-            'unknown',
-          ],
-          order: 'asc',
-          type: 'natural',
-        },
-      ],
       'perfectionist/sort-named-exports': 'error',
       'perfectionist/sort-named-imports': 'error',
       'sort-imports': 0,
@@ -43,6 +24,12 @@ export default antfu(
       'no-new': 0, // Disable the no-new rule
       'new-cap': 0, // Disable the new-cap rule
       'no-undef': 0, // Disable the no-undef rule
+    },
+  },
+  {
+    files: ['examples/**/*'],
+    rules: {
+      'no-console': 0, // Allow console methods in examples
     },
   },
 )

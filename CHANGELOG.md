@@ -2,6 +2,95 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [Unreleased]
+
+### Features
+
+* **macOS BLE Support**: Enabled BLE functionality on macOS in addition to Linux
+  * Platform detection now includes macOS (darwin) using @stoprocent/noble
+  * BLE now works on Linux and macOS systems
+  * Windows remains unsupported for BLE operations
+
+* **Bot Password Protection**: Added BLE password support for Bot (WoHand) devices
+  * Password encryption using CRC32 checksums
+  * Password validation (4 alphanumeric characters, case-sensitive)
+  * Methods: `setPassword()`, `clearPassword()`, `hasPassword()`
+  * Automatic encrypted command execution when password is set
+  * Example: `examples/bot-password.js`
+  * Based on [homebridge-switchbot PR #1337](https://github.com/OpenWonderLabs/homebridge-switchbot/pull/1337)
+
+* **Advanced Resilience Features**: Enterprise-grade reliability enhancements
+  * Retry logic with exponential backoff and jitter (RetryExecutor)
+  * Circuit breaker pattern to prevent cascading failures (CLOSED/OPEN/HALF_OPEN states)
+  * Connection intelligence tracking per-device success/failure rates
+  * Custom fallback handler system with built-in logging, metrics, and alerting handlers
+  * Intelligent connection selection based on historical performance
+
+### Documentation
+
+* Added password protection section to [BLE.md](BLE.md)
+* Updated [README.md](README.md) with password examples
+* Created comprehensive password protection example
+* Updated examples index with bot-password.js
+* Updated platform support documentation to reflect macOS BLE support
+* Updated all "Linux-only" references to "Linux/macOS"
+* **Added comprehensive prerequisites section** for BLE setup on macOS and Linux
+  * macOS: Xcode and Bluetooth permissions requirements
+  * Linux: System packages, non-root setup, and Raspberry Pi specific notes
+  * Based on [@stoprocent/noble prerequisites](https://github.com/stoprocent/noble?tab=readme-ov-file#prerequisites)
+
+### Tests
+
+* Added 14 comprehensive password protection tests
+* All 54 tests passing (up from 40 in v4.0.0)
+* Validation of CRC32 encryption, command building, and response parsing
+
+---
+
+## [4.0.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.6.6...v4.0.0) (2026-03-03)
+
+### ⚠ BREAKING CHANGES
+
+* Complete rewrite with unified hybrid BLE/API architecture
+* No backward compatibility with v3.x - migration required
+* Single `SwitchBot` class replaces `SwitchBotBLE` and `SwitchBotOpenAPI`
+* Device access via `switchbot.devices` manager pattern
+* Full TypeScript rewrite with comprehensive type definitions
+
+### Features
+
+* **Hybrid Architecture**: Unified BLE-first approach with automatic OpenAPI fallback
+* **Automatic Discovery**: Combined BLE + OpenAPI device discovery in single call
+* **Smart Fallback**: Commands automatically retry via API when BLE fails
+* **Device Manager**: Centralized device management with `get()`, `list()`, and `clear()` methods
+* **30 Device Types**: Full support for all SwitchBot devices (Bot, Curtain, Lock, Meter, Plug, Bulb, etc.)
+* **Event-Driven**: EventEmitter-based architecture for discovery and command events
+* **TypeScript Native**: Written in TypeScript with full type safety and exports
+* **Custom Errors**: Specific error classes for better error handling
+* **BLE-Only Mode**: Works without OpenAPI credentials on Linux systems
+* **API-Only Mode**: Works without BLE on Windows/macOS
+* **Comprehensive Examples**: 6 example files covering all major use cases
+
+### Technical Improvements
+
+* Complete ES2022 module implementation
+* Improved error handling with custom error classes
+* Better connection management and timeout handling
+* Enhanced logging with configurable log levels
+* Full JSDoc documentation coverage
+* Comprehensive TypeScript type definitions for all devices
+* Production-ready test suite with Vitest
+* Auto-formatting and linting with @antfu/eslint-config
+
+### Documentation
+
+* Updated README with v4 quick start and migration guide
+* 6 usage examples in `examples/` directory
+* Migration guide from v3.x to v4.0.0
+* Full API documentation via TypeDoc
+
+---
+
 ## [3.6.6](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.6.5...v3.6.6) (2026-02-25)
 
 

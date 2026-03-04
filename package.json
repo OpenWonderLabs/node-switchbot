@@ -1,8 +1,8 @@
 {
   "name": "node-switchbot",
   "type": "module",
-  "version": "3.6.6",
-  "description": "The node-switchbot is a Node.js module which allows you to control your Switchbot Devices through Bluetooth (BLE).",
+  "version": "4.0.0",
+  "description": "The node-switchbot is a Node.js module which allows you to control your Switchbot Devices through Bluetooth (BLE) with automatic OpenAPI fallback.",
   "author": "OpenWonderLabs (https://github.com/OpenWonderLabs)",
   "license": "MIT",
   "homepage": "https://github.com/OpenWonderLabs/node-switchbot",
@@ -36,47 +36,41 @@
   },
   "scripts": {
     "check": "npm install && npm outdated",
-    "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts test/**/*.ts && npm run type-check",
+    "lint:fix": "eslint src/**/*.ts test/**/*.ts --fix && npm run type-check",
+    "lint:src": "eslint src/**/*.ts",
+    "lint:test": "eslint test/**/*.ts",
     "watch": "npm run build && npm link && nodemon",
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && tsc -p tsconfig.build.json",
     "prepublishOnly": "npm run lint && npm run build && npm run docs && npm run lint-docs",
     "postpublish": "npm run clean && npm ci",
     "clean": "shx rm -rf ./dist",
     "test": "vitest run",
     "test:watch": "vitest watch",
     "test-coverage": "npm run test -- --coverage",
+    "ble:scan": "node tmp-switchbot-scan.mjs",
     "docs": "typedoc",
     "lint-docs": "typedoc --emit none --treatWarningsAsErrors"
   },
   "readmeFilename": "README.md",
   "dependencies": {
-    "@stoprocent/noble": "^2.3.14",
-    "async-mutex": "^0.5.0",
+    "@stoprocent/noble": "^2.3.17",
     "undici": "^7.15.0"
   },
   "optionalDependencies": {
-    "@stoprocent/bluetooth-hci-socket": "^2.2.3"
+    "@stoprocent/bluetooth-hci-socket": "^2.2.5"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^5.2.1",
-    "@types/aes-js": "^3.1.4",
-    "@types/debug": "^4.1.12",
-    "@types/fs-extra": "^11.0.4",
-    "@types/mdast": "^4.0.4",
-    "@types/node": "^24.3.0",
-    "@types/semver": "^7.7.0",
-    "@types/source-map-support": "^0.5.10",
-    "@vitest/coverage-v8": "^3.2.4",
-    "eslint": "^9.34.0",
-    "eslint-plugin-format": "^1.0.1",
-    "eslint-plugin-import": "^2.32.0",
+    "@antfu/eslint-config": "^7.7.0",
+    "@types/node": "^25.3.5",
+    "@vitest/coverage-v8": "^4.0.18",
+    "eslint": "^9.39.4",
+    "eslint-plugin-format": "^2.0.1",
     "eslint-plugin-import-x": "^4.16.1",
-    "nodemon": "^3.1.10",
     "shx": "^0.4.0",
-    "ts-node": "^10.9.2",
     "typedoc": "^0.28.11",
-    "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }

@@ -1,61 +1,109 @@
-/* Copyright(C) 2017-2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+/* Copyright(C) 2024-2026, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
- * bledevicestatus.ts: @switchbot/homebridge-switchbot platform class.
+ * types/ble.ts: SwitchBot v4.0.0 - BLE Type Definitions
  */
-import type { MacAddress, SwitchBotBLEModel, SwitchBotBLEModelFriendlyName, SwitchBotBLEModelName } from '../device.js'
+
+import type { Buffer } from 'node:buffer'
 
 /**
- * BLE discovery and wait methods for SwitchBot devices.
+ * BLE Service Data for various SwitchBot devices
  */
-export interface SwitchBotScanner {
-  /** Discover BLE devices based on filter criteria */
-  discover: (args: { duration?: number, model: string, quick: boolean, id?: MacAddress }) => Promise<unknown>
-  /** Wait for given milliseconds */
-  wait: (ms: number) => void
+export interface BLEServiceData {
+  /** Device model */
+  model: string
+  /** Model name string */
+  modelName: string
+  /** Battery level (0-100) */
+  battery?: number
+  /** Raw service data buffer */
+  rawData?: Buffer
+  /** Parsed on/off state where available */
+  state?: boolean
+  /** Parsed mode where available */
+  mode?: 'press' | 'switch' | 'customize' | 'auto' | 'manual' | 'sleep'
+  /** Parsed movement state where available */
+  inMotion?: boolean
+  /** Parsed lock state where available */
+  lockState?: 'locked' | 'unlocked' | 'jammed'
+  /** Parsed lock raw status value where available */
+  status?: number
+  /** Parsed door-open flag where available */
+  doorOpen?: boolean
+  /** Parsed sequence number where available */
+  sequenceNumber?: number
+  /** Parsed relay channel 2 state where available */
+  channel2State?: boolean
+  /** Allow model-specific parser extensions */
+  [key: string]: unknown
 }
 
 /**
- * Common service data across BLE devices.
+ * Bot (WoHand) BLE Service Data
  */
-interface BLEServiceData {
-  model: SwitchBotBLEModel
-  modelName: SwitchBotBLEModelName
-  modelFriendlyName: SwitchBotBLEModelFriendlyName
-}
-/**
- * Base interface for color-controllable devices.
- */
-export interface ColorLightServiceDataBase extends BLEServiceData {
-  color_temperature: number
-  power: boolean
+export interface BotServiceData extends BLEServiceData {
+  mode: 'press' | 'switch' | 'customize'
   state: boolean
-  red: number
-  green: number
-  blue: number
-  brightness: number
-  delay: number
-  preset: number
-  color_mode: number
-  speed: number
-  loop_index: number
+  battery: number
 }
 
 /**
- * Base interface for temperature-humidity meter devices.
+ * Curtain BLE Service Data
  */
-export interface TemperatureServiceDataBase extends BLEServiceData {
-  celsius: number
-  fahrenheit: number
-  fahrenheit_mode: boolean
+export interface CurtainServiceData extends BLEServiceData {
+  calibration: boolean
+  battery: number
+  position: number
+  lightLevel: number
+  deviceChain?: number
+}
+
+/**
+ * Lock BLE Service Data
+ */
+export interface LockServiceData extends BLEServiceData {
+  battery: number
+  calibration: boolean
+  status: number
+  doorOpen: boolean
+  lockState: 'locked' | 'unlocked' | 'jammed'
+  autoLockDelay?: number
+}
+
+/**
+ * Meter BLE Service Data
+ */
+export interface MeterServiceData extends BLEServiceData {
+  temperature: number
+  fahrenheit: boolean
   humidity: number
   battery: number
 }
 
 /**
- * Base interface for mini plug devices (US/JP share same schema).
+ * Contact Sensor BLE Service Data
  */
-export interface PlugMiniServiceDataBase extends BLEServiceData {
-  state: string
+export interface ContactServiceData extends BLEServiceData {
+  movement: boolean
+  position: 'open' | 'closed' | 'timeout'
+  battery: number
+  lightLevel: 'bright' | 'dim' | 'dark'
+}
+
+/**
+ * Motion Sensor BLE Service Data
+ */
+export interface MotionServiceData extends BLEServiceData {
+  movement: boolean
+  battery: number
+  lightLevel: 'bright' | 'dim' | 'dark'
+  iotButton?: boolean
+}
+
+/**
+ * Plug BLE Service Data
+ */
+export interface PlugServiceData extends BLEServiceData {
+  state: boolean
   delay: boolean
   timer: boolean
   syncUtcTime: boolean
@@ -65,393 +113,225 @@ export interface PlugMiniServiceDataBase extends BLEServiceData {
 }
 
 /**
- * Base interface for lock-style devices.
+ * Bulb BLE Service Data
  */
-export interface LockBaseServiceData extends BLEServiceData {
-  battery: number
-  calibration: boolean
-  status: string
-  update_from_secondary_lock: boolean
-  door_open: boolean
-  double_lock_mode: boolean
-  unclosed_alarm: boolean
-  unlocked_alarm: boolean
-  auto_lock_paused: boolean
-  night_latch: boolean
-}
-
-export type botServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.Bot
-  modelName: SwitchBotBLEModelName.Bot
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.Bot
-  mode: boolean
+export interface BulbServiceData extends BLEServiceData {
   state: boolean
-  battery: number
+  brightness: number
+  red?: number
+  green?: number
+  blue?: number
+  colorTemperature?: number
+  delay?: boolean
+  preset?: boolean
+  colorMode?: boolean
 }
 
-export type colorBulbServiceData = ColorLightServiceDataBase & {
-  model: SwitchBotBLEModel.ColorBulb
-  modelName: SwitchBotBLEModelName.ColorBulb
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.ColorBulb
-}
+/**
+ * Strip Light BLE Service Data
+ */
+export interface StripServiceData extends BulbServiceData {}
 
-export type contactSensorServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.ContactSensor
-  modelName: SwitchBotBLEModelName.ContactSensor
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.ContactSensor
-  movement: boolean
-  tested: boolean
-  battery: number
-  contact_open: boolean
-  contact_timeout: boolean
-  lightLevel: string
-  button_count: number
-  doorState: string
-}
+/**
+ * Ceiling Light BLE Service Data
+ */
+export interface CeilingLightServiceData extends BulbServiceData {}
 
-export type curtainServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.Curtain
-  modelName: SwitchBotBLEModelName.Curtain
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.Curtain
+/**
+ * Blind Tilt BLE Service Data
+ */
+export interface BlindTiltServiceData extends BLEServiceData {
   calibration: boolean
   battery: number
-  inMotion: boolean
   position: number
   lightLevel: number
-  deviceChain: number
-}
-
-export type curtain3ServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.Curtain3
-  modelName: SwitchBotBLEModelName.Curtain3
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.Curtain3
-  calibration: boolean
-  battery: number
   inMotion: boolean
-  position: number
-  lightLevel: number
-  deviceChain: number
 }
 
-export type stripLightServiceData = ColorLightServiceDataBase & {
-  model: SwitchBotBLEModel.StripLight
-  modelName: SwitchBotBLEModelName.StripLight
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.StripLight
+/**
+ * Humidifier BLE Service Data
+ */
+export interface HumidifierServiceData extends BLEServiceData {
+  onState: boolean
+  autoMode: boolean
+  percentage: number
+  lackWater: boolean
 }
 
-export type lockServiceData = LockBaseServiceData & {
-  model: SwitchBotBLEModel.Lock
-  modelName: SwitchBotBLEModelName.Lock
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.Lock
-}
-
-export type lockProServiceData = LockBaseServiceData & {
-  model: SwitchBotBLEModel.LockPro
-  modelName: SwitchBotBLEModelName.LockPro
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.LockPro
-}
-
-export type meterServiceData = TemperatureServiceDataBase & {
-  model: SwitchBotBLEModel.Meter
-  modelName: SwitchBotBLEModelName.Meter
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.Meter
-}
-
-export type meterPlusServiceData = TemperatureServiceDataBase & {
-  model: SwitchBotBLEModel.MeterPlus
-  modelName: SwitchBotBLEModelName.MeterPlus
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterPlus
-}
-
-export type meterProServiceData = TemperatureServiceDataBase & {
-  model: SwitchBotBLEModel.MeterPro
-  modelName: SwitchBotBLEModelName.MeterPro
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterPro
-}
-
-export type meterProCO2ServiceData = TemperatureServiceDataBase & {
-  model: SwitchBotBLEModel.MeterProCO2
-  modelName: SwitchBotBLEModelName.MeterProCO2
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.MeterProCO2
-  co2: number
-}
-
-export type outdoorMeterServiceData = TemperatureServiceDataBase & {
-  model: SwitchBotBLEModel.OutdoorMeter
-  modelName: SwitchBotBLEModelName.OutdoorMeter
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.OutdoorMeter
-}
-
-export type motionSensorServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.MotionSensor
-  modelName: SwitchBotBLEModelName.MotionSensor
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.MotionSensor
-  tested: boolean
-  movement: boolean
-  battery: number
-  led: number
-  iot: number
-  sense_distance: number
-  lightLevel: string
-  is_light: boolean
-}
-export type presenceSensorServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.PresenceSensor
-  modelName: SwitchBotBLEModelName.PresenceSensor
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.PresenceSensor
-  sequenceNumber: number
-  adaptiveState: boolean
-  motionDetected: boolean
-  batteryRange: string
-  triggerFlag: number
-  ledState: boolean
-  lightLevel: number
-  battery?: number
-}
-
-export type plugMiniUSServiceData = PlugMiniServiceDataBase & {
-  model: SwitchBotBLEModel.PlugMiniUS
-  modelName: SwitchBotBLEModelName.PlugMini
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.PlugMini
-}
-
-export type plugMiniJPServiceData = PlugMiniServiceDataBase & {
-  model: SwitchBotBLEModel.PlugMiniJP
-  modelName: SwitchBotBLEModelName.PlugMini
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.PlugMini
-}
-
-export type plugMiniEUServiceData = PlugMiniServiceDataBase & {
-  model: SwitchBotBLEModel.PlugMiniEU
-  modelName: SwitchBotBLEModelName.PlugMini
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.PlugMini
-}
-
-export type blindTiltServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.BlindTilt
-  modelName: SwitchBotBLEModelName.BlindTilt
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.BlindTilt
-  calibration: boolean
-  battery: number
-  inMotion: boolean
-  tilt: number
-  lightLevel: number
-  sequenceNumber: number
-}
-
-export type ceilingLightServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.CeilingLight
-  modelName: SwitchBotBLEModelName.CeilingLight
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.CeilingLight
-  color_temperature: number
-  power: boolean
+/**
+ * Air Purifier BLE Service Data
+ */
+export interface AirPurifierServiceData extends BLEServiceData {
   state: boolean
-  red: number
-  green: number
-  blue: number
-  brightness: number
-  delay: number
-  preset: number
-  color_mode: number
-  speed: number
-  loop_index: number
-}
-
-export type ceilingLightProServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.CeilingLightPro
-  modelName: SwitchBotBLEModelName.CeilingLightPro
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.CeilingLightPro
-  color_temperature: number
-  power: boolean
-  state: boolean
-  red: number
-  green: number
-  blue: number
-  brightness: number
-  delay: number
-  preset: number
-  color_mode: number
-  speed: number
-  loop_index: number
-}
-
-export type hub2ServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.Hub2
-  modelName: SwitchBotBLEModelName.Hub2
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.Hub2
-  celsius: number
-  fahrenheit: number
-  fahrenheit_mode: boolean
-  humidity: number
-  lightLevel: number
-}
-
-export type hub3ServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.Hub3
-  modelName: SwitchBotBLEModelName.Hub3
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.Hub3
-  celsius: number
-  fahrenheit: number
-  fahrenheit_mode: boolean
-  humidity: number
-  lightLevel: number
-}
-
-export type batteryCirculatorFanServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.Unknown
-  modelName: SwitchBotBLEModelName.Unknown
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.Unknown
-  state: string
   fanSpeed: number
+  mode: 'auto' | 'manual' | 'sleep'
+  pm25?: number
 }
 
-export type waterLeakDetectorServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.Leak
-  modelName: SwitchBotBLEModelName.Leak
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.Leak
-  leak: boolean
-  tampered: boolean
-  battery: number
-  low_battery: boolean
-}
-
-export type humidifierServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.Humidifier
-  modelName: SwitchBotBLEModelName.Humidifier
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.Humidifier
-  onState: boolean
-  autoMode: boolean
-  percentage: number
-  humidity: number
-}
-
-export type humidifier2ServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.Humidifier2
-  modelName: SwitchBotBLEModelName.Humidifier2
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.Humidifier2
-  onState: boolean
-  autoMode: boolean
-  percentage: number
-  humidity: number
-  childLock: boolean
-  overHumidifyProtection: boolean
-  tankRemoved: boolean
-  tiltedAlert: boolean
-  filterMissing: boolean
+/**
+ * Hub BLE Service Data
+ */
+export interface HubServiceData extends BLEServiceData {
   temperature: number
-  filterRunTime: number
-  filterAlert: boolean
-  waterLevel: number
+  fahrenheit: boolean
+  humidity: number
+  lightLevel: number
 }
 
-export type robotVacuumCleanerServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.Unknown
-  modelName: SwitchBotBLEModelName.Unknown
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.Unknown
-  state: string
+/**
+ * Leak Detector BLE Service Data
+ */
+export interface LeakServiceData extends BLEServiceData {
+  waterLeakDetected: boolean
   battery: number
 }
 
-export type keypadDetectorServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.Keypad
-  modelName: SwitchBotBLEModelName.Keypad
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.Keypad
-  event: boolean
-  tampered: boolean
+/**
+ * Presence Sensor BLE Service Data
+ */
+export interface PresenceServiceData extends BLEServiceData {
+  movement: boolean
   battery: number
-  low_battery: boolean
+  lightLevel: 'bright' | 'dim' | 'dark'
 }
 
-export type relaySwitch1ServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.RelaySwitch1
-  modelName: SwitchBotBLEModelName.RelaySwitch1
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.RelaySwitch1
-  mode: boolean
+/**
+ * Relay Switch BLE Service Data
+ */
+export interface RelaySwitchServiceData extends BLEServiceData {
   state: boolean
-  sequence_number: number
+  power?: number
+  voltage?: number
+  current?: number
 }
 
-export type relaySwitch1PMServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.RelaySwitch1PM
-  modelName: SwitchBotBLEModelName.RelaySwitch1PM
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.RelaySwitch1PM
-  mode: boolean
-  state: boolean
-  sequence_number: number
-  power: number
-  voltage: number
-  current: number
+/**
+ * BLE Device Advertisement
+ */
+export interface BLEAdvertisement {
+  id: string
+  address?: string
+  isAddressable: boolean
+  rssi: number
+  serviceData: BLEServiceData
+  /** Raw BLE advertisement data (entire buffer) */
+  rawAdvData?: Buffer
+  /** True if advertisement is encrypted */
+  isEncrypted?: boolean
+  /** User-friendly model name (e.g., "WoHand") */
+  modelFriendlyName?: string
 }
 
-export type remoteServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.Remote
-  modelName: SwitchBotBLEModelName.Remote
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.Remote
-  battery: number
+/**
+ * BLE Scanner options
+ */
+export interface BLEScanOptions {
+  /** Scan duration in milliseconds */
+  duration?: number
+  /** Filter by specific MAC addresses */
+  macs?: string[]
+  /** Filter by device model */
+  model?: string
+  /** Active scanning (default: true) */
+  active?: boolean
 }
 
-export type airPurifierServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.AirPurifier
-  modelName: SwitchBotBLEModelName.AirPurifier
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.AirPurifier
-  isOn: boolean
-  mode: string | null
-  isAqiValid: boolean
-  child_lock: boolean
-  speed: number
-  aqi_level: string
-  filter_element_working_time: number
-  err_code: number
-  sequence_number: number
+/**
+ * SwitchBot BLE Model identifiers
+ */
+export enum SwitchBotBLEModel {
+  Bot = 'H',
+  Curtain = 'c',
+  Curtain3 = '{',
+  Plug = 'g',
+  PlugMiniUS = 'j',
+  // eslint-disable-next-line ts/no-duplicate-enum-values
+  PlugMiniJP = 'j',
+  Meter = 'T',
+  MeterPlus = 'i',
+  MeterPro = 'o',
+  MeterProCO2 = 'w',
+  OutdoorMeter = 'n',
+  // eslint-disable-next-line ts/no-duplicate-enum-values
+  Lock = 'o',
+  LockPro = '\x11',
+  Keypad = 'k',
+  KeypadTouch = '\x0B',
+  MotionSensor = 's',
+  ContactSensor = 'd',
+  CeilingLight = 'q',
+  CeilingLightPro = 'r',
+  StripLight = 'p',
+  ColorBulb = 'u',
+  RobotVacuumCleanerS1 = '\x0A',
+  RobotVacuumCleanerS1Plus = '\x0C',
+  RobotVacuumCleanerK10Plus = '\x0F',
+  Humidifier = 'e',
+  Humidifier2 = '\x07',
+  BlindTilt = 'x',
+  Hub2 = '\x01',
+  Hub3 = '\x02',
+  Remote = '\x05',
+  BatteryCirculatorFan = '\x04',
+  AirPurifier = '\x08',
+  AirPurifierTable = '\x09',
+  WaterLeakDetector = 'y',
+  PresenceSensor = '\x06',
+  RelaySwitch1PM = '\x0D',
+  RelaySwitch1 = '\x0E',
+  K10ProComboK10Pro = '\x10',
 }
 
-export type airPurifierTableServiceData = BLEServiceData & {
-  model: SwitchBotBLEModel.AirPurifierTable
-  modelName: SwitchBotBLEModelName.AirPurifierTable
-  modelFriendlyName: SwitchBotBLEModelFriendlyName.AirPurifierTable
-  isOn: boolean
-  mode: string | null
-  isAqiValid: boolean
-  child_lock: boolean
-  speed: number
-  aqi_level: string
-  filter_element_working_time: number
-  err_code: number
-  sequence_number: number
+/**
+ * SwitchBot BLE Model Names
+ */
+export enum SwitchBotBLEModelName {
+  Bot = 'WoHand',
+  Curtain = 'WoCurtain',
+  Curtain3 = 'WoCurtain3',
+  Plug = 'WoPlugUS',
+  PlugMiniUS = 'WoPlugMiniUS',
+  PlugMiniJP = 'WoPlugMiniJP',
+  Meter = 'WoSensorTH',
+  MeterPlus = 'WoSensorTHPlus',
+  MeterPro = 'WoSensorTHPro',
+  MeterProCO2 = 'WoSensorTHProCO2',
+  OutdoorMeter = 'WoIOSensorTH',
+  Lock = 'WoSmartLock',
+  LockPro = 'WoSmartLockPro',
+  Keypad = 'WoKeypad',
+  KeypadTouch = 'WoKeypadTouch',
+  MotionSensor = 'WoMotion',
+  ContactSensor = 'WoContact',
+  CeilingLight = 'WoCeilingLight',
+  CeilingLightPro = 'WoCeilingLightPro',
+  StripLight = 'WoStrip',
+  ColorBulb = 'WoBulb',
+  RobotVacuumCleanerS1 = 'WoVacS1',
+  RobotVacuumCleanerS1Plus = 'WoVacS1Plus',
+  RobotVacuumCleanerK10Plus = 'WoVacK10Plus',
+  Humidifier = 'WoHumi',
+  Humidifier2 = 'WoHumi2',
+  BlindTilt = 'WoBlindTilt',
+  Hub2 = 'WoHub2',
+  Hub3 = 'WoHub3',
+  Remote = 'WoRemote',
+  BatteryCirculatorFan = 'WoCirculatorFan',
+  AirPurifier = 'WoAirPurifier',
+  AirPurifierTable = 'WoAirPurifierTable',
+  WaterLeakDetector = 'WoLeak',
+  PresenceSensor = 'WoPresence',
+  RelaySwitch1PM = 'WoRelaySwitch1PM',
+  RelaySwitch1 = 'WoRelaySwitch1',
+  K10ProComboK10Pro = 'WoVacK10ProCombo',
 }
 
-export type BLEDeviceServiceData
-  = | airPurifierServiceData
-    | airPurifierTableServiceData
-    | batteryCirculatorFanServiceData
-    | blindTiltServiceData
-    | botServiceData
-    | ceilingLightServiceData
-    | ceilingLightProServiceData
-    | colorBulbServiceData
-    | contactSensorServiceData
-    | curtain3ServiceData
-    | curtainServiceData
-    | hub2ServiceData
-    | hub3ServiceData
-    | keypadDetectorServiceData
-    | lockProServiceData
-    | lockServiceData
-    | meterPlusServiceData
-    | meterProCO2ServiceData
-    | meterProServiceData
-    | meterServiceData
-    | motionSensorServiceData
-    | outdoorMeterServiceData
-    | presenceSensorServiceData
-    | plugMiniJPServiceData
-    | plugMiniUSServiceData
-    | plugMiniEUServiceData
-    | relaySwitch1PMServiceData
-    | relaySwitch1ServiceData
-    | remoteServiceData
-    | robotVacuumCleanerServiceData
-    | stripLightServiceData
-    | waterLeakDetectorServiceData
-    | humidifier2ServiceData
-    | humidifierServiceData
+/**
+ * Noble types (for BLE communication)
+ */
+export interface NobleTypes {
+  Peripheral?: any
+  Service?: any
+  Characteristic?: any
+  Noble?: any
+}

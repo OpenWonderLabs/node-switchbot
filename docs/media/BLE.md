@@ -59,13 +59,61 @@ The `SwitchBot` class allows you to interact with SwitchBot devices using the Sw
 
 ### Supported OS
 
-The node-switchbot supports only Linux-based OSes, such as Raspbian, Ubuntu, and so on. This module does not support Windows and macOS for now. (If [@stoprocent/noble](https://github.com/stoprocent/noble#readme) is installed properly, this module might work well on such OSes.)
+The node-switchbot supports Linux-based OSes (such as Raspbian, Ubuntu) and macOS. Windows is not currently supported. BLE functionality requires [@stoprocent/noble](https://github.com/stoprocent/noble#readme) which works natively on Linux and macOS.
 
 ### Dependencies
 
-- [Node.js](https://nodejs.org/en/): ^20
-- [@stoprocent/noble](https://github.com/stoprocent/noble)
-  - Included as a dependency so no need to install manually however if for some reason your OS requires addtional libaries, see `@stoprocent/noble` [prerequisites](https://github.com/stoprocent/noble?tab=readme-ov-file#prerequisites), you will then need to reinstall `node-switchbot` or the package that you have `node-swtichbot` as a dependency.
+- [Node.js](https://nodejs.org/en/): ^20 || ^22 || ^24
+- [@stoprocent/noble](https://github.com/stoprocent/noble) - Included as a dependency
+
+### Prerequisites
+
+#### macOS
+
+- **Xcode**: Install from the App Store
+- **Bluetooth Permissions**: On newer versions of macOS, allow Bluetooth access for your terminal app:
+  1. Open "System Preferences" → "Security & Privacy" → "Privacy" → "Bluetooth"
+  2. Add and enable your terminal application (Terminal.app, iTerm.app, etc.)
+
+#### Linux (Ubuntu, Debian, Raspbian)
+
+- **Kernel**: Version 3.6 or above
+- **Required Packages**:
+
+  ```bash
+  sudo apt-get install bluetooth bluez libbluetooth-dev libudev-dev
+  ```
+
+- **Node Path**: Ensure `node` is on your PATH
+
+  ```bash
+  # If needed, symlink nodejs to node
+  sudo ln -s /usr/bin/nodejs /usr/bin/node
+  ```
+
+- **Running without sudo** (Recommended):
+
+  ```bash
+  sudo setcap cap_net_raw+eip $(eval readlink -f `which node`)
+  ```
+
+  This grants the `node` binary `cap_net_raw` privileges for BLE operations.
+
+  Required package: `sudo apt-get install libcap2-bin`
+
+- **Raspberry Pi Specific**: If having trouble connecting to BLE devices, disable the `pnat` plugin by adding this line to `/etc/bluetooth/main.conf`:
+  ```
+  DisablePlugins=pnat
+  ```
+  Then restart the system.
+
+#### Linux (Fedora and RPM-based)
+
+```bash
+sudo yum install bluez bluez-libs bluez-libs-devel
+```
+
+See [@stoprocent/noble prerequisites](https://github.com/stoprocent/noble?tab=readme-ov-file#prerequisites) for more detailed platform-specific instructions.
 
 ### Importing and Setting Up
 
@@ -586,6 +634,71 @@ switchbot
     console.error(error);
   });
 ```
+
+#### Password Protection
+
+The Bot (WoHand) supports password protection via BLE to prevent unauthorized control. When a password is set, all BLE commands (press, turnOn, turnOff, up, down) will be automatically encrypted.
+
+**Password Requirements:**
+
+- Exactly 4 characters
+- Alphanumeric only (letters and numbers)
+- Case-sensitive
+
+**Setting a Password:**
+
+```typescript
+// Using device options during construction
+const bot = new WoHand({
+  id: 'c1:2e:45:3e:20:08',
+  password: 'A1b2' // Your 4-character password
+})
+
+// Or set/change password on existing device
+await bot.setPassword('A1b2')
+```
+
+**Clearing a Password:**
+
+```typescript
+// Remove password protection
+await bot.clearPassword()
+```
+
+**Checking Password Status:**
+
+```typescript
+// Check if device has password configured
+if (bot.hasPassword()) {
+  console.log('Device is password protected')
+}
+```
+
+**Example with Password:**
+
+```typescript
+switchbot
+  .discover({ model: 'H', quick: true })
+  .then((device_list) => {
+    const bot = device_list[0]
+    // Set password for protected Bot
+    bot.setPassword('MyP4')
+    return bot.press()
+  })
+  .then(() => {
+    console.log('Password-protected Bot pressed successfully')
+  })
+  .catch((error) => {
+    console.error(error)
+  })
+```
+
+**Notes:**
+
+- Password encryption uses CRC32 checksums for secure command transmission
+- All control methods (press, turnOn, turnOff, up, down) automatically use encrypted commands when password is set
+- Password is stored in memory only and must be set each time the application starts
+- If the wrong password is configured, BLE commands will fail silently (Bot will not respond)
 
 ### `WoCurtain` Object
 

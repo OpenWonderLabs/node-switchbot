@@ -21,10 +21,24 @@ Always reference these instructions first and fallback to search or bash command
 - **Use lint:fix for automatic fixes**: `npm run lint:fix` to automatically fix ESLint issues
 
 ### Platform Requirements and Constraints
-- **BLE functionality requires Linux-based OS only** (Raspbian, Ubuntu, etc.)
-- **Windows and macOS are NOT supported** for BLE operations (use OpenAPI instead)
+- **BLE functionality requires Linux or macOS** (Raspbian, Ubuntu, macOS, etc.)
+- **Windows is NOT supported** for BLE operations (use OpenAPI instead)
 - **Node.js versions**: Must use ^20, ^22, or ^24 (currently using v20.19.4)
 - **ES Modules**: This project uses `"type": "module"` - always use ES import/export syntax
+
+#### BLE Prerequisites
+
+**macOS:**
+- Xcode installed
+- Bluetooth permissions enabled for terminal app in System Preferences
+
+**Linux (Ubuntu/Debian/Raspbian):**
+- Required packages: `sudo apt-get install bluetooth bluez libbluetooth-dev libudev-dev`
+- For non-root access: `sudo setcap cap_net_raw+eip $(eval readlink -f \`which node\`)`
+- Raspberry Pi: May need to disable pnat plugin in `/etc/bluetooth/main.conf`
+
+**Linux (Fedora/RPM):**
+- Required packages: `sudo yum install bluez bluez-libs bluez-libs-devel`
 
 ### Testing and Validation
 - **Basic functionality test**: After any changes to core classes, run this validation:
@@ -116,9 +130,9 @@ Always reference these instructions first and fallback to search or bash command
 ## Troubleshooting Common Issues
 
 ### BLE Not Working
-- **Check OS**: BLE only works on Linux-based systems
+- **Check OS**: BLE works on Linux and macOS systems only
 - **Install noble prerequisites**: May need additional system libraries for @stoprocent/noble
-- **Use OpenAPI instead**: For Windows/macOS development, use SwitchBotOpenAPI class
+- **Use OpenAPI instead**: For Windows development, use SwitchBotOpenAPI class
 
 ### Build Failures
 - **Check Node.js version**: Must be ^20, ^22, or ^24
@@ -156,7 +170,7 @@ npm run watch       # Build and link for development
 - **Type definitions**: All device status and response types
 
 ### Dependencies Summary
-- **@stoprocent/noble**: BLE functionality (Linux only)
+- **@stoprocent/noble**: BLE functionality (Linux/macOS)
 - **undici**: HTTP client for API requests
 - **async-mutex**: Concurrency control
 - **TypeScript**: Language and compilation
