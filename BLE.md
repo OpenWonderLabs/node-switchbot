@@ -6,835 +6,325 @@ The `SwitchBot` class allows you to interact with SwitchBot devices using the Sw
 
 - [BLE (Bluetooth Low Energy)](#ble-bluetooth-low-energy)
   - [Supported OS](#supported-os)
-  - [Dependencies](#dependencies)
-  - [Importing and Setting Up](#importing-and-setting-up)
-  - [`SwitchBotBLE` Object](#switchbot-object)
-    - [`discover()` method](#discover-method)
-    - [`ondiscover` event handler](#ondiscover-event-handler)
-    - [`startScan()` method](#startscan-method)
-    - [`onadvertisement` event handler](#onadvertisement-event-handler)
-    - [`stopScan()` method](#stopscan-method)
-    - [`wait()` method](#wait-method)
-  - [`SwitchBotDevice` Object](#switchbotdevice-object)
-    - [Properties](#properties)
-    - [`getDeviceName()` method](#getdevicename-method)
-    - [`setDeviceName()` method](#setdevicename-method)
-    - [`connect()` method](#connect-method)
-    - [`disconnect()` method](#disconnect-method)
-    - [`onconnect` event handler](#onconnect-event-handler)
-    - [`ondisconnect` event handler](#ondisconnect-event-handler)
-  - [`WoHand` Object](#wohand-object)
-    - [`press()` method](#press-method)
-    - [`turnOn()` method](#turnon-method)
-    - [`turnOff()` method](#turnoff-method)
-    - [`down()` method](#down-method)
-    - [`up()` method](#up-method)
-  - [`WoCurtain` object](#wocurtain-object)
-    - [`open()` method](#open-method)
-    - [`close()` method](#close-method)
-    - [`pause()` method](#pause-method)
-    - [`runToPos()` method](#runtopos-method)
-  - [`WoPlugMini` object](#woplugmini-object)
-    - [`turnOn()` method](#turnon-method)
-    - [`turnOff()` method](#turnoff-method)
-    - [`toggle()` method](#toggle-method)
-  - [`WoSmartLock` object](#wosmartlock-object)
-    - [`lock()` method](#lock-method)
-    - [`unlock()` method](#unlock-method)
-    - [`unlock_no_unlatch()` method](#unlock_no_unlatch-method)
-    - [`info()` method](#info-method)
-  - [Advertisement data](#advertisement-data)
-    - [Bot (WoHand)](#bot-wohand)
-    - [Meter (WoSensorTH)](#meter-wosensorth)
-    - [Curtain (WoCurtain)](#curtain-wocurtain)
-    - [Contact (WoContact)](#contact-wocontact)
-    - [Motion (WoMotion)](#motion-womotion)
-    - [PlugMini (WoPlugMini)](#plugmini-woplugmini)
-  - [Supported Devices](#supported-devices)
-  - [Advertisement Data](#advertisement-data)
-  - [Control Device](#control-device)
-  - [Summary](#summary)
+  # SwitchBot BLE Documentation
 
-## BLE (Bluetooth Low Energy)
+  BLE support in `node-switchbot` is part of the v4 unified architecture. The primary API is the `SwitchBot` class, which can use BLE directly, OpenAPI directly, or both together with automatic fallback.
 
-### Supported OS
+  This document covers:
 
-The node-switchbot supports only Linux-based OSes, such as Raspbian, Ubuntu, and so on. This module does not support Windows and macOS for now. (If [@stoprocent/noble](https://github.com/stoprocent/noble#readme) is installed properly, this module might work well on such OSes.)
+  - BLE support and prerequisites on macOS and Linux
+  - BLE-first usage through the unified `SwitchBot` class
+  - Bot password protection over BLE
+  - Low-level BLE helpers for advanced use: `BLEScanner` and `BLEConnection`
 
-### Dependencies
+  ## v4 BLE Model
 
-- [Node.js](https://nodejs.org/en/): ^20
-- [@stoprocent/noble](https://github.com/stoprocent/noble)
-  - Included as a dependency so no need to install manually however if for some reason your OS requires addtional libaries, see `@stoprocent/noble` [prerequisites](https://github.com/stoprocent/noble?tab=readme-ov-file#prerequisites), you will then need to reinstall `node-switchbot` or the package that you have `node-swtichbot` as a dependency.
+  In v4.0.0, BLE is no longer a separate top-level workflow that you have to adopt in isolation. Instead:
 
-### Importing and Setting Up
+  - `SwitchBot` is the main public entry point
+  - BLE is used when `enableBLE: true`
+  - OpenAPI can be used as fallback when credentials are present
+  - Devices are accessed through `switchbot.devices`
+  - Per-device commands automatically choose the best available connection path
 
-To use the `SwitchBotBLE` class in `node-switchbot`, you need to import it and create an instance.
+  ## Supported Platforms
 
-```typescript
-import { SwitchBotBLE } from 'node-switchbot'
+  BLE is supported on:
 
-// Example usage
-const switchBotBLE = new SwitchBotBLE()
+  - macOS
+  - Linux, including Ubuntu, Debian, Raspbian, and similar distributions
 
-try {
-  await switchBotBLE.startScan()
-} catch (e: any) {
-  console.error(`Failed to start BLE scanning, Error: ${e.message ?? e}`)
-}
-```
+  BLE is not supported on Windows in this package. On Windows, use API-only mode through the unified `SwitchBot` class.
 
-### `SwitchBotBLE` Object
+  ## Requirements
 
-The `SwitchBotBLE` constructor takes an argument optionally. It must be a hash object containing the properties as follows:
+  - Node.js `^20 || ^22 || ^24`
+  - `@stoprocent/noble` is included as a dependency
 
-| Property | Type  | Required | Description                                                                             |
-| :------- | :---- | :------- | :-------------------------------------------------------------------------------------- |
-| `noble`  | Noble | option   | a Noble object of the [`@stoprocent/noble`](https://github.com/stoprocent/noble) module |
+  ## Prerequisites
 
-The node-switchbot module uses the [`@stoprocent/noble`](https://github.com/stoprocent/noble) module in order to interact with BLE devices. If you want to interact other BLE devices using the `@stoprocent/noble` module, you can create an `Noble` object by yourself, then pass it to this module. If you don't specify a `Noble` object to the `noble` property, this module automatically create a `Noble` object internally.
+  ### macOS
 
-The sample code below shows how to pass a `Noble` object to the `Switchbot` constructor.
+  - Install Xcode from the App Store
+  - Allow Bluetooth access for your terminal application in System Settings or System Preferences
 
-```Typescript
-// Create a Noble object
-const noble = require('@stoprocent/noble');
+  ### Linux (Ubuntu, Debian, Raspbian)
 
-const switchBotBLE = new SwitchBotBLE({ 'noble': Noble })
-```
+  Install required packages:
 
-In the code snippet above, the variable `switchbot` is an `SwitchBotBLE` object. The `SwitchBotBLE` object has a lot of methods as described in sections below.
+  ```bash
+  sudo apt-get install bluetooth bluez libbluetooth-dev libudev-dev
+  ```
 
-#### `discover()` method
+  For non-root access, also install `libcap2-bin` and grant raw socket capability to `node`:
 
-The `discover` method finds devices. This method returns a `Promise` object. This method takes an argument which is a hash object containing parameters as follows:
+  ```bash
+  sudo apt-get install libcap2-bin
+  sudo setcap cap_net_raw+eip $(eval readlink -f `which node`)
+  ```
 
-| Property   | Type    | Required | Description                                                                                                                                                                                                      |
-| :--------- | :------ | :------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `duration` | Integer | Optional | Duration for discovery process (msec). The default value is 5000 (msec).                                                                                                                                         |
-| `model`    | String  | Optional | `"H"`, `"T"` or `"c"`. If `"H"` is specified, this method will discover only Bots. If `"T"` is specified, this method will discover only Meters. If `"c"` is specified, this method will discover only Curtains. |
-| `id`       | String  | Optional | If this value is set, this method will discover only a device whose ID is as same as this value. The ID is identical to the MAC address. This parameter is case-insensitive, and colons are ignored.             |
-| `quick`    | Boolean | Optional | If this value is `true`, this method finishes the discovery process when the first device is found, then calls the `resolve()` function without waiting the specified `duration`. The default value is `false`.  |
+  On Raspberry Pi, if BLE connections are unstable, you may need to disable the `pnat` plugin in `/etc/bluetooth/main.conf` and restart Bluetooth or reboot.
 
-In the code snippet below, no parameter is passed to the method:
+  ### Fedora and Other RPM-Based Linux
 
-```Typescript
-switchBotBLE.discover().then((device_list) => {
-  // Do something...
-}).catch((error) => {
-  console.error(error);
-});
-```
+  ```bash
+  sudo yum install bluez bluez-libs bluez-libs-devel
+  ```
 
-If no parameter is passed to the method as the code above, an `Array` object will be passed to the `resolve()` function in 5 seconds. The `Array` object contains [`SwitchbotDevice`](#SwitchbotDevice-object) objects representing the found devices. See the section "[`SwitchbotDevice`](#SwitchbotDevice-object) objects" for more details.
+  For more platform details, see the `@stoprocent/noble` prerequisites documentation.
 
-If you want a quick response, you can set the `quick` property to `true`.
+  ## Unified BLE Usage
 
-```Typescript
-switchBotBLE.discover({
-  duration: 5000,
-  quick: true
-}).then((device_list) => {
-  // Do something...
-}).catch((error) => {
-  console.error(error);
-});
-```
+  ### BLE-Only Mode
 
-As the `quick` property is set to `true`, the `resolve()` function will be called immediately after a device is found regardless the value of the `duration` property.
+  Use BLE without OpenAPI credentials:
 
-#### `ondiscover` event handler
+  ```typescript
+  import { LogLevel, SwitchBot } from 'node-switchbot'
 
-The `ondiscover` property on the [`Switchbot`](#Switchbot-object) object is an event handler called whenever a device is newly found in the discovery process. A [`SwitchbotDevice`](#SwitchbotDevice-object) object is passed to the callback function set to the `ondiscover` property.
+  const switchbot = new SwitchBot({
+    enableBLE: true,
+    enableFallback: false,
+    logLevel: LogLevel.INFO,
+  })
 
-```Typescript
-switchBotBLE.ondiscover = (device) => {
-  console.log(device.id + ' (' + device.modelName + ')');
-};
+  const devices = await switchbot.discover({
+    scanBLE: true,
+    fetchAPI: false,
+    timeout: 10_000,
+  })
 
-switchBotBLE.discover().then(() => {
-  console.log('The discovery process was finished.');
-}).catch((error) => {
-  console.error(error);
-});
-```
+  console.log(`Found ${devices.length} BLE device(s)`)
 
-The code snippet above will output the result as follows:
-
-```
-cb4eb903c96d (WoSensorTH)
-c12e453e2008 (WoHand)
-The discovery process was finished.
-```
-
-#### `startScan()` method
-
-The `startScan()` method starts to scan advertising packets coming from devices. This method takes an argument which is a hash object containing the parameters as follows:
-
-| Property | Type   | Required | Description                                                                                                                                                                                                                                                                                                       |
-| :------- | :----- | :------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`  | String | Optional | `"H"`, `"T"`, `"c"`, `"g"` or `"j"`. If `"H"` is specified, this method will discover only Bots. If `"T"` is specified, this method will discover only Meters. If `"c"` is specified, this method will discover only Curtains. If `"g"` or `"j"` is specified, this method will discover only (US/JP) Plug Minis. |
-| `id`     | String | Optional | If this value is set, this method will discover only a device whose ID is as same as this value. The ID is identical to the MAC address. This value is case-insensitive, and colons are ignored.                                                                                                                  |
-
-Whenever a packet is received, the callback function set to the [`onadvertisement`](#Switchbot-onadvertisement-event-handler) property of the [`Switchbot`](#Switchbot-object) object will be called. When a packet is received, a hash object representing the packet will be passed to the callback function.
-
-```Typescript
-// Set a callback function called when a packet is received
-switchBotBLE.onadvertisement = (ad) => {
-  console.log(ad);
-};
-
-// Start to scan advertising packets
-switchBotBLE.startScan({
-  id: 'cb:4e:b9:03:c9:6d',
-}).then(() => {
-  // Wait for 30 seconds
-  return switchBotBLE.wait(30000);
-}).then(() => {
-  // Stop to scan
-  switchBotBLE.stopScan();
-  process.exit();
-}).catch((error) => {
-  console.error(error);
-});
-```
-
-The code snippet above will output the result as follows:
-
-```
-{
-  id: 'cb4eb903c96d',
-  address: 'cb:4e:b9:03:c9:6d',
-  rssi: -65,
-  serviceData: {
-    model: 'T',
-    modelName: 'WoSensorTH',
-    celsius: 25.8,
-    fahrenheit: 78.4,
-    fahrenheit_mode: false,
-    humidity: 43,
-    battery: 100
+  const bot = switchbot.devices.get('YOUR_DEVICE_ID')
+  if (bot) {
+    await bot.press()
   }
-}
-...
-```
 
-The `serviceData` property depends on the model of the device. See the section "[Advertisement data](#Advertisement-data)" for the details of the data format.
+  await switchbot.cleanup()
+  ```
 
-#### `onadvertisement` event handler
+  ### Hybrid BLE + API Mode
 
-If a callback function is set to the `onadvertisement` property, the callback function will be called whenever an advertising packet is received from a device during the scan is active (from the moment when the [`startScan()`](#startscan-method) method is called, to the moment when the [`stopScan()`](#Switchbot-stopScan-method) method is called).
+  Use BLE first, with automatic API fallback when needed:
 
-```typescript
-switchBotBLE.onadvertisement = async (ad: any) => {
-  try {
-    this.bleEventHandler[ad.address]?.(ad.serviceData)
-  } catch (e: any) {
-    await this.errorLog(`Failed to handle BLE event, Error: ${e.message ?? e}`)
+  ```typescript
+  import { LogLevel, SwitchBot } from 'node-switchbot'
+
+  const switchbot = new SwitchBot({
+    token: 'YOUR_TOKEN',
+    secret: 'YOUR_SECRET',
+    enableBLE: true,
+    enableFallback: true,
+    enableConnectionIntelligence: true,
+    enableCircuitBreaker: true,
+    enableRetry: true,
+    logLevel: LogLevel.INFO,
+  })
+
+  await switchbot.discover({
+    scanBLE: true,
+    fetchAPI: true,
+    timeout: 10_000,
+  })
+
+  const curtain = switchbot.devices.get('YOUR_CURTAIN_ID')
+  if (curtain) {
+    await curtain.open()
+    const status = await curtain.getStatus()
+    console.log(status)
   }
-}
-```
 
-See the section "[`startScan()` method](#startscan-method)" for details.
+  await switchbot.cleanup()
+  ```
 
-#### `stopScan()` method
+  ## Discovery Options
 
-The `stopScan()` method stops to scan advertising packets coming from devices. This method returns nothing. Note that this method is _not_ asynchronous but synchronous unlike the other methods. See the section "[`startScan()` method](#startscan-method)" for details.
+  `switchbot.discover()` accepts the following v4 options:
 
-```typescript
-try {
-  switchBotBLE.stopScan()
-  console.log('Stopped BLE scanning to close listening.')
-} catch (e: any) {
-  console.error(`Failed to stop BLE scanning, Error: ${e.message ?? e}`)
-}
-```
+  | Property | Type | Description |
+  | :-- | :-- | :-- |
+  | `scanBLE` | `boolean` | Enable BLE discovery for this call |
+  | `fetchAPI` | `boolean` | Fetch devices from OpenAPI for this call |
+  | `timeout` | `number` | Discovery timeout in milliseconds |
+  | `deviceId` | `string` | Filter by SwitchBot device ID |
+  | `mac` | `string` | Filter by MAC address |
+  | `deviceType` | `string` | Filter by device type |
 
-#### `wait()` method
+  ## Device Access Pattern
 
-The `wait()` method waits for the specified milliseconds. This method takes an integer representing the duration (millisecond). This method returns a `Promise` object.
+  After discovery, use the device manager:
 
-This method has nothing to do with Switchbot devices. It's just a utility method. See the section "[Quick Start](#Quick-Start)" for details of the usage of this method.
+  ```typescript
+  const devices = switchbot.devices.list()
+  const bot = switchbot.devices.get('YOUR_DEVICE_ID')
+  const curtains = switchbot.devices.getByType('WoCurtain')
+  ```
 
-```typescript
-await switchBotBLE.wait(1000)
-```
+  Common device helpers include:
 
-### `SwitchBotDevice` Object
+  - `getInfo()`
+  - `getName()`
+  - `getDeviceType()`
+  - `getStatus()`
 
-The `SwitchbotDevice` object represents a Switchbot device (Bot, Meter, Curtain, Contact or Motion), which is created through the discovery process triggered by the [`switchBotBLE.discover()`](#discover-method) method.
+  Commands vary by device class. Examples:
 
-Actually, the `SwitchbotDevice` object is a super class of the [`WoHand`](#SwitchbotDeviceWoHand-object) and `WoSensorTH` objects. The [`WoHand`](#SwitchbotDeviceWoHand-object) object represents a Bot, the `WoSensorTH` object represents a Meter.
+  - Bot: `press()`, `turnOn()`, `turnOff()`, `handUp()`, `handDown()`
+  - Curtain: `open()`, `close()`, `pause()`, `setPosition()`
+  - Plug: `turnOn()`, `turnOff()`, `toggle()`
 
-You can use the properties and methods described in this section on Bot, Meter, Curtain, Contact and Motion. See the section "[`WoHand` object](#SwitchbotDeviceWoHand-object)" for the details of the functionalities available only on Bot. For now, `WoSensorTH` object has no additional functionality.
+  ## Bot Password Protection
 
-#### Properties
+  Bot (`WoHand`) devices support password-protected BLE commands in v4.
 
-The `SwitchbotDevice` object supports the properties as follows:
+  ### What It Adds
 
-| Property          | Type     | Description                                                                                                                                                  |
-| :---------------- | :------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`              | String   | ID of the device. (e.g., `"cb4eb903c96d"`)                                                                                                                   |
-| `address`         | String   | MAC address of the device. Basically it is as same as the value of the `id` except that this value includes `:` in the string. (e.g., `"cb:4e:b9:03:c9:6d"`) |
-| `model`           | String   | This value is `"H"` "Bot (WoHand)", `"T"` "Meter (WoSensorTH)", `"c"` "Curtain (WoCurtain)", `"d"` "Contact (WoContact)" or `"s"` "Motion (WoMotion)".       |
-| `modelName`       | String   | This value is `"WoHand"`, `"WoSensorTH"`, `WoCurtain`, `WoContect` or `WoMotion`.                                                                            |
-| `connectionState` | String   | This value indicates the BLE connection state. `"connecting"`, `"connected"`, `"disconnecting"`, or `"disconnected"`.                                        |
-| `onconnect`       | Function | See the section "[`onconnect` event handler](#SwitchbotDevice-onconnect-event-handler)" for details.                                                         |
-| `ondisconnect`    | Function | See the section "[`ondisconnect` event handler](#SwitchbotDevice-ondisconnect-event-handler)" for details.                                                   |
+  - Password validation for exactly 4 alphanumeric characters
+  - CRC32-based encrypted BLE command construction
+  - Automatic encrypted command execution when a password is configured
+  - Runtime helpers: `setPassword()`, `clearPassword()`, `hasPassword()`
 
-#### `getDeviceName()` method
+  ### Supported Commands
 
-The `getDeviceName()` method fetches the device name saved in the device. This method returns a `Promise` object.
+  When a password is set, these BLE Bot commands use the encrypted flow:
 
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
+  - `press()`
+  - `turnOn()`
+  - `turnOff()`
+  - `handUp()`
+  - `handDown()`
 
-If the device name is fetched successfully, the device name will be passed to the `resolve()`.
+  ### Example
 
-```Typescript
-switchbot
-  .discover({ model: "H", quick: true })
-  .then((device_list) => {
-    return device_list[0].getDeviceName();
+  ```typescript
+  import { LogLevel, SwitchBot, WoHand } from 'node-switchbot'
+
+  const switchbot = new SwitchBot({
+    enableBLE: true,
+    enableFallback: false,
+    logLevel: LogLevel.INFO,
   })
-  .then((name) => {
-    console.log(name);
-    process.exit();
-  })
-  .catch((error) => {
-    console.error(error);
-    process.exit();
-  });
-```
 
-The code above will output the result as follows:
+  await switchbot.discover({ scanBLE: true, fetchAPI: false })
 
-```Typescript
-WoHand;
-```
+  const bot = switchbot.devices.get('YOUR_DEVICE_ID') as WoHand | undefined
+  if (bot) {
+    bot.setPassword('A1b2')
 
-#### `setDeviceName()` method
-
-The `setDeviceName()` method update the device name saved in the device with the name specified as the first argument. This method returns a `Promise` object. Nothing will be passed to the `resolve()` function.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-The character set of the device name saved in the device is UTF-8. The byte length of the name must be less than or equal to 20 bytes. If the name consists of only ASCII characters, up to 20 characters would be allowed. But if the name consists of multibyte characters, the upper limit of characters would be fewer than half. For example, Japanese characters could be saved at most 6 characters because most of Japanese characters consume 3 byte per each character.
-
-```Typescript
-switchbot
-  .discover({ model: "H", quick: true })
-  .then((device_list) => {
-    return device_list[0].setDeviceName("Bot in kitchen");
-  })
-  .then(() => {
-    console.log("Done.");
-    process.exit();
-  })
-  .catch((error) => {
-    console.error(error);
-    process.exit();
-  });
-```
-
-#### `connect()` method
-
-The `connect()` method establishes a connection with the device (i.e., pairing). This method returns a `Promise` object. If the device has already been connected, this method does nothing and calls the `resolve()` function immediately.
-
-Most of the methods implemented in the `SwitchbotDevice` object automatically connect and disconnect the device. But this mechanism would be absolutely inefficient if you want to manipulate the device repeatedly in the short time.
-
-The connection established using the `connect()` method is not disconnected automatically unless the [`disconnect()`](#SwitchbotDevice-disconnect-method) method is explicitly called.
-
-The code snippet below establishes a connection with the Bot using the `connect()` method, then puts the Bot's arm down, then waits for 5 seconds, then puts the arm down, finally disconnects the device using the [`disconnect()`](#SwitchbotDevice-disconnect-method) method:
-
-```Typescript
-let device = null;
-
-switchbot
-  .discover({ model: "H", quick: true })
-  .then((device_list) => {
-    device = device_list[0];
-    if (!device) {
-      console.log("No device was found.");
-      process.exit();
+    if (bot.hasPassword()) {
+      await bot.press()
     }
-    console.log(device.modelName + " (" + device.address + ") was found.");
-    console.log("Connecting...");
-    return device.connect();
-  })
-  .then(() => {
-    console.log("Putting the arm down...");
-    return device.down();
-  })
-  .then(() => {
-    console.log("Waiting for 5 seconds...");
-    return switchBotBLE.wait(5000);
-  })
-  .then(() => {
-    console.log("Putting the arm up...");
-    return device.up();
-  })
-  .then(() => {
-    console.log("Disconnecting...");
-    return device.disconnect();
-  })
-  .then(() => {
-    console.log("Done.");
-    process.exit();
-  })
-  .catch((error) => {
-    console.error(error);
-    process.exit();
-  });
-```
 
-The result will be as follows:
-
-```
-WoHand (c1:2e:45:3e:20:08) was found.
-Connecting...
-Putting the arm down...
-Waiting for 5 seconds...
-Putting the arm up...
-Disconnecting...
-Done.
-```
-
-#### `disconnect()` method
-
-The `disconnect()` method disconnects the device. This method returns a `Promise` object. If the device has already been disconnected, this method does nothing and calls the `resolve()` function immediately.
-
-See the [previous section](#SwitchbotDevice-connect-method) for more details.
-
-#### `onconnect` event handler
-
-The `onconnect` event handler will be called when the connection with the device is established. Nothing will be passed to the handler.
-
-The code below calls the [`press()`](#SwitchbotDeviceWoHand-press-method) method, while callback functions are attached to the `onconnect` and `ondisconnect`.
-
-```Typescript
-switchbot
-  .discover({ model: "H", quick: true })
-  .then((device_list) => {
-    const device = device_list[0];
-    if (!device) {
-      console.log("No device was found.");
-      process.exit();
-    }
-    console.log(device.modelName + " (" + device.address + ") was found.");
-
-    // Set event handers
-    device.onconnect = () => {
-      console.log("Connected.");
-    };
-    device.ondisconnect = () => {
-      console.log("Disconnected.");
-    };
-
-    console.log("Pressing the switch...");
-    return device.press();
-  })
-  .then(() => {
-    console.log("Done.");
-    process.exit();
-  })
-  .catch((error) => {
-    console.error(error);
-    process.exit();
-  });
-```
-
-The code above will output the result as follows:
-
-```
-WoHand (c1:2e:45:3e:20:08) was found.
-Pressing the switch...
-Connected.
-Disconnected.
-Done.
-```
-
-Seeing the result, you would find the [`press()`](#SwitchbotDeviceWoHand-press-method) method automatically connects and disconnects the device.
-
-#### `ondisconnect` event handler
-
-The `ondisconnect` event handler will be called when the connection with the device is closed. Nothing will be passed to the handler. See the previous section "[`onconnect` event handler](#SwitchbotDevice-onconnect-event-handler)" for more details.
-
-### `WoHand` Object
-
-The `WoHand` object represents a Bot, which is created through the discovery process triggered by the [`switchBotBLE.discover()`](#discover-method) method.
-
-Actually, the `WoHand` is an object inherited from the [`SwitchbotDevice`](#SwitchbotDevice-object). You can use not only the method described in this section but also the properties and methods implemented in the [`SwitchbotDevice`](#SwitchbotDevice-object) object.
-
-#### `press()` method
-
-The `press()` method sends a press command to the Bot. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-```Typescript
-switchbot
-  .discover({ model: "H", quick: true })
-  .then((device_list) => {
-    return device_list[0].press();
-  })
-  .then(() => {
-    console.log("Done.");
-  })
-  .catch((error) => {
-    console.error(error);
-  });
-```
-
-When the Bot receives this command, the Bot's arm will be put down (stretched), then put up (retracted) in a few seconds.
-
-#### `turnOn()` method
-
-The `turnOn()` method sends a turn-on command to the Bot. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-When the Bot receives this command, the Bot's arm will be put down (stretched) or put up (retracted) depending on the mode setting.
-
-| Mode        | Inverse the on/off direction | Physical position of the arm          |
-| :---------- | :--------------------------- | :------------------------------------ |
-| Press mode  | N/A                          | Down (stretched), then Up (retracted) |
-| Switch mode | Disabled                     | Down (stretched)                      |
-| &nbsp;      | Enabled                      | Up (retracted)                        |
-
-```Typescript
-switchbot
-  .discover({ model: "H", quick: true })
-  .then((device_list) => {
-    return device_list[0].turnOn();
-  })
-  .then(() => {
-    console.log("Done.");
-  })
-  .catch((error) => {
-    console.error(error);
-  });
-```
-
-#### `turnOff()` method
-
-The `turnOff()` method sends a turn-off command to the Bot. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-When the Bot receives this command, the Bot's arm will be put down (stretched) or put up (retracted) depending on the mode setting.
-
-| Mode        | Inverse the on/off direction | Physical position of the arm          |
-| :---------- | :--------------------------- | :------------------------------------ |
-| Press mode  | N/A                          | Down (stretched), then Up (retracted) |
-| Switch mode | Disabled                     | Up (retracted)                        |
-| &nbsp;      | Enabled                      | Down (stretched)                      |
-
-```Typescript
-switchbot
-  .discover({ model: "H", quick: true })
-  .then((device_list) => {
-    return device_list[0].turnOff();
-  })
-  .then(() => {
-    console.log("Done.");
-  })
-  .catch((error) => {
-    console.error(error);
-  });
-```
-
-#### `down()` method
-
-The `down()` method sends a down command to the Bot. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-When the Bot receives this command, the Bot's arm will be put down (stretched) regardless of the mode setting.
-
-```Typescript
-switchbot
-  .discover({ model: "H", quick: true })
-  .then((device_list) => {
-    return device_list[0].down();
-  })
-  .then(() => {
-    console.log("Done.");
-  })
-  .catch((error) => {
-    console.error(error);
-  });
-```
-
-#### `up()` method
-
-The `up()` method sends an up command to the Bot. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-When the Bot receives this command, the Bot's arm will be put up (retracted) regardless of the mode setting.
-
-```Typescript
-switchbot
-  .discover({ model: "H", quick: true })
-  .then((device_list) => {
-    return device_list[0].up();
-  })
-  .then(() => {
-    console.log("Done.");
-  })
-  .catch((error) => {
-    console.error(error);
-  });
-```
-
-### `WoCurtain` Object
-
-The `WoCurtain` object represents a Curtain, which is created through the discovery process triggered by the [`switchBotBLE.discover()`](#discover-method) method.
-
-Actually, the `WoCurtain` is an object inherited from the [`SwitchbotDevice`](#SwitchbotDevice-object). You can use not only the method described in this section but also the properties and methods implemented in the [`SwitchbotDevice`](#SwitchbotDevice-object) object.
-
-#### `open()` method
-
-The `open()` method sends an open command to the Curtain. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-When the Curtain receives this command, the Curtain will open the curtain (0% position). If not calibrated, the Curtain does not move.
-
-The `open()` method receives an optional `mode` parameter. (See [`runToPos()`](#runtopos-method))
-
-```Typescript
-switchbot
-  .discover({ model: "c", quick: true })
-  .then((device_list) => {
-    return device_list[0].open();
-  })
-  .then(() => {
-    console.log("Done.");
-  })
-  .catch((error) => {
-    console.error(error);
-  });
-```
-
-#### `close()` method
-
-The `close()` method sends a close command to the Curtain. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-When the Curtain receives this command, the Curtain will close the curtain (100% position). If not calibrated, the Curtain does not move.
-
-The `close()` method receives an optional `mode` parameter. (See [`runToPos()`](#runtopos-method))
-
-```Typescript
-switchbot
-  .discover({ model: "c", quick: true })
-  .then((device_list) => {
-    return device_list[0].close();
-  })
-  .then(() => {
-    console.log("Done.");
-  })
-  .catch((error) => {
-    console.error(error);
-  });
-```
-
-#### `pause()` method
-
-The `pause()` method sends a pause command to the Curtain. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-When the Curtain receives this command, the Curtain will pause.
-
-```Typescript
-switchbot
-  .discover({ model: "c", quick: true })
-  .then((device_list) => {
-    return device_list[0].pause();
-  })
-  .then(() => {
-    console.log("Done.");
-  })
-  .catch((error) => {
-    console.error(error);
-  });
-```
-
-#### `runToPos()` method
-
-The `runToPos()` method sends a position command to the Curtain. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-When the Curtain receives this command, the Curtain will run to the percentage position. If not calibrated, the Curtain does not move.
-
-The `open()` method sends an open command to the Curtain. This method returns a `Promise` object. Nothing will be passed to the `resove()`.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-When the Curtain receives this command, the Curtain will open the curtain (0% position). If not calibrated, the Curtain does not move.
-
-| Property  | Type    | Required | Description                                                                                                                                          |
-| :-------- | :------ | :------- | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `percent` | Integer | Required | The percentage of target position (`0-100`). (e.g., `50`)                                                                                            |
-| `mode`    | Integer | Optional | The running mode of Curtain. <br/>`0x00` - Performance mode.<br/> `0x01` - Silent mode. <br/>`0xff` - Default. Unspecified, from Curtain's settings. |
-
-```Typescript
-switchbot
-  .discover({ model: "c", quick: true })
-  .then((device_list) => {
-    return device_list[0].runToPos(50);
-  })
-  .then(() => {
-    console.log("Done.");
-  })
-  .catch((error) => {
-    console.error(error);
-  });
-```
-
-### `WoPlugMini` Object
-
-The `WoPlugMini ` object represents a PlugMini, which is created through the discovery process triggered by the [`switchBotBLE.discover()`](#discover-method) method.
-
-Actually, the `WoPlugMini ` is an object inherited from the [`SwitchbotDevice`](#SwitchbotDevice-object). You can use not only the method described in this section but also the properties and methods implemented in the [`SwitchbotDevice`](#SwitchbotDevice-object) object.
-
-#### `turnOn()` method
-
-The `turnOn()` method sends a turn-on command to the PlugMini. This method returns a `Promise` object. A `boolean` value indicating whether the PlugMini is on (`true`), is passed to the `resolve()` method of the Promise.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-#### `turnOff()` method
-
-The `turnOff()` method sends a turn-off command to the PlugMini. This method returns a `Promise` object. A `boolean` value indicating whether the PlugMini is off (`false`), is passed to the `resolve()` method of the Promise.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-#### `toggle()` method
-
-The `toggle()` method sends a toggle command to the PlugMini, toggling between the on and off state. This method returns a `Promise` object. A `boolean` value indicating whether the PlugMini is on (`true`) or off (`false`), is passed to the `resolve()` method of the Promise.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-### `WoSmartLock` Object
-
-The `WoSmartLock ` object represents a SmartLock, which is created through the discovery process triggered by the [`switchBotBLE.discover()`](#discover-method) method.
-
-Actually, the `WoSmartLock ` is an object inherited from the [`SwitchbotDevice`](#SwitchbotDevice-object). You can use not only the method described in this section but also the properties and methods implemented in the [`SwitchbotDevice`](#SwitchbotDevice-object) object.
-
-#### `setKey()` method
-
-The `setKey()` method initialises the key information required for encrypted communication with the SmartLock
-
-This must be set before any control commands are sent to the device. To obtain the key information you will need to use an external tool - see [`pySwitchbot`](https://github.com/Danielhiversen/pySwitchbot/tree/master?tab=readme-ov-file#obtaining-locks-encryption-key) project for an example script.
-Or, use [`switchbot-get-encryption-key`](https://www.npmjs.com/package/switchbot-get-encryption-key) npm script.
-
-| Property        | Type   | Description                                                                                      |
-| :-------------- | :----- | :----------------------------------------------------------------------------------------------- |
-| `keyId`         | String | unique2 character ID for the key. (e.g., `"ff"`) returned from the SwitchBot api for your device |
-| `encryptionKey` | String | the unique encryption key returned from the SwitchBot api for your device                        |
-
-#### `lock()` method
-
-The `lock()` method sends a lock command to the SmartLock. This method returns a `Promise` object. A `boolean` value indicating whether the SmartLock is locked (`true`), is passed to the `resolve()` method of the Promise.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-#### `unlock()` method
-
-The `unlock()` method sends an unlock command to the SmartLock. This method returns a `Promise` object. A `boolean` value indicating whether the SmartLock is locked (`false`), is passed to the `resolve()` method of the Promise.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-#### `unlockNoUnlatch()` method
-
-The `unlockNoUnlatch()` method sends a partial unlock command to the SmartLock, unlocking without the full unlatch.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-#### `info()` method
-
-The `info()` method retreieves state information from the SmartLock, This method returns a `Promise` object. An `object` value indicating with the state infor, is passed to the `resolve()` method of the Promise.
-
-If no connection is established with the device, this method automatically establishes a connection with the device, then finally closes the connection. You don't have to call the [`connect()`](#SwitchbotDevice-connect-method) method in advance.
-
-### Advertisement Data
-
-After the [`startScan()`](#startscan-method) method is invoked, the [`onadvertisement`](#Switchbot-onadvertisement-event-handler) event handler will be called whenever an advertising packet comes from the switchbot devices.
-
-```Typescript
-// Load the node-switchbot and get a `Switchbot` constructor object
-import { SwitchBotBLE } from 'node-switchbot';
-// Create a `Switchbot` object
-const switchBotBLE = new SwitchBotBLE();
-
-(async () => {
-  // Start to monitor advertisement packets
-  await switchBotBLE.startScan();
-  // Set an event handler
-  switchBotBLE.onadvertisement = (ad) => {
-    console.log(JSON.stringify(ad, null, '  '));
-  };
-  // Wait 10 seconds
-  await switchBotBLE.wait(10000);
-  // Stop to monitor
-  switchBotBLE.stopScan();
-  process.exit();
-})();
-```
-
-An object containing the properties as follows will be passed to the event handler:
-
-| Property      | Type    | Description                                                                                                                                                  |
-| :------------ | :------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`          | String  | ID of the device. (e.g., `"cb4eb903c96d"`)                                                                                                                   |
-| `address`     | String  | MAC address of the device. Basically it is as same as the value of the `id` except that this value includes `:` in the string. (e.g., `"cb:4e:b9:03:c9:6d"`) |
-| `rssi`        | Integer | RSSI. (e.g., `-62`)                                                                                                                                          |
-| `serviceData` | Object  | An object including the device-specific data.                                                                                                                |
-
-The structures of the `serviceData` are described in the following sections.
-
-#### Bot (WoHand)
-
-Example of the advertisement data:
-
-```json
-{
-  "id": "c12e453e2008",
-  "address": "c1:2e:45:3e:20:08",
-  "rssi": -61,
-  "serviceData": {
-    "model": "H",
-    "modelName": "WoHand",
-    "mode": true,
-    "state": false,
-    "battery": 100
+    bot.clearPassword()
   }
-}
-```
 
-Structure of the `serviceData`:
+  await switchbot.cleanup()
+  ```
 
-| Property    | Type    | Description                                                                                                                                  |
-| :---------- | :------ | :------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`     | String  | This value is always `"H"`, which means "Bot (WoHand)".                                                                                      |
-| `modelName` | String  | This value is always `"WoHand"`, which means "Bot".                                                                                          |
-| `mode`      | Boolean | This indicates the mode setting. When the mode is "Switch mode", this value is `true`. When the mode is "Press mode", this value is `false`. |
-| `state`     | Boolean | This value indicates whether the switch status is ON or OFF.                                                                                 |
-| `battery`   | Integer | (**experimental**) This value indicates the battery level (`%`).                                                                             |
+  Notes:
 
-The `mode` can be changed only using the official smartphone app. The node-switchbot does not support changing the mode because the BLE protocol is non-public.
+  - Passwords are stored in memory only
+  - The password must be configured again when your application starts
+  - Password-protected Bot commands require BLE and do not use OpenAPI fallback for the encrypted write path
 
-If the `mode` is `false`, which means the "Press mode" is selected, the `state` is always `false`. If the `mode` is `true`, which means the "Switch mode" is selected, the `state` represents the logical state (ON or OFF). Note that it does _not_ mean the physical arm position. The physical arm position depends on the setting "Inverse the on/off direction" on the official smartphone app.
+  ## Reliability Features in BLE Workflows
 
-| "Inverse the on/off direction" | Value of the `state` | Logical state | Physical arm position |
-| :----------------------------- | :------------------- | :------------ | :-------------------- |
-| disabled                       | `true`               | OFF           | Up (retracted)        |
-| &nbsp;                         | `false`              | ON            | Down (stretched)      |
+  The v4 BLE path includes the resilience features introduced in the 4.0.0 release:
+
+  - Automatic retry with exponential backoff and jitter
+  - Circuit breaker state management to avoid repeated failing connections
+  - Connection intelligence that can prefer the more reliable path over time
+  - Fallback hooks for custom logging, metrics, or alerting
+
+  These behaviors are primarily exposed through the unified `SwitchBot` and `SwitchBotDevice` flow rather than through manual low-level BLE orchestration.
+
+  ## Low-Level BLE APIs
+
+  If you need raw scanning or connection control, v4 exports `BLEScanner` and `BLEConnection` directly.
+
+  ### `BLEScanner`
+
+  Use this for advertisement scanning and device discovery without going through `SwitchBot`.
+
+  ```typescript
+  import { BLEScanner } from 'node-switchbot'
+
+  const scanner = new BLEScanner()
+
+  scanner.on('discover', (advertisement) => {
+    console.log(advertisement)
+  })
+
+  await scanner.startScan({ duration: 10_000, active: true })
+  ```
+
+  Public methods:
+
+  - `startScan(options?)`
+  - `stopScan()`
+  - `getDiscoveredDevices()`
+  - `getDevice(mac, bleId?)`
+  - `waitForDevice(mac, timeoutMs?, bleId?)`
+  - `destroy()`
+
+  Events:
+
+  - `ready`
+  - `state-change`
+  - `scan-start`
+  - `scan-stop`
+  - `discover`
+
+  ### `BLEConnection`
+
+  Use this for low-level connection, write, and notification handling.
+
+  ```typescript
+  import { BLEConnection } from 'node-switchbot'
+  import { Buffer } from 'node:buffer'
+
+  const connection = new BLEConnection()
+
+  await connection.connect('AA:BB:CC:DD:EE:FF')
+  await connection.write('AA:BB:CC:DD:EE:FF', Buffer.from([0x57, 0x01, 0x00]))
+  const response = await connection.read('AA:BB:CC:DD:EE:FF')
+
+  console.log(response)
+
+  await connection.disconnectAll()
+  ```
+
+  Key public methods:
+
+  - `connect(mac)`
+  - `write(mac, data)`
+  - `read(mac)`
+  - `disconnectAll()`
+  - `setPersistentConnectionTimeout(timeoutMs)`
+  - `setEncryption(mac, keyHex, ivHex, mode?)`
+  - `clearEncryption(mac)`
+
+  ## BLE-Supported Device Families
+
+  v4 BLE support includes, among others:
+
+  - Bot
+  - Curtain and Roller Shade
+  - Blind Tilt
+  - Meter family
+  - Plug Mini family
+  - Lock family
+  - Humidifier family
+  - Bulb and light families
+  - Leak, contact, and presence sensors
+  - Relay switch family
+
+  Exact per-device behavior still depends on what the physical device exposes over BLE.
+
+  ## Summary
+
+  Use `SwitchBot` for almost all v4 BLE workflows. Reach for `BLEScanner` and `BLEConnection` only when you need direct advertisement scanning or manual low-level BLE control.
 | enabled                        | `true`               | OFF           | Down (stretched)      |
 | &nbsp;                         | `false`              | ON            | Up (retracted)        |
 
