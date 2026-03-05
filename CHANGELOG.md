@@ -2,6 +2,160 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [3.6.8](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.6.7...v3.6.8) (2026-03-05)
+
+## [3.6.7](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.6.6...v3.6.7) (2026-03-05)
+
+## [3.6.6](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.6.5...v3.6.6) (2026-02-25)
+
+
+### Bug Fixes
+
+* sync package-lock.json with @stoprocent/noble@^2.3.14 ([#324](https://github.com/OpenWonderLabs/node-switchbot/issues/324)) ([0670987](https://github.com/OpenWonderLabs/node-switchbot/commit/06709876ab1bb4adc244507863f1b25b786b87f2))
+
+
+### Features
+
+* Add Plug Mini (EU) support ([#325](https://github.com/OpenWonderLabs/node-switchbot/issues/325)) ([1eb8d2e](https://github.com/OpenWonderLabs/node-switchbot/commit/1eb8d2e572e211482105c2563a736bdfabeb50be))
+
+## [3.6.5](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.6.4...v3.6.5) (2026-02-19)
+
+## [3.6.4](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.6.3...v3.6.4) (2026-02-18)
+
+## [3.6.3](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.5.1...v3.6.3) (2026-02-05)
+
+## [3.5.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.5.0...v3.5.1) (2025-07-25)
+
+# [3.5.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.4.9...v3.5.0) (2025-03-05)
+
+## [3.4.9](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.4.8...v3.4.9) (2025-01-24)
+
+## [3.4.8](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.4.7...v3.4.8) (2025-01-24)
+
+## [3.4.7](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.4.6...v3.4.7) (2025-01-24)
+
+## [3.4.6](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.4.5...v3.4.6) (2025-01-24)
+
+## [3.4.5](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.4.4...v3.4.5) (2025-01-24)
+
+## [3.4.4](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.4.3...v3.4.4) (2025-01-24)
+
+## [3.4.3](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.4.2...v3.4.3) (2024-12-22)
+
+## [3.4.2](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.4.1...v3.4.2) (2024-12-22)
+
+## [3.4.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.4.0...v3.4.1) (2024-11-28)
+
+# [3.4.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.3.0...v3.4.0) (2024-11-18)
+
+# [3.3.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.2.1...v3.3.0) (2024-11-02)
+
+## [3.2.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.2.0...v3.2.1) (2024-10-22)
+
+# [3.2.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.1.1...v3.2.0) (2024-10-22)
+
+## [3.1.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.1.0...v3.1.1) (2024-10-12)
+
+# [3.1.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.0.1...v3.1.0) (2024-10-12)
+
+## [3.0.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.0.0...v3.0.1) (2024-10-05)
+
+# [3.0.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v2.3.0...v3.0.0) (2024-10-05)
+
+# [2.3.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v2.2.0...v2.3.0) (2024-07-21)
+
+# [2.2.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v2.1.1...v2.2.0) (2024-06-26)
+
+## [2.1.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v2.1.0...v2.1.1) (2024-05-26)
+
+# [2.1.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v2.0.3...v2.1.0) (2024-05-14)
+
+## [2.0.3](https://github.com/OpenWonderLabs/node-switchbot/compare/v2.0.2...v2.0.3) (2024-02-12)
+
+## [2.0.2](https://github.com/OpenWonderLabs/node-switchbot/compare/v2.0.0...v2.0.2) (2024-02-10)
+
+# [2.0.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.9.1...v2.0.0) (2024-02-05)
+
+## [1.9.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.9.0...v1.9.1) (2023-11-21)
+
+# [1.9.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.8.2...v1.9.0) (2023-09-16)
+
+## [1.8.2](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.8.1...v1.8.2) (2023-07-26)
+
+## [1.8.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.8.0...v1.8.1) (2023-04-08)
+
+# [1.8.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.7.3...v1.8.0) (2023-01-29)
+
+## [1.7.3](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.7.2...v1.7.3) (2023-01-05)
+
+## [1.7.2](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.7.1...v1.7.2) (2022-12-26)
+
+## [1.7.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.7.0...v1.7.1) (2022-12-20)
+
+# [1.7.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.6.1...v1.7.0) (2022-12-08)
+
+## [1.6.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.6.0...v1.6.1) (2022-10-19)
+
+# [1.6.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.5.0...v1.6.0) (2022-10-18)
+
+# [1.5.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.4.1...v1.5.0) (2022-10-07)
+
+## [1.4.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.4.0...v1.4.1) (2022-08-27)
+
+# [1.4.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.3.0...v1.4.0) (2022-08-20)
+
+# [1.3.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.2.0...v1.3.0) (2022-06-25)
+
+# [1.2.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.1.2...v1.2.0) (2022-03-04)
+
+## [1.1.2](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.1.1...v1.1.2) (2021-11-13)
+
+## [1.1.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.1.0...v1.1.1) (2021-11-02)
+
+# [1.1.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.8...v1.1.0) (2021-10-27)
+
+## [1.0.8](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.7...v1.0.8) (2021-09-30)
+
+## [1.0.7](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.6...v1.0.7) (2021-09-25)
+
+## [1.0.6](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.5...v1.0.6) (2021-08-29)
+
+## [1.0.5](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.4...v1.0.5) (2021-08-04)
+
+## [1.0.4](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.3...v1.0.4) (2021-08-04)
+
+## [1.0.3](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.2...v1.0.3) (2021-07-30)
+
+## [1.0.2](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.1...v1.0.2) (2021-07-29)
+
+## [1.0.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v1.0.0...v1.0.1) (2021-07-29)
+
+# [1.0.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v0.2.0...v1.0.0) (2021-01-21)
+
+# [0.2.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v0.1.0...v0.2.0) (2020-11-05)
+
+# [0.1.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v0.0.5...v0.1.0) (2020-10-28)
+
+
+### Bug Fixes
+
+* typo ([338044f](https://github.com/OpenWonderLabs/node-switchbot/commit/338044f3469788f76c189ba75be80518b1765107))
+
+
+### Features
+
+* Added support for running on the Raspberry Pi Zero W. ([017b244](https://github.com/OpenWonderLabs/node-switchbot/commit/017b244cfba178827b4a2504853cc013b7a6bc70))
+
+## [0.0.5](https://github.com/OpenWonderLabs/node-switchbot/compare/v0.0.4...v0.0.5) (2020-02-18)
+
+## [0.0.4](https://github.com/OpenWonderLabs/node-switchbot/compare/v0.0.3...v0.0.4) (2020-02-10)
+
+## [0.0.3](https://github.com/OpenWonderLabs/node-switchbot/compare/v0.0.2...v0.0.3) (2020-02-10)
+
+## [0.0.2](https://github.com/OpenWonderLabs/node-switchbot/compare/v0.0.1...v0.0.2) (2019-11-20)
+
+## 0.0.1 (2019-11-20)
+
 ## [3.6.7](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.6.6...v3.6.7) (2026-03-05)
 
 ## [3.6.6](https://github.com/OpenWonderLabs/node-switchbot/compare/v3.6.5...v3.6.6) (2026-02-25)
