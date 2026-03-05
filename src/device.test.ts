@@ -2,7 +2,7 @@ import { Buffer } from 'node:buffer'
 
 import { describe, expect, it } from 'vitest'
 
-import { Advertising, ErrorUtils, LogLevel, ValidationUtils, WoAirPurifier, WoPlugMiniEU } from './device.js'
+import { Advertising, ErrorUtils, LogLevel, ValidationUtils, WoAirPurifier, WoPlugMiniEU, WoPlugMiniJP, WoPlugMiniUS } from './device.js'
 
 describe('validationUtils', () => {
   describe('validatePercentage', () => {
@@ -290,6 +290,66 @@ describe('advertising', () => {
       expect(result?.sequence_number).toBe(1)
     })
 
+    it('should parse Air Purifier service data from serviceData-only (no manufacturerData)', () => {
+      // Air Purifier advertising with state data in serviceData (9 bytes), no manufacturerData
+      const serviceData = Buffer.from([
+        0x2B, // '+' model byte
+        0x02, // sequenceNumber
+        0x80 | 0x02, // isOn=true, mode=2
+        0x04, // isAqiValid=true, childLock=false
+        0x32, // speed=50
+        0x02, // aqiLevelRaw=1 (good)
+        0x00, 0x0A, // workTime=10
+        0x00, // errCode=0
+      ])
+
+      const emitLog = () => {}
+      const result = WoAirPurifier.parseServiceData(serviceData, null, emitLog)
+
+      expect(result).not.toBeNull()
+      expect(result?.model).toBe('+')
+      expect(result?.modelName).toBe('WoAirPurifier')
+      expect(result?.isOn).toBe(true)
+      expect(result?.mode).toBe('auto')
+      expect(result?.speed).toBe(50)
+      expect(result?.aqi_level).toBe('good')
+      expect(result?.isAqiValid).toBe(true)
+      expect(result?.child_lock).toBe(false)
+      expect(result?.filter_element_working_time).toBe(10)
+      expect(result?.err_code).toBe(0)
+      expect(result?.sequence_number).toBe(2)
+    })
+
+    it('should map Air Purifier mode=2 to auto, mode=3 to sleep, mode=4 to manual', () => {
+      const makeManufData = (modeByte: number) => Buffer.from([
+        0x59, 0x00, 0x12, 0x34, 0x56, 0x78,
+        0x01, // sequenceNumber
+        modeByte,
+        0x00, // isAqiValid=false, childLock=false
+        0x50, // speed=80
+        0x00, // aqiLevelRaw=0 (excellent)
+        0x00, 0x00, // workTime=0
+        0x00, // errCode=0
+      ])
+
+      const emitLog = () => {}
+
+      const resultAuto = WoAirPurifier.parseServiceData(Buffer.from('+'), makeManufData(0x80 | 0x02), emitLog)
+      expect(resultAuto?.mode).toBe('auto')
+
+      const resultSleep = WoAirPurifier.parseServiceData(Buffer.from('+'), makeManufData(0x80 | 0x03), emitLog)
+      expect(resultSleep?.mode).toBe('sleep')
+
+      const resultManual = WoAirPurifier.parseServiceData(Buffer.from('+'), makeManufData(0x80 | 0x04), emitLog)
+      expect(resultManual?.mode).toBe('manual')
+    })
+
+    it('should return null for Air Purifier when both buffers are insufficient', () => {
+      const emitLog = () => {}
+      const result = WoAirPurifier.parseServiceData(Buffer.from('+'), null, emitLog)
+      expect(result).toBeNull()
+    })
+
     it('should parse Plug Mini EU service data correctly', async () => {
       // bytes 0-8: header/MAC/sequence (unused by parser), bytes 9-13: state/flags/rssi/power
       const manufacturerData = Buffer.from([
@@ -382,5 +442,24 @@ describe('advertising', () => {
       expect(result?.serviceData.model).toBe('l')
       expect(result?.serviceData.modelName).toBe('WoPlugMini')
     })
+
+    const plugMiniClasses = [
+      { name: 'WoPlugMiniJP', cls: WoPlugMiniJP },
+      { name: 'WoPlugMiniEU', cls: WoPlugMiniEU },
+      { name: 'WoPlugMiniUS', cls: WoPlugMiniUS },
+    ] as const
+
+    for (const { name, cls } of plugMiniClasses) {
+      it(`should return null when ${name} manufacturerData is undefined`, async () => {
+        const errors: string[] = []
+        const emitLog = (_level: string, msg: string) => { errors.push(msg) }
+
+        const result = await cls.parseServiceData(undefined, emitLog)
+
+        expect(result).toBeNull()
+        expect(errors.length).toBeGreaterThan(0)
+        expect(errors[0]).toContain('should be 14')
+      })
+    }
   })
 })

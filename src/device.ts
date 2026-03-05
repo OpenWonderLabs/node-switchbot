@@ -2532,7 +2532,7 @@ export class WoPlugMiniJP extends SwitchbotDevice {
 
   /**
    * Parses the service data for WoPlugMini JP.
-   * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Buffer | undefined} manufacturerData - The manufacturer data buffer, or undefined if not present.
    * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<plugMiniJPServiceData | null>} - Parsed service data or null if invalid.
    */
@@ -2654,7 +2654,7 @@ export class WoPlugMiniEU extends SwitchbotDevice {
 
   /**
    * Parses the service data for WoPlugMini EU.
-   * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Buffer | undefined} manufacturerData - The manufacturer data buffer, or undefined if not present.
    * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<plugMiniEUServiceData | null>} - Parsed service data or null if invalid.
    */
@@ -2775,7 +2775,7 @@ export class WoPlugMiniUS extends SwitchbotDevice {
 
   /**
    * Parses the service data for WoPlugMini US.
-   * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Buffer | undefined} manufacturerData - The manufacturer data buffer, or undefined if not present.
    * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<plugMiniUSServiceData | null>} - Parsed service data or null if invalid.
    */
@@ -3969,13 +3969,17 @@ export class WoAirPurifier extends SwitchbotDevice {
    * @returns {airPurifierServiceData | null} - The parsed service data or null.
    */
   static parseServiceData(serviceData: Buffer | null, manufacturerData: Buffer | null, emitLog?: (level: string, message: string) => void): airPurifierServiceData | null {
-    if (!manufacturerData || manufacturerData.length < 14) {
-      return null
+    let deviceData: Buffer | null = null
+
+    if (manufacturerData && manufacturerData.length >= 14) {
+      // Primary path: device state is in manufacturerData starting at byte 6
+      deviceData = manufacturerData.subarray(6)
+    } else if (serviceData && serviceData.length >= 9) {
+      // Fallback path: device state is in serviceData starting at byte 1 (after model byte)
+      deviceData = serviceData.subarray(1)
     }
 
-    const deviceData = manufacturerData.subarray(6)
-
-    if (deviceData.length < 8) {
+    if (!deviceData || deviceData.length < 8) {
       return null
     }
 
@@ -4009,8 +4013,8 @@ export class WoAirPurifier extends SwitchbotDevice {
         modeString = AIR_PURIFIER_MODES.LEVEL_3
       }
     } else if (mode > 1 && mode <= 4) {
-      const modeMap = [null, null, 'auto', 'sleep', 'manual']
-      modeString = modeMap[mode + 2] || null
+      const modeMap = [null, null, AIR_PURIFIER_MODES.AUTO, AIR_PURIFIER_MODES.SLEEP, AIR_PURIFIER_MODES.MANUAL]
+      modeString = modeMap[mode] || null
     }
 
     if (emitLog) {
@@ -4119,13 +4123,17 @@ export class WoAirPurifierTable extends SwitchbotDevice {
    * @returns {airPurifierTableServiceData | null} - The parsed service data or null.
    */
   static parseServiceData(serviceData: Buffer | null, manufacturerData: Buffer | null, emitLog?: (level: string, message: string) => void): airPurifierTableServiceData | null {
-    if (!manufacturerData || manufacturerData.length < 14) {
-      return null
+    let deviceData: Buffer | null = null
+
+    if (manufacturerData && manufacturerData.length >= 14) {
+      // Primary path: device state is in manufacturerData starting at byte 6
+      deviceData = manufacturerData.subarray(6)
+    } else if (serviceData && serviceData.length >= 9) {
+      // Fallback path: device state is in serviceData starting at byte 1 (after model byte)
+      deviceData = serviceData.subarray(1)
     }
 
-    const deviceData = manufacturerData.subarray(6)
-
-    if (deviceData.length < 8) {
+    if (!deviceData || deviceData.length < 8) {
       return null
     }
 
@@ -4159,8 +4167,8 @@ export class WoAirPurifierTable extends SwitchbotDevice {
         modeString = AIR_PURIFIER_MODES.LEVEL_3
       }
     } else if (mode > 1 && mode <= 4) {
-      const modeMap = [null, null, 'auto', 'sleep', 'manual']
-      modeString = modeMap[mode + 2] || null
+      const modeMap = [null, null, AIR_PURIFIER_MODES.AUTO, AIR_PURIFIER_MODES.SLEEP, AIR_PURIFIER_MODES.MANUAL]
+      modeString = modeMap[mode] || null
     }
 
     if (emitLog) {
