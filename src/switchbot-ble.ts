@@ -6,7 +6,7 @@ import type { ad, NobleTypes, onadvertisement, ondiscover, Params, Rule } from '
 
 import { EventEmitter } from 'node:events'
 
-import { Advertising, LogLevel, SwitchBotBLEModel, SwitchbotDevice, WoBlindTilt, WoBulb, WoCeilingLight, WoContact, WoCurtain, WoHand, WoHub2, WoHumi, WoHumi2, WoIOSensorTH, WoKeypad, WoLeak, WoPlugMiniEU, WoPlugMiniJP, WoPlugMiniUS, WoPresence, WoRelaySwitch1, WoRelaySwitch1PM, WoRemote, WoSensorTH, WoSensorTHPlus, WoSensorTHPro, WoSensorTHProCO2, WoSmartLock, WoSmartLockPro, WoSmartLockUltra, WoStrip } from './device.js'
+import { Advertising, LogLevel, SwitchBotBLEModel, SwitchbotDevice, WoAirPurifier, WoAirPurifierTable, WoBlindTilt, WoBulb, WoCeilingLight, WoContact, WoCurtain, WoHand, WoHub2, WoHumi, WoHumi2, WoIOSensorTH, WoKeypad, WoLeak, WoPlugMiniEU, WoPlugMiniJP, WoPlugMiniUS, WoPresence, WoRelaySwitch1, WoRelaySwitch1PM, WoRemote, WoSensorTH, WoSensorTHPlus, WoSensorTHPro, WoSensorTHProCO2, WoSmartLock, WoSmartLockPro, WoSmartLockUltra, WoStrip } from './device.js'
 import { parameterChecker } from './parameter-checker.js'
 import { DEFAULT_DISCOVERY_DURATION, PRIMARY_SERVICE_UUID_LIST } from './settings.js'
 
@@ -238,6 +238,8 @@ export class SwitchBotBLE extends EventEmitter {
         case SwitchBotBLEModel.Keypad: return new WoKeypad(peripheral, this.noble)
         case SwitchBotBLEModel.RelaySwitch1: return new WoRelaySwitch1(peripheral, this.noble)
         case SwitchBotBLEModel.RelaySwitch1PM: return new WoRelaySwitch1PM(peripheral, this.noble)
+        case SwitchBotBLEModel.AirPurifier: return new WoAirPurifier(peripheral, this.noble)
+        case SwitchBotBLEModel.AirPurifierTable: return new WoAirPurifierTable(peripheral, this.noble)
         default: return new SwitchbotDevice(peripheral, this.noble)
       }
     }
