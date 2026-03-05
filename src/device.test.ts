@@ -2,7 +2,7 @@ import { Buffer } from 'node:buffer'
 
 import { describe, expect, it } from 'vitest'
 
-import { Advertising, ErrorUtils, LogLevel, ValidationUtils, WoAirPurifier, WoPlugMiniEU } from './device.js'
+import { Advertising, ErrorUtils, LogLevel, ValidationUtils, WoAirPurifier, WoPlugMiniEU, WoPlugMiniJP, WoPlugMiniUS } from './device.js'
 
 describe('validationUtils', () => {
   describe('validatePercentage', () => {
@@ -382,5 +382,24 @@ describe('advertising', () => {
       expect(result?.serviceData.model).toBe('l')
       expect(result?.serviceData.modelName).toBe('WoPlugMini')
     })
+
+    const plugMiniClasses = [
+      { name: 'WoPlugMiniJP', cls: WoPlugMiniJP },
+      { name: 'WoPlugMiniEU', cls: WoPlugMiniEU },
+      { name: 'WoPlugMiniUS', cls: WoPlugMiniUS },
+    ] as const
+
+    for (const { name, cls } of plugMiniClasses) {
+      it(`should return null when ${name} manufacturerData is undefined`, async () => {
+        const errors: string[] = []
+        const emitLog = (_level: string, msg: string) => { errors.push(msg) }
+
+        const result = await cls.parseServiceData(undefined, emitLog)
+
+        expect(result).toBeNull()
+        expect(errors.length).toBeGreaterThan(0)
+        expect(errors[0]).toContain('should be 14')
+      })
+    }
   })
 })

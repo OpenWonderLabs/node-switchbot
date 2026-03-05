@@ -2532,7 +2532,7 @@ export class WoPlugMiniJP extends SwitchbotDevice {
 
   /**
    * Parses the service data for WoPlugMini JP.
-   * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Buffer | undefined} manufacturerData - The manufacturer data buffer, or undefined if not present.
    * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<plugMiniJPServiceData | null>} - Parsed service data or null if invalid.
    */
@@ -2654,7 +2654,7 @@ export class WoPlugMiniEU extends SwitchbotDevice {
 
   /**
    * Parses the service data for WoPlugMini EU.
-   * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Buffer | undefined} manufacturerData - The manufacturer data buffer, or undefined if not present.
    * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<plugMiniEUServiceData | null>} - Parsed service data or null if invalid.
    */
@@ -2775,7 +2775,7 @@ export class WoPlugMiniUS extends SwitchbotDevice {
 
   /**
    * Parses the service data for WoPlugMini US.
-   * @param {Buffer} manufacturerData - The manufacturer data buffer.
+   * @param {Buffer | undefined} manufacturerData - The manufacturer data buffer, or undefined if not present.
    * @param {Function} emitLog - The function to emit log messages.
    * @returns {Promise<plugMiniUSServiceData | null>} - Parsed service data or null if invalid.
    */
