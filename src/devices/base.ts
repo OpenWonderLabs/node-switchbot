@@ -32,7 +32,53 @@ export const PASSIVE_POLL_INTERVAL = 60 * 60 * 24 * 1000
 
 /**
  * Base class for all SwitchBot devices
- * Provides hybrid BLE/API functionality with automatic fallback, circuit breaker, and connection intelligence
+ *
+ * ## BLE-first, API-fallback Logic
+ *
+ * This class provides a centralized, robust hybrid connection strategy for all SwitchBot devices:
+ *
+ * - **BLE-first, API-fallback**: By default, status and command methods attempt BLE first (if available), then fall back to OpenAPI if BLE fails or is unavailable. This is controlled by `preferredConnection` and `enableFallback`.
+ * - **Centralized Fallback**: The `getStatusWithFallback()` and `sendCommand()` methods implement this logic. Device subclasses should call these methods and provide normalization/mapping as needed.
+ * - **Connection Intelligence**: Tracks connection health and performance, automatically preferring the most reliable connection if enabled.
+ * - **Circuit Breaker & Retry**: Both BLE and API commands are protected by circuit breaker and retry logic to handle transient failures gracefully.
+ *
+ * ### Usage in Subclasses
+ *
+ * - For status: Call `await this.getStatusWithFallback(normalizeBLE, normalizeAPI)` in your `getStatus()` implementation.
+ * - For commands: Use `await this.sendCommand(bleCommand, apiCommand, apiParameter)` to automatically select the best connection and handle fallback.
+ * - For custom logic: You may override or extend these methods, but should preserve the fallback and error-handling patterns for consistency.
+ *
+ * ### Example (in a device subclass)
+ *
+ * ```typescript
+ * async getStatus(): Promise<DeviceStatus> {
+ *   return this.getStatusWithFallback(
+ *     bleData => ({ ... }), // normalize BLE data
+ *     apiData => ({ ... }), // normalize API data
+ *   )
+ * }
+ *
+ * async turnOn(): Promise<boolean> {
+ *   const result = await this.sendCommand([0x57, 0x01, 0x01], 'turnOn')
+ *   return result.success
+ * }
+ * ```
+ *
+ * ### Configuration
+ *
+ * - `preferredConnection`: 'ble' | 'api' (default: 'ble')
+ * - `enableFallback`: boolean (default: true)
+ * - `enableConnectionIntelligence`: boolean (default: true)
+ * - `enableCircuitBreaker`: boolean (default: true)
+ * - `enableRetry`: boolean (default: true)
+ *
+ * ### See Also
+ * - `getStatusWithFallback()`
+ * - `sendCommand()`
+ * - `hasBLE()`, `hasAPI()`
+ * - `setPreferredConnection()`, `setFallbackEnabled()`
+ *
+ * This pattern ensures all device classes benefit from robust, testable, and consistent connection logic.
  */
 export abstract class SwitchBotDevice extends EventEmitter {
   protected logger: Logger
@@ -279,6 +325,44 @@ export abstract class SwitchBotDevice extends EventEmitter {
   /**
    * Get device status (abstract - implemented by subclasses)
    */
+  /**
+   * Get device status with BLE-first/API-fallback logic (centralized)
+   * Subclasses should call this and map/normalize fields as needed.
+   */
+  protected async getStatusWithFallback<TStatus = DeviceStatus>(
+    normalizeBLE?: (bleData: any) => TStatus,
+    normalizeAPI?: (apiData: any) => TStatus,
+  ): Promise<TStatus> {
+    // Determine connection order
+    const preferBLE = this.preferredConnection === 'ble'
+    const tryBLE = () => this.getBLEStatus().then(normalizeBLE ?? (d => d as TStatus))
+    const tryAPI = () => this.getAPIStatus().then(normalizeAPI ?? (d => d as TStatus))
+
+    // BLE-first
+    if (preferBLE && this.hasBLE()) {
+      try {
+        return await tryBLE()
+      } catch (err) {
+        this.logger?.warn?.('BLE getStatus failed, falling back to API', err)
+      }
+      if (this.enableFallback && this.hasAPI()) {
+        return await tryAPI()
+      }
+    }
+    // API-first
+    if (!preferBLE && this.hasAPI()) {
+      try {
+        return await tryAPI()
+      } catch (err) {
+        this.logger?.warn?.('API getStatus failed, falling back to BLE', err)
+      }
+      if (this.enableFallback && this.hasBLE()) {
+        return await tryBLE()
+      }
+    }
+    throw new Error('No connection method available for getStatus')
+  }
+
   abstract getStatus(): Promise<DeviceStatus>
 
   /**

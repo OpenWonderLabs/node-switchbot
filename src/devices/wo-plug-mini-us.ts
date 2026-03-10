@@ -46,41 +46,31 @@ export class WoPlugMiniUS extends DeviceOverrideStateDuringConnection implements
   }
 
   /**
-   * Get device status
+   * Get device status (BLE-first, API-fallback, centralized)
    */
   async getStatus(): Promise<PlugStatus> {
-    try {
-      // Try API first if available
-      if (this.hasAPI()) {
-        const apiStatus = await this.getAPIStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'api',
-          power: apiStatus.power || 'off',
-          voltage: apiStatus.voltage,
-          electricCurrent: apiStatus.electricCurrent,
-          electricityOfDay: apiStatus.electricityOfDay,
-          version: apiStatus.version,
-          updatedAt: new Date(),
-        }
-      }
-
-      // Fallback to BLE
-      if (this.hasBLE()) {
-        const bleData = await this.getBLEStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'ble',
-          power: bleData.state ? 'on' : 'off',
-          voltage: bleData.voltage,
-          updatedAt: new Date(),
-        }
-      }
-
-      throw new Error('No connection method available')
-    } catch (error) {
-      this.logger.error('Failed to get status', error)
-      throw error
-    }
+    return this.getStatusWithFallback<PlugStatus>(
+      // BLE normalization
+      bleData => ({
+        deviceId: this.info.id,
+        connectionType: 'ble',
+        power: bleData.state ? 'on' : 'off',
+        voltage: bleData.voltage,
+        electricCurrent: bleData.electricCurrent,
+        electricityOfDay: bleData.electricityOfDay,
+        updatedAt: new Date(),
+      }),
+      // API normalization
+      apiStatus => ({
+        deviceId: this.info.id,
+        connectionType: 'api',
+        power: apiStatus.power || 'off',
+        voltage: apiStatus.voltage,
+        electricCurrent: apiStatus.electricCurrent,
+        electricityOfDay: apiStatus.electricityOfDay,
+        version: apiStatus.version,
+        updatedAt: new Date(),
+      }),
+    )
   }
 }

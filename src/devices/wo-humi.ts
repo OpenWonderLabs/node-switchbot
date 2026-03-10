@@ -79,46 +79,32 @@ export class WoHumi extends SwitchBotDevice implements HumidifierCommands {
   }
 
   /**
-   * Get device status
+   * Get device status (BLE-first/API-fallback, centralized)
    */
   async getStatus(): Promise<HumidifierStatus> {
-    try {
-      // Try API first if available
-      if (this.hasAPI()) {
-        const apiStatus = await this.getAPIStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'api',
-          power: apiStatus.power || 'off',
-          humidity: apiStatus.humidity,
-          mode: apiStatus.auto ? 'auto' : 'manual',
-          nebulizationEfficiency: apiStatus.nebulizationEfficiency,
-          lackWater: apiStatus.lackWater,
-          temperature: apiStatus.temperature,
-          version: apiStatus.version,
-          updatedAt: new Date(),
-        }
-      }
-
-      // Fallback to BLE
-      if (this.hasBLE()) {
-        const bleData = await this.getBLEStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'ble',
-          power: bleData.onState ? 'on' : 'off',
-          mode: bleData.autoMode ? 'auto' : 'manual',
-          nebulizationEfficiency: bleData.percentage,
-          lackWater: bleData.lackWater,
-          updatedAt: new Date(),
-        }
-      }
-
-      throw new Error('No connection method available')
-    } catch (error) {
-      this.logger.error('Failed to get status', error)
-      throw error
-    }
+    return this.getStatusWithFallback<HumidifierStatus>(
+      bleData => ({
+        deviceId: this.info.id,
+        connectionType: 'ble',
+        power: bleData.onState ? 'on' : 'off',
+        mode: bleData.autoMode ? 'auto' : 'manual',
+        nebulizationEfficiency: bleData.percentage,
+        lackWater: bleData.lackWater,
+        updatedAt: new Date(),
+      }),
+      apiStatus => ({
+        deviceId: this.info.id,
+        connectionType: 'api',
+        power: apiStatus.power || 'off',
+        humidity: apiStatus.humidity,
+        mode: apiStatus.auto ? 'auto' : 'manual',
+        nebulizationEfficiency: apiStatus.nebulizationEfficiency,
+        lackWater: apiStatus.lackWater,
+        temperature: apiStatus.temperature,
+        version: apiStatus.version,
+        updatedAt: new Date(),
+      }),
+    )
   }
 
   /**

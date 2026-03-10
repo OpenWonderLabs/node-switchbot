@@ -108,6 +108,7 @@ const DEVICE_CLASSES: Record<string, DeviceConstructor> = {
   WoBulb,
   WoStrip,
   WoStripLight3,
+  WoRGBICWWStripLight,
   WoArtFrame,
   WoCeilingLight,
   WoCirculatorFan,
@@ -129,7 +130,6 @@ const DEVICE_CLASSES: Record<string, DeviceConstructor> = {
   WoRemote,
   WoRGBICBulb,
   WoRGBICWWFloorLamp,
-  WoRGBICWWStripLight,
   WoKeypad,
   WoKeypadVision,
   WoKeypadVisionPro,
@@ -161,6 +161,8 @@ export class SwitchBot extends EventEmitter {
   private apiClient?: OpenAPIClient
   private deviceManager: DeviceManager
   private initialized = false
+  // Track pending device creations for async API discovery
+  private _pendingDeviceCreations: Promise<void>[] = []
 
   constructor(config: SwitchBotConfig = {}) {
     super()
@@ -181,6 +183,14 @@ export class SwitchBot extends EventEmitter {
       maxRetryAttempts: config.maxRetryAttempts ?? 3,
       retryInitialDelayMs: config.retryInitialDelayMs ?? 100,
       retryMaxDelayMs: config.retryMaxDelayMs ?? 5000,
+      detailedErrors: config.detailedErrors ?? false,
+      logger: config.logger ?? {
+        error: () => {},
+        warn: () => {},
+        info: () => {},
+        debug: () => {},
+      },
+      _internal: config._internal ?? {},
     }
 
     this.logger = new Logger('SwitchBot', this.config.logLevel)
@@ -288,6 +298,12 @@ export class SwitchBot extends EventEmitter {
       }
     }
 
+    // Wait for all pending device creations to finish (API discovery is async)
+    if (this._pendingDeviceCreations && this._pendingDeviceCreations.length > 0) {
+      await Promise.all(this._pendingDeviceCreations)
+      this._pendingDeviceCreations = []
+    }
+
     const devices = this.deviceManager.list()
     this.logger.info(`Discovery complete: ${devices.length} unique devices found`)
     this.emit('discovery-complete', devices)
@@ -331,7 +347,7 @@ export class SwitchBot extends EventEmitter {
   /**
    * Handle BLE device discovery
    */
-  private handleBLEDiscovery(advertisement: any): void {
+  private async handleBLEDiscovery(advertisement: any): Promise<void> {
     const { id: advertisementId, address, serviceData, rssi } = advertisement
     const deviceType = serviceData.modelName
     const mac = typeof address === 'string' && address.length > 0 ? address : undefined
@@ -357,7 +373,7 @@ export class SwitchBot extends EventEmitter {
     }
 
     // Check if device already exists (may have been discovered via API)
-    let device = this.deviceManager.get(info.id)
+    const device = this.deviceManager.get(info.id)
 
     if (device) {
       // Update existing device info
@@ -371,11 +387,10 @@ export class SwitchBot extends EventEmitter {
       this.logger.debug(`Updated device: ${info.name} (${info.id})`)
     } else {
       // Create new device
-      device = this.createDevice(info)
-
-      if (device) {
-        this.deviceManager.add(device!)
-        this.emit('device-discovered', device!)
+      const newDevice = await this.createDevice(info)
+      if (newDevice) {
+        this.deviceManager.add(newDevice)
+        this.emit('device-discovered', newDevice)
         this.logger.info(`Discovered ${info.name} via BLE (${info.id})`)
       }
     }
@@ -398,8 +413,12 @@ export class SwitchBot extends EventEmitter {
         response,
       })
 
+      // Track all pending device creations
+      if (!this._pendingDeviceCreations) {
+        this._pendingDeviceCreations = []
+      }
       for (const apiDevice of response.deviceList) {
-        this.handleAPIDiscovery(apiDevice)
+        this._pendingDeviceCreations.push(this.handleAPIDiscovery(apiDevice))
       }
     } catch (error) {
       this.logger.error('API discovery failed', {
@@ -417,7 +436,7 @@ export class SwitchBot extends EventEmitter {
    * Handle API device discovery
    * Tries to match with existing BLE devices and combines them into one entry
    */
-  private handleAPIDiscovery(apiDevice: any): void {
+  private async handleAPIDiscovery(apiDevice: any): Promise<void> {
     const { deviceId, deviceName, deviceType, enableCloudService, hubDeviceId, version } = apiDevice
 
     this.logger.debug(`Processing API device: ${deviceName} (${deviceId}, type: ${deviceType})`)
@@ -452,14 +471,14 @@ export class SwitchBot extends EventEmitter {
       }
 
       // Check if device already exists (shouldn't happen but safety check)
-      let device = this.deviceManager.get(info.id)
+      const device = this.deviceManager.get(info.id)
 
       if (!device) {
-        device = this.createDevice(info)
-
-        if (device) {
-          this.deviceManager.add(device!)
-          this.emit('device-discovered', device!)
+        // Await device creation and addition
+        const newDevice = await this.createDevice(info)
+        if (newDevice) {
+          this.deviceManager.add(newDevice)
+          this.emit('device-discovered', newDevice)
           this.logger.info(`Discovered ${deviceName} via API only (${deviceId})`)
         }
       }
@@ -512,38 +531,27 @@ export class SwitchBot extends EventEmitter {
   /**
    * Create device instance
    */
-  private createDevice(info: any): SwitchBotDevice | undefined {
+  private async createDevice(info: any): Promise<SwitchBotDevice | undefined> {
     const className = DEVICE_CLASS_MAP[info.deviceType]
-
+    this.logger.debug(`createDevice: deviceType='${info.deviceType}', resolved className='${className}', info=`, info)
     if (!className) {
-      this.logger.warn(`Unknown device type: ${info.deviceType}`)
+      this.logger.warn(`createDevice: Unknown device type: ${info.deviceType}`)
       return undefined
     }
-
     const DeviceClass = DEVICE_CLASSES[className]
-
+    this.logger.debug(`createDevice: DeviceClass for '${className}' is ${DeviceClass ? 'found' : 'undefined'}`)
     if (!DeviceClass) {
-      this.logger.warn(`Device class not implemented: ${className}`)
+      this.logger.warn(`createDevice: Device class not implemented: ${className}`)
       return undefined
     }
-
     try {
+      // Use utility to extract all device-relevant options from config
+      const { extractDeviceOptionsFromConfig } = await import('./utils/index.js')
       return new DeviceClass(info, {
-        bleConnection: this.bleConnection,
-        apiClient: this.apiClient,
-        enableFallback: this.config.enableFallback,
-        enableConnectionIntelligence: this.config.enableConnectionIntelligence,
-        enableCircuitBreaker: this.config.enableCircuitBreaker,
-        enableRetry: this.config.enableRetry,
-        retryConfig: {
-          maxAttempts: this.config.maxRetryAttempts,
-          initialDelayMs: this.config.retryInitialDelayMs,
-          maxDelayMs: this.config.retryMaxDelayMs,
-        },
-        logLevel: this.config.logLevel,
+        ...extractDeviceOptionsFromConfig(this.config),
       })
     } catch (error) {
-      this.logger.error(`Failed to create device ${className}`, error)
+      this.logger.error(`createDevice: Failed to create device ${className}`, error)
       return undefined
     }
   }

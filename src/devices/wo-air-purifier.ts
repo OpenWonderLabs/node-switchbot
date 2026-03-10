@@ -94,45 +94,11 @@ export class WoAirPurifier extends SequenceDevice implements AirPurifierCommands
   }
 
   /**
-   * Get device status
+   * Get device status (BLE-first, API-fallback)
    */
   async getStatus(): Promise<AirPurifierStatus> {
-    try {
-      // Try API first if available
-      if (this.hasAPI()) {
-        const apiStatus = await this.getAPIStatus()
-
-        // Map air quality from PM2.5 value
-        let airQuality: 'excellent' | 'good' | 'fair' | 'poor' | undefined
-        if (apiStatus.pm25 !== undefined) {
-          if (apiStatus.pm25 <= 35) {
-            airQuality = 'excellent'
-          } else if (apiStatus.pm25 <= 75) {
-            airQuality = 'good'
-          } else if (apiStatus.pm25 <= 115) {
-            airQuality = 'fair'
-          } else {
-            airQuality = 'poor'
-          }
-        }
-
-        return {
-          deviceId: this.info.id,
-          connectionType: 'api',
-          power: apiStatus.power || 'off',
-          fanSpeed: apiStatus.fanSpeed,
-          mode: apiStatus.mode,
-          pm25: apiStatus.pm25,
-          airQuality,
-          version: apiStatus.version,
-          updatedAt: new Date(),
-        }
-      }
-
-      // Fallback to BLE
-      if (this.hasBLE()) {
-        const bleData = await this.getBLEStatus()
-        // Validate minimum expected length for BLE status (example: 8 bytes, adjust as needed)
+    return this.getStatusWithFallback<AirPurifierStatus>(
+      (bleData) => {
         if (bleData.rawData && Buffer.isBuffer(bleData.rawData)) {
           validateResponseLength(bleData.rawData, 8, 'WoAirPurifier:getStatus BLE')
         }
@@ -145,13 +111,33 @@ export class WoAirPurifier extends SequenceDevice implements AirPurifierCommands
           pm25: bleData.pm25,
           updatedAt: new Date(),
         }
-      }
-
-      throw new Error('No connection method available')
-    } catch (error) {
-      this.logger.error('Failed to get status', error)
-      throw error
-    }
+      },
+      (apiStatus) => {
+        let airQuality: 'excellent' | 'good' | 'fair' | 'poor' | undefined
+        if (apiStatus.pm25 !== undefined) {
+          if (apiStatus.pm25 <= 35) {
+            airQuality = 'excellent'
+          } else if (apiStatus.pm25 <= 75) {
+            airQuality = 'good'
+          } else if (apiStatus.pm25 <= 115) {
+            airQuality = 'fair'
+          } else {
+            airQuality = 'poor'
+          }
+        }
+        return {
+          deviceId: this.info.id,
+          connectionType: 'api',
+          power: apiStatus.power || 'off',
+          fanSpeed: apiStatus.fanSpeed,
+          mode: apiStatus.airMode ?? apiStatus.mode,
+          pm25: apiStatus.pm25,
+          airQuality,
+          version: apiStatus.version,
+          updatedAt: new Date(),
+        }
+      },
+    )
   }
 
   /**

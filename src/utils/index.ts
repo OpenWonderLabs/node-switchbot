@@ -7,6 +7,11 @@
  */
 import type { BLEAdvertisement } from '../types/ble.js'
 /**
+ * Extracts all device-relevant options from a SwitchBotConfig object.
+ * Ensures future config fields are automatically supported for device instantiation.
+ */
+import type { ConnectionType, LogLevel, SwitchBotConfig } from '../types/index.js'
+/**
  * Validates that a Buffer has at least the expected minimum length.
  * Throws an error if the buffer is too short, including actual vs expected length and context.
  */
@@ -14,10 +19,23 @@ import type { BLEAdvertisement } from '../types/ble.js'
  *
  * utils/index.ts: SwitchBot v4.0.0 - Utility Functions
  */
-
-import type { LogLevel } from '../types/index.js'
-
 import { Buffer } from 'node:buffer'
+
+export function extractDeviceOptionsFromConfig(config: SwitchBotConfig): Record<string, unknown> {
+  return {
+    bleConnection: config.bleConnection,
+    apiClient: config.apiClient,
+    enableFallback: config.enableFallback,
+    preferredConnection: config.preferredConnection as ConnectionType,
+    enableConnectionIntelligence: config.enableConnectionIntelligence,
+    enableCircuitBreaker: config.enableCircuitBreaker,
+    enableRetry: config.enableRetry,
+    retryConfig: config.retryConfig,
+    circuitBreakerConfig: config.circuitBreakerConfig,
+    logLevel: config.logLevel,
+    // Add more fields here as needed in the future
+  }
+}
 
 export function deepMerge<T extends Record<string, any>>(oldObj: T, newObj: Partial<T>): T {
   const result: any = Array.isArray(oldObj) ? [...oldObj] : { ...oldObj }
@@ -60,7 +78,7 @@ export class Logger {
   constructor(
     private readonly name: string,
     private level: LogLevel = 2, // WARN by default
-  ) {}
+  ) { }
 
   setLevel(level: LogLevel): void {
     this.level = level

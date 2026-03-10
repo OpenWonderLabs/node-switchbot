@@ -9,38 +9,25 @@ export interface CandleWarmerLampStatus extends DeviceStatus {
 
 export class WoCandleWarmerLamp extends SwitchBotDevice {
   /**
-   * Get device status (BLE first, then API)
+   * Get device status (BLE-first, API-fallback)
    */
   async getStatus(): Promise<CandleWarmerLampStatus> {
-    try {
-      // Try BLE first
-      if (this.hasBLE()) {
-        const bleData = await this.getBLEStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'ble',
-          updatedAt: new Date(),
-          power: bleData.state ? 'on' : 'off',
-          brightness: typeof bleData.brightness === 'number' ? bleData.brightness : undefined,
-        }
-      }
-
-      // Fallback to API
-      if (this.hasAPI()) {
-        const apiStatus = await this.getAPIStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'api',
-          updatedAt: new Date(),
-          power: apiStatus.power,
-          brightness: typeof apiStatus.brightness === 'number' ? apiStatus.brightness : undefined,
-        }
-      }
-      throw new Error('No connection method available')
-    } catch (error) {
-      this.logger.error('Failed to get status', error)
-      throw error
-    }
+    return this.getStatusWithFallback<CandleWarmerLampStatus>(
+      bleData => ({
+        deviceId: this.info.id,
+        connectionType: 'ble',
+        updatedAt: new Date(),
+        power: bleData.state ? 'on' : 'off',
+        brightness: typeof bleData.brightness === 'number' ? bleData.brightness : undefined,
+      }),
+      apiStatus => ({
+        deviceId: this.info.id,
+        connectionType: 'api',
+        updatedAt: new Date(),
+        power: apiStatus.power,
+        brightness: typeof apiStatus.brightness === 'number' ? apiStatus.brightness : undefined,
+      }),
+    )
   }
 
   /**

@@ -185,37 +185,11 @@ export class WoBulb extends SwitchBotDevice implements BulbCommands {
   }
 
   /**
-   * Get device status
+   * Get device status (BLE-first/API-fallback, centralized)
    */
   async getStatus(): Promise<BulbStatus> {
-    try {
-      // Try API first if available
-      if (this.hasAPI()) {
-        const apiStatus = await this.getAPIStatus()
-
-        // Parse color if available (format: "255:255:255")
-        let color: { r: number, g: number, b: number } | undefined
-        if (apiStatus.color) {
-          const [r, g, b] = apiStatus.color.split(':').map(Number)
-          color = { r, g, b }
-        }
-
-        return {
-          deviceId: this.info.id,
-          connectionType: 'api',
-          power: apiStatus.power || 'off',
-          brightness: apiStatus.brightness,
-          colorTemperature: apiStatus.colorTemperature,
-          color,
-          version: apiStatus.version,
-          updatedAt: new Date(),
-        }
-      }
-
-      // Fallback to BLE
-      if (this.hasBLE()) {
-        const bleData = await this.getBLEStatus()
-        // Validate minimum expected length for BLE status (example: 8 bytes, adjust as needed)
+    return this.getStatusWithFallback<BulbStatus>(
+      (bleData) => {
         if (bleData.rawData && Buffer.isBuffer(bleData.rawData)) {
           validateResponseLength(bleData.rawData, 8, 'WoBulb:getStatus BLE')
         }
@@ -234,13 +208,25 @@ export class WoBulb extends SwitchBotDevice implements BulbCommands {
             : undefined,
           updatedAt: new Date(),
         }
-      }
-
-      throw new Error('No connection method available')
-    } catch (error) {
-      this.logger.error('Failed to get status', error)
-      throw error
-    }
+      },
+      (apiStatus) => {
+        let color: { r: number, g: number, b: number } | undefined
+        if (apiStatus.color) {
+          const [r, g, b] = apiStatus.color.split(':').map(Number)
+          color = { r, g, b }
+        }
+        return {
+          deviceId: this.info.id,
+          connectionType: 'api',
+          power: apiStatus.power || 'off',
+          brightness: apiStatus.brightness,
+          colorTemperature: apiStatus.colorTemperature,
+          color,
+          version: apiStatus.version,
+          updatedAt: new Date(),
+        }
+      },
+    )
   }
 
   /**

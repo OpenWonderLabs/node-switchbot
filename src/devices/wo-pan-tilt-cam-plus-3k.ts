@@ -4,36 +4,25 @@ import { SwitchBotDevice } from './base.js'
 
 export class WoPanTiltCamPlus3K extends SwitchBotDevice {
   /**
-   * Get device status (BLE first, then API)
+   * Get device status (BLE-first, API-fallback, centralized)
    */
   async getStatus(): Promise<DeviceStatus> {
-    try {
-      // Try BLE first
-      if (this.hasBLE()) {
-        await this.getBLEStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'ble',
-          updatedAt: new Date(),
-          // Add more fields if available from BLE
-        }
-      }
-
-      // Fallback to API
-      if (this.hasAPI()) {
-        await this.getAPIStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'api',
-          updatedAt: new Date(),
-          // Add more fields if available from API
-        }
-      }
-      throw new Error('No connection method available')
-    } catch (error) {
-      this.logger.error('Failed to get status', error)
-      throw error
-    }
+    return this.getStatusWithFallback<DeviceStatus>(
+      // BLE normalization
+      () => ({
+        deviceId: this.info.id,
+        connectionType: 'ble',
+        updatedAt: new Date(),
+        // Add more fields if available from BLE
+      }),
+      // API normalization
+      () => ({
+        deviceId: this.info.id,
+        connectionType: 'api',
+        updatedAt: new Date(),
+        // Add more fields if available from API
+      }),
+    )
   }
 
   /**

@@ -51,6 +51,24 @@ export interface SwitchBotConfig {
   retryInitialDelayMs?: number
   /** Maximum retry delay in milliseconds (default: 5000) */
   retryMaxDelayMs?: number
+  /** Enable detailed error reporting in command results (default: false) */
+  detailedErrors?: boolean
+  /** Custom logger instance (optional) */
+  logger?: {
+    error: (message: string, ...args: any[]) => void
+    warn: (message: string, ...args: any[]) => void
+    info: (message: string, ...args: any[]) => void
+    debug: (message: string, ...args: any[]) => void
+  }
+  /** Additional custom options can be added as needed */
+  [key: string]: any
+  /** Internal options for testing and advanced use (not part of public API) */
+  _internal?: {
+    /** Force use of BLE for testing (overrides intelligent selection) */
+    forceBLE?: boolean
+    /** Force use of API for testing (overrides intelligent selection) */
+    forceAPI?: boolean
+  }
 }
 
 /**

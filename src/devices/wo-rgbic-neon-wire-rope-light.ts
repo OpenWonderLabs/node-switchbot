@@ -4,41 +4,29 @@ import { SwitchBotDevice } from './base.js'
 
 export class WoRGBICNeonWireRopeLight extends SwitchBotDevice {
   /**
-   * Get device status (BLE first, then API)
+   * Get device status (BLE-first/API-fallback, centralized)
    */
   async getStatus(): Promise<RGBICBulbStatus> {
-    try {
-      // BLE first
-      if (this.hasBLE()) {
-        const bleData = await this.getBLEStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'ble',
-          updatedAt: new Date(),
-          power: bleData.state ? 'on' : 'off',
-          brightness: bleData.brightness,
-          colorTemperature: bleData.colorTemperature,
-          color: bleData.red !== undefined ? { r: bleData.red, g: bleData.green, b: bleData.blue } : undefined,
-        }
-      }
-      // API fallback
-      if (this.hasAPI()) {
-        const apiStatus = await this.getAPIStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'api',
-          updatedAt: new Date(),
-          power: apiStatus.power,
-          brightness: apiStatus.brightness,
-          colorTemperature: apiStatus.colorTemperature,
-          color: apiStatus.color,
-        }
-      }
-      throw new Error('No connection method available')
-    } catch (error) {
-      this.logger?.error?.('Failed to get status', error)
-      throw error
-    }
+    return this.getStatusWithFallback<RGBICBulbStatus>(
+      bleData => ({
+        deviceId: this.info.id,
+        connectionType: 'ble',
+        updatedAt: new Date(),
+        power: bleData.state ? 'on' : 'off',
+        brightness: bleData.brightness,
+        colorTemperature: bleData.colorTemperature,
+        color: bleData.red !== undefined ? { r: bleData.red, g: bleData.green, b: bleData.blue } : undefined,
+      }),
+      apiStatus => ({
+        deviceId: this.info.id,
+        connectionType: 'api',
+        updatedAt: new Date(),
+        power: apiStatus.power,
+        brightness: apiStatus.brightness,
+        colorTemperature: apiStatus.colorTemperature,
+        color: apiStatus.color,
+      }),
+    )
   }
 
   /**

@@ -4,28 +4,20 @@ import { SwitchBotDevice } from './base.js'
 
 export class WoAirPurifierPM25 extends SwitchBotDevice {
   /**
-   * Get device status (BLE first, then API)
+   * Get device status (BLE-first, API-fallback)
    */
   async getStatus(): Promise<AirPurifierStatus> {
-    try {
-      // Try BLE first
-      if (this.hasBLE()) {
-        const bleData = await this.getBLEStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'ble',
-          power: bleData.state ? 'on' : 'off',
-          fanSpeed: bleData.fanSpeed,
-          mode: bleData.mode,
-          pm25: bleData.pm25,
-          updatedAt: new Date(),
-        }
-      }
-
-      // Fallback to API
-      if (this.hasAPI()) {
-        const apiStatus = await this.getAPIStatus()
-        // Map air quality from PM2.5 value
+    return this.getStatusWithFallback<AirPurifierStatus>(
+      bleData => ({
+        deviceId: this.info.id,
+        connectionType: 'ble',
+        power: bleData.state ? 'on' : 'off',
+        fanSpeed: bleData.fanSpeed,
+        mode: bleData.mode,
+        pm25: bleData.pm25,
+        updatedAt: new Date(),
+      }),
+      (apiStatus) => {
         let airQuality: 'excellent' | 'good' | 'fair' | 'poor' | undefined
         if (apiStatus.pm25 !== undefined) {
           if (apiStatus.pm25 <= 35) {
@@ -49,12 +41,8 @@ export class WoAirPurifierPM25 extends SwitchBotDevice {
           version: apiStatus.version,
           updatedAt: new Date(),
         }
-      }
-      throw new Error('No connection method available')
-    } catch (error) {
-      this.logger.error('Failed to get status', error)
-      throw error
-    }
+      },
+    )
   }
 
   /**

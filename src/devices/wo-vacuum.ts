@@ -13,21 +13,59 @@ import { SequenceDevice } from './sequence-device.js'
  */
 export class WoVacuum extends SequenceDevice implements VacuumCommands {
   /**
-   * Start cleaning
+   * Start cleaning (BLE-first, API-fallback)
    */
   async cleanUp(protocolVersion: number): Promise<boolean> {
-    const command = this.getCommandForProtocol(DEVICE_COMMANDS.VACUUM.CLEAN_UP, protocolVersion)
-    const result = await this.sendCommand(command, 'start', { protocolVersion })
-    return result.success
+    // Validate protocol version first
+    if (protocolVersion !== 1 && protocolVersion !== 2) {
+      throw new Error(`Unsupported vacuum protocol version: ${protocolVersion}`)
+    }
+    // Try BLE first
+    if (this.hasBLE()) {
+      try {
+        const command = this.getCommandForProtocol(DEVICE_COMMANDS.VACUUM.CLEAN_UP, protocolVersion)
+        const result = await this.sendCommand(command, 'start', { protocolVersion })
+        if (result.success) {
+          return true
+        }
+      } catch (err) {
+        this.logger.warn('BLE cleanUp failed, falling back to API', err)
+      }
+    }
+    // Fallback to API
+    if (this.hasAPI()) {
+      const apiResult = await this.sendAPICommand('start', { protocolVersion })
+      return apiResult.success
+    }
+    throw new Error('No connection method available for cleanUp')
   }
 
   /**
-   * Return to dock
+   * Return to dock (BLE-first, API-fallback)
    */
   async returnToDock(protocolVersion: number): Promise<boolean> {
-    const command = this.getCommandForProtocol(DEVICE_COMMANDS.VACUUM.RETURN_TO_DOCK, protocolVersion)
-    const result = await this.sendCommand(command, 'dock', { protocolVersion })
-    return result.success
+    // Validate protocol version first
+    if (protocolVersion !== 1 && protocolVersion !== 2) {
+      throw new Error(`Unsupported vacuum protocol version: ${protocolVersion}`)
+    }
+    // Try BLE first
+    if (this.hasBLE()) {
+      try {
+        const command = this.getCommandForProtocol(DEVICE_COMMANDS.VACUUM.RETURN_TO_DOCK, protocolVersion)
+        const result = await this.sendCommand(command, 'dock', { protocolVersion })
+        if (result.success) {
+          return true
+        }
+      } catch (err) {
+        this.logger.warn('BLE returnToDock failed, falling back to API', err)
+      }
+    }
+    // Fallback to API
+    if (this.hasAPI()) {
+      const apiResult = await this.sendAPICommand('dock', { protocolVersion })
+      return apiResult.success
+    }
+    throw new Error('No connection method available for returnToDock')
   }
 
   /**
@@ -71,44 +109,32 @@ export class WoVacuum extends SequenceDevice implements VacuumCommands {
   }
 
   /**
-   * Get device status
+   * Get device status (BLE-first/API-fallback, centralized)
    */
   async getStatus(): Promise<VacuumStatus> {
-    try {
-      if (this.hasAPI()) {
-        const apiStatus = await this.getAPIStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'api',
-          battery: apiStatus.battery,
-          workStatus: apiStatus.workStatus ?? apiStatus.work_status,
-          dustbinBound: apiStatus.dustbinBound ?? apiStatus.dustbin_bound,
-          dustbinConnected: apiStatus.dustbinConnected ?? apiStatus.dusbin_connected,
-          networkConnected: apiStatus.networkConnected ?? apiStatus.network_connected,
-          version: apiStatus.version,
-          updatedAt: new Date(),
-        }
-      }
-
-      if (this.hasBLE()) {
-        const bleData = await this.getBLEStatus().catch(() => this.normalizeBLEStatusData(undefined))
-        return {
-          deviceId: this.info.id,
-          connectionType: 'ble',
-          battery: this.asNumber(bleData.battery),
-          workStatus: this.asNumber(bleData.workStatus ?? bleData.work_status),
-          dustbinBound: this.asBoolean(bleData.dustbinBound ?? bleData.dustbin_bound),
-          dustbinConnected: this.asBoolean(bleData.dustbinConnected ?? bleData.dusbin_connected),
-          networkConnected: this.asBoolean(bleData.networkConnected ?? bleData.network_connected),
-          updatedAt: new Date(),
-        }
-      }
-
-      throw new Error('No connection method available')
-    } catch (error) {
-      this.logger.error('Failed to get status', error)
-      throw error
-    }
+    return this.getStatusWithFallback<VacuumStatus>(
+      bleData => ({
+        deviceId: this.info.id,
+        connectionType: 'ble',
+        battery: this.asNumber(bleData.battery),
+        workStatus: this.asNumber(bleData.workStatus ?? bleData.work_status),
+        dustbinBound: this.asBoolean(bleData.dustbinBound ?? bleData.dustbin_bound),
+        dustbinConnected: this.asBoolean(bleData.dustbinConnected ?? bleData.dusbin_connected),
+        networkConnected: this.asBoolean(bleData.networkConnected ?? bleData.network_connected),
+        updatedAt: new Date(),
+      }),
+      apiStatus => ({
+        deviceId: this.info.id,
+        connectionType: 'api',
+        battery: apiStatus.battery,
+        workStatus: apiStatus.workStatus ?? apiStatus.work_status,
+        dustbinBound: apiStatus.dustbinBound ?? apiStatus.dustbin_bound,
+        dustbinConnected: apiStatus.dustbinConnected ?? apiStatus.dusbin_connected,
+        networkConnected: apiStatus.networkConnected ?? apiStatus.network_connected,
+        version: apiStatus.version,
+        updatedAt: new Date(),
+      }),
+    )
   }
 
   private getCommandForProtocol(

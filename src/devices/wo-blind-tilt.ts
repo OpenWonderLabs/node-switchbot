@@ -17,113 +17,126 @@ export class WoBlindTilt extends SwitchBotDevice implements BlindTiltCommands {
    * Open blind (position 50%)
    */
   async open(): Promise<boolean> {
-    const result = await this.sendCommand(
-      DEVICE_COMMANDS.BLIND_TILT.OPEN,
-      'turnOn',
-    )
-    return result.success
+    // BLE-first, OpenAPI-fallback
+    if (this.hasBLE()) {
+      const result = await this.sendCommand(
+        DEVICE_COMMANDS.BLIND_TILT.OPEN,
+        'turnOn',
+      )
+      if (result.success) {
+        return true
+      }
+    }
+    if (this.hasAPI()) {
+      const result = await this.sendAPICommand('turnOn')
+      return result.success
+    }
+    throw new Error('No connection method available')
   }
 
   /**
    * Close blind up (position 100%)
    */
   async closeUp(): Promise<boolean> {
-    const result = await this.sendCommand(
-      DEVICE_COMMANDS.BLIND_TILT.CLOSE_UP,
-      'setPosition',
-      '0,ff,100',
-    )
-    return result.success
+    // BLE-first, OpenAPI-fallback
+    if (this.hasBLE()) {
+      const result = await this.sendCommand(
+        DEVICE_COMMANDS.BLIND_TILT.CLOSE_UP,
+        'setPosition',
+      )
+      if (result.success) {
+        return true
+      }
+    }
+    if (this.hasAPI()) {
+      const result = await this.sendAPICommand('setPosition', { position: 100 })
+      return result.success
+    }
+    throw new Error('No connection method available')
   }
 
-  /**
-   * Close blind down (position 0%)
-   */
-  async closeDown(): Promise<boolean> {
-    const result = await this.sendCommand(
-      DEVICE_COMMANDS.BLIND_TILT.CLOSE_DOWN,
-      'setPosition',
-      '0,ff,0',
-    )
-    return result.success
-  }
-
-  /**
-   * Close (default to close down)
-   */
+  // Add stubs for required BlindTiltCommands interface methods
   async close(): Promise<boolean> {
-    return this.closeDown()
+    // BLE-first, OpenAPI-fallback
+    if (this.hasBLE()) {
+      const result = await this.sendCommand(
+        DEVICE_COMMANDS.BLIND_TILT.CLOSE_UP,
+        'turnOff',
+      )
+      if (result.success) {
+        return true
+      }
+    }
+    if (this.hasAPI()) {
+      const result = await this.sendAPICommand('turnOff')
+      return result.success
+    }
+    throw new Error('No connection method available')
   }
 
-  /**
-   * Pause blind movement
-   */
+  async closeDown(): Promise<boolean> {
+    // BLE-first, OpenAPI-fallback
+    if (this.hasBLE()) {
+      const result = await this.sendCommand(
+        DEVICE_COMMANDS.BLIND_TILT.CLOSE_DOWN,
+        'setPosition',
+      )
+      if (result.success) {
+        return true
+      }
+    }
+    if (this.hasAPI()) {
+      const result = await this.sendAPICommand('setPosition', { position: 0 })
+      return result.success
+    }
+    throw new Error('No connection method available')
+  }
+
   async pause(): Promise<boolean> {
-    const result = await this.sendCommand(
-      DEVICE_COMMANDS.BLIND_TILT.PAUSE,
-      'pause',
-    )
-    return result.success
+    // BLE-first, OpenAPI-fallback
+    if (this.hasBLE()) {
+      const result = await this.sendCommand(
+        DEVICE_COMMANDS.BLIND_TILT.PAUSE,
+        'pause',
+      )
+      if (result.success) {
+        return true
+      }
+    }
+    if (this.hasAPI()) {
+      const result = await this.sendAPICommand('pause')
+      return result.success
+    }
+    throw new Error('No connection method available')
   }
 
-  /**
-   * Set blind position (0-100%)
-   */
   async setPosition(position: number): Promise<boolean> {
-    const clampedPosition = clamp(position, 0, 100)
-
-    // Calculate tilt angle for BLE (0-100 maps to 0-180 degrees)
-    const angle = Math.round((clampedPosition / 100) * 180)
-    const bleCommand = [0x57, 0x0F, 0x45, 0x01, 0x05, 0xFF, angle]
-
-    const result = await this.sendCommand(
-      bleCommand,
-      'setPosition',
-      `0,ff,${clampedPosition}`,
-    )
-    return result.success
+    // BLE-first, OpenAPI-fallback
+    const pos = clamp(position, 0, 100)
+    if (this.hasBLE()) {
+      // Copy the OPEN command and replace the last byte with the desired position
+      const base = [...DEVICE_COMMANDS.BLIND_TILT.OPEN] as number[]
+      base[base.length - 1] = pos
+      const result = await this.sendCommand(base, 'setPosition')
+      if (result.success) {
+        return true
+      }
+    }
+    if (this.hasAPI()) {
+      const result = await this.sendAPICommand('setPosition', { position: pos })
+      return result.success
+    }
+    throw new Error('No connection method available')
   }
 
-  /**
-   * Get device status
-   */
-  _lastPosition?: number
+  private _lastPosition?: number
 
   async getStatus(): Promise<BlindTiltStatus> {
-    try {
-      let direction: 'opening' | 'closing' | undefined
-      let position: number = 0
-      // Try API first if available
-      if (this.hasAPI()) {
-        const apiStatus = await this.getAPIStatus()
-        position = typeof apiStatus.slidePosition === 'number' ? apiStatus.slidePosition : 0
-        if (typeof this._lastPosition === 'number') {
-          if (position > this._lastPosition) {
-            direction = 'opening'
-          } else if (position < this._lastPosition) {
-            direction = 'closing'
-          }
-        }
-        this._lastPosition = position
-        return {
-          deviceId: this.info.id,
-          connectionType: 'api',
-          position,
-          direction,
-          moving: apiStatus.moving,
-          calibrated: apiStatus.calibrate ?? undefined,
-          battery: apiStatus.battery,
-          version: apiStatus.version,
-          updatedAt: new Date(),
-        }
-      }
-
-      // Fallback to BLE
-      if (this.hasBLE()) {
-        const bleData = await this.getBLEStatus()
-        // Calibration bit: usually in a status byte, e.g., bit 6 of 4th byte (like Curtain)
+    return this.getStatusWithFallback<BlindTiltStatus>(
+      (bleData) => {
+        let direction: 'opening' | 'closing' | undefined
+        const position = typeof bleData.position === 'number' ? bleData.position : 0
         let calibrated: boolean | undefined
-        position = typeof bleData.position === 'number' ? bleData.position : 0
         if (bleData.rawData && Buffer.isBuffer(bleData.rawData) && bleData.rawData.length > 3) {
           calibrated = (bleData.rawData[3] & 0x40) !== 0
         } else if (typeof bleData.calibration === 'boolean') {
@@ -150,12 +163,30 @@ export class WoBlindTilt extends SwitchBotDevice implements BlindTiltCommands {
           battery: bleData.battery,
           updatedAt: new Date(),
         }
-      }
-
-      throw new Error('No connection method available')
-    } catch (error) {
-      this.logger.error('Failed to get status', error)
-      throw error
-    }
+      },
+      (apiStatus) => {
+        let direction: 'opening' | 'closing' | undefined
+        const position = typeof apiStatus.slidePosition === 'number' ? apiStatus.slidePosition : 0
+        if (typeof this._lastPosition === 'number') {
+          if (position > this._lastPosition) {
+            direction = 'opening'
+          } else if (position < this._lastPosition) {
+            direction = 'closing'
+          }
+        }
+        this._lastPosition = position
+        return {
+          deviceId: this.info.id,
+          connectionType: 'api',
+          position,
+          direction,
+          moving: apiStatus.moving,
+          calibrated: apiStatus.calibrate ?? undefined,
+          battery: apiStatus.battery,
+          version: apiStatus.version,
+          updatedAt: new Date(),
+        }
+      },
+    )
   }
 }

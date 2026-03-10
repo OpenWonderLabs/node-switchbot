@@ -17,6 +17,34 @@ import { DeviceOverrideStateDuringConnection } from './device-override-state-dur
  * Supports optional BLE password protection
  */
 export class WoHand extends DeviceOverrideStateDuringConnection implements BotCommands {
+  /**
+   * Get device status (BLE-first, API-fallback)
+   */
+  async getStatus(): Promise<BotStatus> {
+    return this.getStatusWithFallback<BotStatus>(
+      bleData => ({
+        deviceId: this.info.id,
+        connectionType: 'ble',
+        power: bleData.state ? 'on' : 'off',
+        state: bleData.state,
+        mode: bleData.mode,
+        battery: bleData.battery,
+        version: bleData.version,
+        updatedAt: new Date(),
+      }),
+      apiStatus => ({
+        deviceId: this.info.id,
+        connectionType: 'api',
+        power: apiStatus.power || 'off',
+        state: apiStatus.state,
+        mode: apiStatus.mode,
+        battery: apiStatus.battery,
+        version: apiStatus.version,
+        updatedAt: new Date(),
+      }),
+    )
+  }
+
   private password?: string
 
   constructor(
@@ -214,39 +242,4 @@ export class WoHand extends DeviceOverrideStateDuringConnection implements BotCo
   /**
    * Get device status
    */
-  async getStatus(): Promise<BotStatus> {
-    try {
-      // Try API first if available
-      if (this.hasAPI()) {
-        const apiStatus = await this.getAPIStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'api',
-          power: apiStatus.power || 'off',
-          mode: apiStatus.mode || 'press',
-          battery: apiStatus.battery,
-          version: apiStatus.version,
-          updatedAt: new Date(),
-        }
-      }
-
-      // Fallback to BLE
-      if (this.hasBLE()) {
-        const bleData = await this.getBLEStatus().catch(() => this.normalizeBLEStatusData(undefined))
-        return {
-          deviceId: this.info.id,
-          connectionType: 'ble',
-          power: bleData.state ? 'on' : 'off',
-          mode: bleData.mode,
-          battery: bleData.battery,
-          updatedAt: new Date(),
-        }
-      }
-
-      throw new Error('No connection method available')
-    } catch (error) {
-      this.logger.error('Failed to get status', error)
-      throw error
-    }
-  }
 }

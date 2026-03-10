@@ -12,41 +12,27 @@ import { SwitchBotDevice } from './base.js'
  */
 export class WoHub2 extends SwitchBotDevice {
   /**
-   * Get device status
+   * Get device status (BLE-first, API-fallback)
    */
   async getStatus(): Promise<HubStatus> {
-    try {
-      // Try API first if available
-      if (this.hasAPI()) {
-        const apiStatus = await this.getAPIStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'api',
-          temperature: apiStatus.temperature,
-          humidity: apiStatus.humidity,
-          lightLevel: apiStatus.lightLevel,
-          version: apiStatus.version,
-          updatedAt: new Date(),
-        }
-      }
-
-      // Fallback to BLE
-      if (this.hasBLE()) {
-        const bleData = await this.getBLEStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'ble',
-          temperature: bleData.temperature,
-          humidity: bleData.humidity,
-          lightLevel: bleData.lightLevel,
-          updatedAt: new Date(),
-        }
-      }
-
-      throw new Error('No connection method available')
-    } catch (error) {
-      this.logger.error('Failed to get status', error)
-      throw error
-    }
+    return this.getStatusWithFallback<HubStatus>(
+      bleData => ({
+        deviceId: this.info.id,
+        connectionType: 'ble',
+        temperature: bleData.temperature,
+        humidity: bleData.humidity,
+        lightLevel: bleData.lightLevel,
+        updatedAt: new Date(),
+      }),
+      apiStatus => ({
+        deviceId: this.info.id,
+        connectionType: 'api',
+        temperature: apiStatus.temperature,
+        humidity: apiStatus.humidity,
+        lightLevel: apiStatus.lightLevel,
+        version: apiStatus.version,
+        updatedAt: new Date(),
+      }),
+    )
   }
 }

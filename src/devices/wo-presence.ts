@@ -12,41 +12,27 @@ import { SwitchBotDevice } from './base.js'
  */
 export class WoPresence extends SwitchBotDevice {
   /**
-   * Get device status
+   * Get device status (BLE-first, API-fallback)
    */
   async getStatus(): Promise<MotionStatus> {
-    try {
-      // Try API first if available
-      if (this.hasAPI()) {
-        const apiStatus = await this.getAPIStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'api',
-          moveDetected: apiStatus.moveDetected || false,
-          brightness: apiStatus.brightness,
-          battery: apiStatus.battery,
-          version: apiStatus.version,
-          updatedAt: new Date(),
-        }
-      }
-
-      // Fallback to BLE
-      if (this.hasBLE()) {
-        const bleData = await this.getBLEStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'ble',
-          moveDetected: bleData.movement || false,
-          brightness: bleData.lightLevel,
-          battery: bleData.battery,
-          updatedAt: new Date(),
-        }
-      }
-
-      throw new Error('No connection method available')
-    } catch (error) {
-      this.logger.error('Failed to get status', error)
-      throw error
-    }
+    return this.getStatusWithFallback<MotionStatus>(
+      bleData => ({
+        deviceId: this.info.id,
+        connectionType: 'ble',
+        moveDetected: bleData.movement || false,
+        brightness: bleData.lightLevel,
+        battery: bleData.battery,
+        updatedAt: new Date(),
+      }),
+      apiStatus => ({
+        deviceId: this.info.id,
+        connectionType: 'api',
+        moveDetected: apiStatus.moveDetected || false,
+        brightness: apiStatus.brightness,
+        battery: apiStatus.battery,
+        version: apiStatus.version,
+        updatedAt: new Date(),
+      }),
+    )
   }
 }

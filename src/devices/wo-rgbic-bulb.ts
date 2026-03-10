@@ -95,7 +95,7 @@ export class WoRGBICBulb extends WoBulb implements RGBICBulbCommands {
   }
 
   /**
-   * Get device status (inherited from WoBulb)
+   * Get device status (inherited from WoBulb, centralized fallback)
    */
   async getStatus(): Promise<RGBICBulbStatus> {
     return super.getStatus()

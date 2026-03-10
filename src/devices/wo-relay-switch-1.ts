@@ -113,48 +113,29 @@ export class WoRelaySwitch1 extends SequenceDevice implements RelaySwitchCommand
   }
 
   /**
-   * Get device status
+   * Get device status (BLE-first, API-fallback)
    */
   async getStatus(): Promise<RelaySwitchStatus> {
-    try {
-      // Try API first if available
-      if (this.hasAPI()) {
-        const apiStatus = await this.getAPIStatus()
-        return {
-          deviceId: this.info.id,
-          connectionType: 'api',
-          power: apiStatus.power || 'off',
-          voltage: apiStatus.voltage,
-          electricCurrent: apiStatus.electricCurrent,
-          electricityOfDay: apiStatus.electricityOfDay,
-          version: apiStatus.version,
-          updatedAt: new Date(),
-        }
-      }
-
-      // Fallback to BLE
-      if (this.hasBLE()) {
-        const bleData = await this.getBLEStatus().catch(() => this.normalizeBLEStatusData(undefined))
-        const power = await this.getRelayPowerMonitoring().catch(() => ({
-          voltage: undefined,
-          electricCurrent: undefined,
-          electricityOfDay: undefined,
-        }))
-        return {
-          deviceId: this.info.id,
-          connectionType: 'ble',
-          power: bleData.state ? 'on' : 'off',
-          voltage: power.voltage ?? bleData.voltage,
-          electricCurrent: power.electricCurrent,
-          electricityOfDay: power.electricityOfDay,
-          updatedAt: new Date(),
-        }
-      }
-
-      throw new Error('No connection method available')
-    } catch (error) {
-      this.logger.error('Failed to get status', error)
-      throw error
-    }
+    return this.getStatusWithFallback<RelaySwitchStatus>(
+      bleData => ({
+        deviceId: this.info.id,
+        connectionType: 'ble',
+        power: bleData.state ? 'on' : 'off',
+        voltage: bleData.voltage,
+        electricCurrent: bleData.electricCurrent,
+        electricityOfDay: bleData.electricityOfDay,
+        updatedAt: new Date(),
+      }),
+      apiStatus => ({
+        deviceId: this.info.id,
+        connectionType: 'api',
+        power: apiStatus.power || 'off',
+        voltage: apiStatus.voltage,
+        electricCurrent: apiStatus.electricCurrent,
+        electricityOfDay: apiStatus.electricityOfDay,
+        version: apiStatus.version,
+        updatedAt: new Date(),
+      }),
+    )
   }
 }

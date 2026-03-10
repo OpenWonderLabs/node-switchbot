@@ -13,6 +13,22 @@ import { SwitchBotDevice } from './base.js'
 /**
  * Base class for devices that expose an advertisement sequence number.
  * Automatically triggers a status refresh when the sequence number changes.
+ *
+ * ## BLE-first, API-fallback Status Pattern
+ *
+ * Subclasses should implement their `getStatus()` using the centralized
+ * `getStatusWithFallback()` method from SwitchBotDevice for robust BLE-first,
+ * API-fallback logic. See SwitchBotDevice for details.
+ *
+ * Example:
+ * ```typescript
+ * async getStatus(): Promise<DeviceStatus> {
+ *   return this.getStatusWithFallback(
+ *     bleData => ({ ... }),
+ *     apiData => ({ ... })
+ *   )
+ * }
+ * ```
  */
 export abstract class SequenceDevice extends SwitchBotDevice {
   private lastSequenceNumber: number | undefined

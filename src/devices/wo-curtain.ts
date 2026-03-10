@@ -76,13 +76,31 @@ export class WoCurtain extends SwitchBotDevice implements CurtainCommands {
   _lastPosition?: number
 
   async getStatus(): Promise<CurtainStatus> {
-    try {
-      let direction: 'opening' | 'closing' | undefined
-      let position: number = 0
-      // Try API first if available
-      if (this.hasAPI()) {
-        const apiStatus = await this.getAPIStatus()
-        position = typeof apiStatus.slidePosition === 'number' ? apiStatus.slidePosition : 0
+    return this.getStatusWithFallback<CurtainStatus>(
+      (bleData) => {
+        let direction: 'opening' | 'closing' | undefined
+        const position = typeof bleData.position === 'number' ? bleData.position : 0
+        if (typeof this._lastPosition === 'number') {
+          if (position > this._lastPosition) {
+            direction = 'opening'
+          } else if (position < this._lastPosition) {
+            direction = 'closing'
+          }
+        }
+        this._lastPosition = position
+        return {
+          deviceId: this.info.id,
+          connectionType: 'ble',
+          position,
+          direction,
+          calibrated: bleData.calibration,
+          battery: bleData.battery,
+          updatedAt: new Date(),
+        }
+      },
+      (apiStatus) => {
+        let direction: 'opening' | 'closing' | undefined
+        const position = typeof apiStatus.slidePosition === 'number' ? apiStatus.slidePosition : 0
         if (typeof this._lastPosition === 'number') {
           if (position > this._lastPosition) {
             direction = 'opening'
@@ -102,36 +120,8 @@ export class WoCurtain extends SwitchBotDevice implements CurtainCommands {
           version: apiStatus.version,
           updatedAt: new Date(),
         }
-      }
-
-      // Fallback to BLE
-      if (this.hasBLE()) {
-        const bleData = await this.getBLEStatus().catch(() => this.normalizeBLEStatusData(undefined))
-        position = typeof bleData.position === 'number' ? bleData.position : 0
-        if (typeof this._lastPosition === 'number') {
-          if (position > this._lastPosition) {
-            direction = 'opening'
-          } else if (position < this._lastPosition) {
-            direction = 'closing'
-          }
-        }
-        this._lastPosition = position
-        return {
-          deviceId: this.info.id,
-          connectionType: 'ble',
-          position,
-          direction,
-          calibrated: bleData.calibration,
-          battery: bleData.battery,
-          updatedAt: new Date(),
-        }
-      }
-
-      throw new Error('No connection method available')
-    } catch (error) {
-      this.logger.error('Failed to get status', error)
-      throw error
-    }
+      },
+    )
   }
 
   /**
