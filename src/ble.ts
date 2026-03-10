@@ -3,16 +3,19 @@
  * ble.ts: SwitchBot v4.0.0 - BLE Discovery and Communication
  */
 
-import { Buffer } from 'node:buffer'
-
 import type { BLEAdvertisement, BLEScanOptions, BLEServiceData } from './types/ble.js'
 
+import { Buffer } from 'node:buffer'
 import { createCipheriv } from 'node:crypto'
+
 import { EventEmitter } from 'node:events'
 
 import { BLENotAvailableError, CommandFailedError, DeviceNotFoundError } from './errors.js'
 import { BLE_COMMAND_TIMEOUT, BLE_CONNECT_TIMEOUT, BLE_NOTIFY_CHARACTERISTIC_UUID, BLE_SCAN_TIMEOUT, BLE_SERVICE_UUID, BLE_WRITE_CHARACTERISTIC_UUID, DEVICE_MODEL_MAP } from './settings.js'
-import { Logger, macToDeviceId, normalizeMAC, withTimeout, extractMacFromManufacturerData, mergeAdvertisement } from './utils/index.js'
+import { extractMacFromManufacturerData, Logger, macToDeviceId, mergeAdvertisement, normalizeMAC, withTimeout } from './utils/index.js'
+// Move RegExp to module scope to avoid re-compilation
+const CHARACTERISTIC_REGEX = /characteristic/i
+const UUID_DASH_REGEX = /-/g
 
 /**
  * BLE Scanner for discovering SwitchBot devices
@@ -81,7 +84,7 @@ export class BLEScanner extends EventEmitter {
     if (!this.noble) {
       await this.initializeNoble()
     }
-    
+
     if (!this.noble) {
       throw new BLENotAvailableError('BLE not available - noble failed to initialize')
     }
@@ -188,11 +191,11 @@ export class BLEScanner extends EventEmitter {
 
         // SwitchBot service UUID (current: fd3d, legacy: 000d)
         const uuid = typeof serviceDataItem.uuid === 'string' ? serviceDataItem.uuid.toLowerCase() : ''
-        const isSwitchBotUUID = uuid === 'fd3d' || 
-                               uuid === '0000fd3d-0000-1000-8000-00805f9b34fb' ||
-                               uuid === '000d' ||
-                               uuid === '0000000d-0000-1000-8000-00805f9b34fb'
-        
+        const isSwitchBotUUID = uuid === 'fd3d'
+          || uuid === '0000fd3d-0000-1000-8000-00805f9b34fb'
+          || uuid === '000d'
+          || uuid === '0000000d-0000-1000-8000-00805f9b34fb'
+
         if (!isSwitchBotUUID) {
           continue
         }
@@ -221,7 +224,6 @@ export class BLEScanner extends EventEmitter {
           this.logger.debug('Skipping BLE discovery with no address and no peripheral id')
           continue
         }
-
 
         // Determine if advertisement is encrypted (simple heuristic: check for known encrypted models or data length)
         // This can be refined as needed
@@ -349,7 +351,7 @@ export class BLEScanner extends EventEmitter {
     const { duration = BLE_SCAN_TIMEOUT, active = true } = options
 
     this.logger.info('Starting BLE scan', { duration, active })
-    
+
     if (!this.noble) {
       throw new BLENotAvailableError('BLE not available - noble failed to initialize')
     }
@@ -407,7 +409,7 @@ export class BLEScanner extends EventEmitter {
    * Get all discovered devices
    */
   getDiscoveredDevices(): BLEAdvertisement[] {
-    return Array.from(this.discoveredDevices.values())
+    return [...this.discoveredDevices.values()]
   }
 
   /**
@@ -452,8 +454,8 @@ export class BLEScanner extends EventEmitter {
       new Promise<BLEAdvertisement>((resolve) => {
         const handler = (advertisement: BLEAdvertisement) => {
           // Match by address (if available) or by ID
-          const matches = (advertisement.address && normalizeMAC(advertisement.address) === normalizedMac) ||
-                         (bleId && advertisement.id === bleId)
+          const matches = (advertisement.address && normalizeMAC(advertisement.address) === normalizedMac)
+            || (bleId && advertisement.id === bleId)
           if (matches) {
             this.off('discover', handler)
             resolve(advertisement)
@@ -542,7 +544,7 @@ export class BLEConnection {
     if (!this.noble) {
       await this.initializeNoble()
     }
-    
+
     if (!this.noble) {
       throw new BLENotAvailableError('BLE not available - noble failed to initialize')
     }
@@ -692,23 +694,24 @@ export class BLEConnection {
       notificationTimeoutMs = 5000,
     } = options
 
-
     return this.withMacLock(normalizedMac, async () => {
       const payload = this.encryptIfConfigured(normalizedMac, data)
       await this.write(normalizedMac, payload)
 
       if (expectNotification) {
         // DEBUG: Log future creation
-        process.stdout.write(`[DEBUG] Creating notification future for ${normalizedMac}\n`)
+        this.logger.debug(`[DEBUG] Creating notification future for ${normalizedMac}`)
         // Wait for notification (per-command future)
         return await new Promise<Buffer>((resolve, reject) => {
           if (this.notificationFutures.has(normalizedMac)) {
             this.logger.warn(`Notification future already exists for ${normalizedMac}, overwriting`)
             const prev = this.notificationFutures.get(normalizedMac)
-            if (prev) clearTimeout(prev.timer)
+            if (prev) {
+              clearTimeout(prev.timer)
+            }
           }
           const timer = setTimeout(() => {
-            process.stdout.write(`[DEBUG] Notification future timed out for ${normalizedMac}\n`)
+            this.logger.debug(`[DEBUG] Notification future timed out for ${normalizedMac}`)
             this.notificationFutures.delete(normalizedMac)
             reject(new Error(`Notification timeout (${notificationTimeoutMs}ms) for ${normalizedMac}`))
           }, notificationTimeoutMs)
@@ -717,7 +720,7 @@ export class BLEConnection {
           if (typeof (this as any)._onNotificationFutureSet === 'function') {
             (this as any)._onNotificationFutureSet(normalizedMac)
           }
-          process.stdout.write(`[DEBUG] notificationFutures after set: ${Array.from(this.notificationFutures.keys()).join(',')}\n`)
+          this.logger.debug(`[DEBUG] notificationFutures after set: ${[...this.notificationFutures.keys()].join(',')}`)
         })
       }
 
@@ -751,28 +754,27 @@ export class BLEConnection {
       throw new CommandFailedError(`Notify characteristic not available for ${normalizedMac}`, 'ble')
     }
 
-
     if (!this.notificationHandlers.has(normalizedMac)) {
       this.notificationHandlers.set(normalizedMac, new Set())
 
       if (typeof chars.notify.on === 'function') {
         chars.notify.on('data', (payload: Buffer) => {
           // DEBUG: Log notification future state
-          process.stdout.write(`[DEBUG] notifyChar handler called for ${normalizedMac}\n`)
-          process.stdout.write(`[DEBUG] notificationFutures keys at handler: ${Array.from(this.notificationFutures.keys()).join(',')}\n`)
+          this.logger.debug(`[DEBUG] notifyChar handler called for ${normalizedMac}`)
+          this.logger.debug(`[DEBUG] notificationFutures keys at handler: ${[...this.notificationFutures.keys()].join(',')}`)
           const future = this.notificationFutures.get(normalizedMac)
           if (future) {
-            process.stdout.write(`[DEBUG] notificationFutures present, resolving as solicited\n`)
+            this.logger.debug(`[DEBUG] notificationFutures present, resolving as solicited`)
             clearTimeout(future.timer)
             this.notificationFutures.delete(normalizedMac)
-            process.stdout.write(`[DEBUG] notificationFutures after delete: ${Array.from(this.notificationFutures.keys()).join(',')}\n`)
+            this.logger.debug(`[DEBUG] notificationFutures after delete: ${[...this.notificationFutures.keys()].join(',')}`)
             future.resolve(payload)
             return
           }
-          process.stdout.write(`[DEBUG] unsolicited notification branch\n`)
-          process.stdout.write(`[DEBUG] about to call logger.info for unsolicited notification\n`)
+          this.logger.debug(`[DEBUG] unsolicited notification branch`)
+          this.logger.debug(`[DEBUG] about to call logger.info for unsolicited notification`)
           this.logger.info(`Unsolicited notification from ${normalizedMac}: ${payload.toString('hex')}`)
-          process.stdout.write(`[DEBUG] after logger.info for unsolicited notification\n`)
+          this.logger.debug(`[DEBUG] after logger.info for unsolicited notification`)
           const handlers = this.notificationHandlers.get(normalizedMac)
           if (!handlers) {
             return
@@ -905,8 +907,8 @@ export class BLEConnection {
       'Characteristic discovery timed out',
     )
 
-    const writeChar = characteristics.find((c: any) => c.uuid === BLE_WRITE_CHARACTERISTIC_UUID.replace(/-/g, ''))
-    const notifyChar = characteristics.find((c: any) => c.uuid === BLE_NOTIFY_CHARACTERISTIC_UUID.replace(/-/g, ''))
+    const writeChar = characteristics.find((c: any) => c.uuid === BLE_WRITE_CHARACTERISTIC_UUID.replace(UUID_DASH_REGEX, ''))
+    const notifyChar = characteristics.find((c: any) => c.uuid === BLE_NOTIFY_CHARACTERISTIC_UUID.replace(UUID_DASH_REGEX, ''))
 
     if (!writeChar || !notifyChar) {
       throw new Error('Required characteristics not found')
@@ -994,11 +996,13 @@ export class BLEConnection {
       )
     } catch (err: any) {
       // If error is characteristic-related, clear cache and retry once
-      if (/characteristic/i.test(err?.message || '')) {
+      if (CHARACTERISTIC_REGEX.test(err?.message || '')) {
         this.characteristics.delete(normalizedMac)
         await this.discoverCharacteristics(normalizedMac, this.connections.get(normalizedMac))
         chars = this.characteristics.get(normalizedMac)
-        if (!chars) throw err
+        if (!chars) {
+          throw err
+        }
         // Retry once
         await withTimeout(
           new Promise<void>((resolve, reject) => {
@@ -1059,11 +1063,13 @@ export class BLEConnection {
       )
     } catch (err: any) {
       // If error is characteristic-related, clear cache and retry once
-      if (/characteristic/i.test(err?.message || '')) {
+      if (CHARACTERISTIC_REGEX.test(err?.message || '')) {
         this.characteristics.delete(normalizedMac)
         await this.discoverCharacteristics(normalizedMac, this.connections.get(normalizedMac))
         chars = this.characteristics.get(normalizedMac)
-        if (!chars) throw err
+        if (!chars) {
+          throw err
+        }
         // Retry once
         return await withTimeout(
           new Promise<Buffer>((resolve, reject) => {
@@ -1096,7 +1102,7 @@ export class BLEConnection {
    * Disconnect all devices
    */
   async disconnectAll(): Promise<void> {
-    const macs = Array.from(this.connections.keys())
+    const macs = [...this.connections.keys()]
     await Promise.all(macs.map(mac => this.disconnect(mac)))
   }
 
