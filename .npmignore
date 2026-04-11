@@ -2,6 +2,14 @@
 
 src
 
+# v4.0.0 additions
+test/
+examples/
+.dev-archive/
+vitest.config.ts
+typedoc.json
+eslint.config.js
+
 # ------------- Defaults -------------
 
 # eslint

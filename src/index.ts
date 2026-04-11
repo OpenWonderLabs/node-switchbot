@@ -1,14 +1,174 @@
-/* Copyright(C) 2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+/* Copyright(C) 2024-2026, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
- * index.ts: Switchbot BLE API registration.
+ * index.ts: SwitchBot v4.0.0 - Hybrid BLE/OpenAPI Main Exports
  */
-// Primary module exports
-export * from './device.js'
-export { ParameterChecker, parameterChecker } from './parameter-checker.js'
-export { updateBaseURL, urls } from './settings.js'
-export * from './switchbot-ble.js'
-export * from './switchbot-openapi.js'
 
-// Type definitions
-export * from './types/ble.js'
-export * from './types/openapi.js'
+// Main classes (alphabetically by module path)
+export { OpenAPIClient } from './api.js'
+export { BLEConnection, BLEScanner } from './ble.js'
+export { DeviceManager, SwitchBotDevice } from './devices/base.js'
+export { DeviceOverrideStateDuringConnection } from './devices/device-override-state-during-connection.js'
+export {
+  WoAIHub,
+  WoAirPurifier,
+  WoAirPurifierPM25,
+  WoAirPurifierTable,
+  WoArtFrame,
+  WoBlindTilt,
+  WoBulb,
+  WoCandleWarmerLamp,
+  WoCeilingLight,
+  WoCirculatorFan,
+  WoClimatePanel,
+  WoContact,
+  WoCurtain,
+  WoFloorLamp,
+  WoGarageDoorOpener,
+  WoHand,
+  WoHub2,
+  WoHub3,
+  WoHubMiniMatter,
+  WoHumi,
+  WoHumi2,
+  WoIOSensorTH,
+  WoKeypad,
+  WoKeypadVision,
+  WoKeypadVisionPro,
+  WoLeak,
+  WoPanTiltCamPlus3K,
+  WoPlugMiniJP,
+  WoPlugMiniUS,
+  WoPresence,
+  WoRelaySwitch1,
+  WoRelaySwitch1PM,
+  WoRelaySwitch2PM,
+  WoRemote,
+  WoRemoteWithScreen,
+  WoRGBICBulb,
+  WoRGBICNeonWireRopeLight,
+  WoRGBICWWFloorLamp,
+  WoRGBICWWStripLight,
+  WoRollerShade,
+  WoSensorTH,
+  WoSensorTHPlus,
+  WoSensorTHPro,
+  WoSensorTHProCO2,
+  WoSmartLock,
+  WoSmartLockLite,
+  WoSmartLockPro,
+  WoSmartLockProWiFi,
+  WoSmartLockVision,
+  WoSmartLockVisionPro,
+  WoSmartThermostatRadiator,
+  WoStrip,
+  WoStripLight3,
+  WoVacuum,
+  WoVacuumK10Plus,
+  WoVacuumK10Pro,
+  WoVacuumK10ProCombo,
+  WoVacuumK11Plus,
+  WoVacuumK20,
+  WoVacuumS10,
+  WoVacuumS20,
+  WoWaterDetector,
+} from './devices/index.js'
+export { SequenceDevice } from './devices/sequence-device.js'
+export {
+  APIError,
+  APINotAvailableError,
+  BLENotAvailableError,
+  CommandFailedError,
+  ConnectionTimeoutError,
+  DeviceNotFoundError,
+  DiscoveryError,
+  SwitchBotError,
+  ValidationError,
+} from './errors.js'
+export { updateBaseURL, urls } from './settings.js'
+export { SwitchBot } from './switchbot.js'
+
+// Type exports (alphabetically by module path, then by export name)
+export type {
+  APICommandRequest,
+  APICommandResponse,
+  APIDevice,
+  APIDeviceStatus,
+  APIErrorResponse,
+  APIResponse,
+  DeviceListResponse,
+  PhysicalDeviceType,
+  SceneListResponse,
+  VirtualDeviceType,
+  WebhookConfig,
+  WebhookDetails,
+  WebhookQueryResponse,
+  WebhookSetupResponse,
+} from './types/api.js'
+export type {
+  AirPurifierServiceData,
+  BLEAdvertisement,
+  BLEScanOptions,
+  BLEServiceData,
+  BlindTiltServiceData,
+  BotServiceData,
+  BulbServiceData,
+  CeilingLightServiceData,
+  ContactServiceData,
+  CurtainServiceData,
+  HubServiceData,
+  HumidifierServiceData,
+  LeakServiceData,
+  LockServiceData,
+  MeterServiceData,
+  MotionServiceData,
+  PlugServiceData,
+  PresenceServiceData,
+  RelaySwitchServiceData,
+  StripServiceData,
+  SwitchBotBLEModel,
+  SwitchBotBLEModelName,
+} from './types/ble.js'
+export type {
+  AirPurifierCommands,
+  AirPurifierStatus,
+  BlindTiltCommands,
+  BlindTiltStatus,
+  BotCommands,
+  BotStatus,
+  BulbCommands,
+  BulbStatus,
+  CeilingLightCommands,
+  CeilingLightStatus,
+  ContactStatus,
+  CurtainCommands,
+  CurtainExtendedInfo,
+  CurtainStatus,
+  HubStatus,
+  HumidifierCommands,
+  HumidifierStatus,
+  KeypadStatus,
+  LeakStatus,
+  LockCommands,
+  LockStatus,
+  MeterStatus,
+  MotionStatus,
+  PlugCommands,
+  PlugStatus,
+  PresenceStatus,
+  RelaySwitchCommands,
+  RelaySwitchStatus,
+  RemoteStatus,
+  StripCommands,
+  StripStatus,
+  VacuumCommands,
+  VacuumStatus,
+} from './types/device.js'
+export type {
+  CommandResult,
+  ConnectionType,
+  DeviceInfo,
+  DeviceStatus,
+  DiscoveryOptions,
+  LogLevel,
+  SwitchBotConfig,
+} from './types/index.js'
