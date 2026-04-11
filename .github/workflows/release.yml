@@ -32,7 +32,7 @@ jobs:
     needs: lint
     permissions:
       id-token: write
-    uses: homebridge/.github/.github/workflows/npm-publish-oidc.yml@latest
+    uses: homebridge/.github/.github/workflows/npm-publish-esm-oidc.yml@latest
     with:
       tag: 'beta'
       dynamically_adjust_version: true
