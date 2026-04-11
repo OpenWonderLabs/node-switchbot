@@ -32,14 +32,12 @@ jobs:
     needs: lint
     permissions:
       id-token: write
-    uses: homebridge/.github/.github/workflows/npm-publish-esm.yml@latest
+    uses: homebridge/.github/.github/workflows/npm-publish-oidc.yml@latest
     with:
       tag: 'beta'
       dynamically_adjust_version: true
       npm_version_command: 'pre'
       pre_id: 'beta'
-    secrets:
-      npm_auth_token: ${{ secrets.npm_token }}
 
   # 4️⃣ Create GitHub pre-release
   beta-pre-release:
