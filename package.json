@@ -1,7 +1,7 @@
 {
   "name": "node-switchbot",
   "type": "module",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "The node-switchbot is a Node.js module which allows you to control your Switchbot Devices through Bluetooth (BLE) with automatic OpenAPI fallback.",
   "author": "OpenWonderLabs (https://github.com/OpenWonderLabs)",
   "license": "MIT",
