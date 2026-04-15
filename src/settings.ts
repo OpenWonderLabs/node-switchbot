@@ -309,6 +309,7 @@ export const DEVICE_CLASS_MAP: Record<string, string> = {
   // User-reported unknown device types
   'Air Purifier PM2.5': 'WoAirPurifierPM25',
   'K10+': 'WoVacuumK10Plus',
+  'K10+ Pro': 'WoVacuumK10Pro',
   'RGBIC Neon Wire Rope Light': 'WoRGBICNeonWireRopeLight',
   'Candle Warmer Lamp': 'WoCandleWarmerLamp',
   'Pan/Tilt Cam Plus 3K': 'WoPanTiltCamPlus3K',
