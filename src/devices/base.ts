@@ -310,7 +310,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
    * Check if BLE is available for this device
    */
   hasBLE(): boolean {
-    return this.info.connectionTypes.includes('ble') && !!this.bleConnection && !!this.info.mac
+    return this.info.connectionTypes.includes('ble') && !!this.bleConnection && (!!this.info.mac || !!this.info.bleId)
   }
 
   /**
@@ -368,6 +368,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
    */
   protected async sendBLECommand(
     command: readonly number[] | number[] | Buffer,
+    writeOnly = false,
   ): Promise<CommandResult> {
     if (!this.hasBLE()) {
       return {
@@ -394,7 +395,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
       const buffer = Buffer.isBuffer(command) ? command : Buffer.from(command)
 
       const startTime = Date.now()
-      const mac = this.info.mac ?? `id:${this.info.bleId}`
+      const mac = this.info.mac && this.info.mac.length > 0 ? this.info.mac : `id:${this.info.bleId}`
 
       let response: Buffer | undefined
       if (this.info.encryptionKey && this.info.encryptionIV && this.bleConnection?.setEncryption) {
@@ -406,7 +407,9 @@ export abstract class SwitchBotDevice extends EventEmitter {
         )
       }
 
-      if (this.bleConnection?.sendCommand) {
+      if (writeOnly) {
+        await this.bleConnection!.write(mac, buffer)
+      } else if (this.bleConnection?.sendCommand) {
         response = await this.bleConnection.sendCommand(mac, buffer, {
           expectResponse: true,
           validateResponse: true,
@@ -587,6 +590,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
     bleCommand: readonly number[] | number[] | Buffer,
     apiCommand: string,
     apiParameter?: any,
+    writeOnly = false,
   ): Promise<CommandResult> {
     // Determine connection strategy
     let primaryConnection = this.preferredConnection
@@ -628,7 +632,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
     let fallbackUsed = false
 
     if (primaryConnection === 'ble') {
-      result = await this.sendBLECommand(bleCommand)
+      result = await this.sendBLECommand(bleCommand, writeOnly)
     } else {
       result = await this.sendAPICommand(apiCommand, apiParameter)
     }
@@ -652,7 +656,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
       await this.fallbackHandlerManager.emit(fallbackEvent)
 
       if (secondaryConnection === 'ble') {
-        result = await this.sendBLECommand(bleCommand)
+        result = await this.sendBLECommand(bleCommand, writeOnly)
       } else {
         result = await this.sendAPICommand(apiCommand, apiParameter)
       }

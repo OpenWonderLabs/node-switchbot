@@ -619,6 +619,24 @@ export class BLEConnection {
     this.encryptionConfig.delete(normalizeMAC(mac))
   }
 
+  private getKnownPeripherals(): any[] {
+    const candidates = [this.noble?.peripherals, this.noble?._peripherals]
+
+    for (const peripherals of candidates) {
+      if (Array.isArray(peripherals)) {
+        return peripherals
+      }
+      if (peripherals instanceof Map) {
+        return [...peripherals.values()]
+      }
+      if (peripherals && typeof peripherals === 'object') {
+        return Object.values(peripherals)
+      }
+    }
+
+    return []
+  }
+
   private incrementIv(iv: Buffer): Buffer {
     const nextIv = Buffer.from(iv)
     for (let i = nextIv.length - 1; i >= 0; i--) {
@@ -831,7 +849,7 @@ export class BLEConnection {
     this.logger.info(`Connecting to ${mac}`)
 
     // Find peripheral (by address or ID)
-    const peripherals = await this.noble.peripherals || []
+    const peripherals = this.getKnownPeripherals()
     let peripheral: any
 
     // Try to find by normalized MAC first
