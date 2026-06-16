@@ -320,6 +320,12 @@ export abstract class SwitchBotDevice extends EventEmitter {
     return this.info.connectionTypes.includes('api') && !!this.apiClient && this.info.cloudServiceEnabled !== false
   }
 
+  protected emitError(payload: Record<string, unknown>): void {
+    if (this.listenerCount('error') > 0) {
+      this.emit('error', payload)
+    }
+  }
+
   /**
    * Get device status (abstract - implemented by subclasses)
    */
@@ -462,7 +468,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
       }
 
       this.logger.error('BLE command failed', error)
-      this.emit('error', { type: 'ble', error })
+      this.emitError({ type: 'ble', error })
 
       return {
         success: false,
@@ -543,7 +549,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
       }
 
       this.logger.error('API command failed', error)
-      this.emit('error', { type: 'api', error })
+      this.emitError({ type: 'api', error })
 
       return {
         success: false,

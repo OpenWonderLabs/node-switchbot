@@ -221,7 +221,7 @@ export class WoHand extends DeviceOverrideStateDuringConnection implements BotCo
       return true
     } catch (error) {
       this.logger.error('Password-protected command failed', error)
-      this.emit('error', { type: 'ble', error, encrypted: true })
+      this.emitError({ type: 'ble', error, encrypted: true })
       throw error
     }
   }
