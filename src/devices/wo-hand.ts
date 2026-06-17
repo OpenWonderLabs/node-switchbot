@@ -12,6 +12,8 @@ import { DEVICE_COMMANDS } from '../settings.js'
 import { BOT_BLE_ACTIONS, buildBotBleCommand, parseBotBleResponse, validateBotPassword } from '../utils/index.js'
 import { DeviceOverrideStateDuringConnection } from './device-override-state-during-connection.js'
 
+const BOT_BLE_COMMAND_WRITE_ONLY = true
+
 /**
  * Bot (WoHand) Device - Press or switch button device
  * Supports optional BLE password protection
@@ -89,6 +91,8 @@ export class WoHand extends DeviceOverrideStateDuringConnection implements BotCo
     const result = await this.sendCommand(
       DEVICE_COMMANDS.BOT.TURN_ON,
       'turnOn',
+      undefined,
+      BOT_BLE_COMMAND_WRITE_ONLY,
     )
     return result.success
   }
@@ -106,6 +110,8 @@ export class WoHand extends DeviceOverrideStateDuringConnection implements BotCo
     const result = await this.sendCommand(
       DEVICE_COMMANDS.BOT.TURN_OFF,
       'turnOff',
+      undefined,
+      BOT_BLE_COMMAND_WRITE_ONLY,
     )
     return result.success
   }
@@ -123,6 +129,8 @@ export class WoHand extends DeviceOverrideStateDuringConnection implements BotCo
     const result = await this.sendCommand(
       DEVICE_COMMANDS.BOT.PRESS,
       'press',
+      undefined,
+      BOT_BLE_COMMAND_WRITE_ONLY,
     )
     return result.success
   }
@@ -159,6 +167,8 @@ export class WoHand extends DeviceOverrideStateDuringConnection implements BotCo
     const result = await this.sendCommand(
       DEVICE_COMMANDS.BOT.UP,
       'turnOff',
+      undefined,
+      BOT_BLE_COMMAND_WRITE_ONLY,
     )
     return result.success
   }
@@ -170,6 +180,8 @@ export class WoHand extends DeviceOverrideStateDuringConnection implements BotCo
     const result = await this.sendCommand(
       DEVICE_COMMANDS.BOT.DOWN,
       'turnOn',
+      undefined,
+      BOT_BLE_COMMAND_WRITE_ONLY,
     )
     return result.success
   }
@@ -209,7 +221,7 @@ export class WoHand extends DeviceOverrideStateDuringConnection implements BotCo
       return true
     } catch (error) {
       this.logger.error('Password-protected command failed', error)
-      this.emit('error', { type: 'ble', error, encrypted: true })
+      this.emitError({ type: 'ble', error, encrypted: true })
       throw error
     }
   }

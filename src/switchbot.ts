@@ -549,6 +549,8 @@ export class SwitchBot extends EventEmitter {
       const { extractDeviceOptionsFromConfig } = await import('./utils/index.js')
       return new DeviceClass(info, {
         ...extractDeviceOptionsFromConfig(this.config),
+        apiClient: this.apiClient,
+        bleConnection: this.bleConnection,
       })
     } catch (error) {
       this.logger.error(`createDevice: Failed to create device ${className}`, error)
