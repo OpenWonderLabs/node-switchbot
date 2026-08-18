@@ -364,6 +364,16 @@ export abstract class SwitchBotDevice extends EventEmitter {
         return await tryBLE()
       }
     }
+    // Neither preference branch applied, which happens when the preferred
+    // transport is unavailable: a BLE-preferring device with no BLE, or an
+    // API-preferring device with no API. Use whichever transport the device
+    // does have rather than failing. sendCommand() already behaves this way.
+    if (this.hasAPI()) {
+      return await tryAPI()
+    }
+    if (this.hasBLE()) {
+      return await tryBLE()
+    }
     throw new Error('No connection method available for getStatus')
   }
 
