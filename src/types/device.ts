@@ -91,6 +91,17 @@ export interface MeterStatus extends DeviceStatus {
 }
 
 /**
+ * Meter Pro (CO2) specific types
+ *
+ * The OpenAPI status for this model carries a `CO2` reading in ppm alongside
+ * the usual temperature and humidity. `co2` is optional because the BLE
+ * service data is not yet parsed for it.
+ */
+export interface MeterProCO2Status extends MeterStatus {
+  co2?: number
+}
+
+/**
  * Contact Sensor specific types
  */
 export interface ContactStatus extends DeviceStatus {
