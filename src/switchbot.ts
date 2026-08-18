@@ -73,7 +73,7 @@ import { WoVacuumS10 } from './devices/wo-vacuum-s10.js'
 import { WoVacuumS20 } from './devices/wo-vacuum-s20.js'
 import { WoVacuum } from './devices/wo-vacuum.js'
 import { WoWaterDetector } from './devices/wo-water-detector.js'
-import { BLE_SUPPORTED, DEFAULTS, DEVICE_CLASS_MAP } from './settings.js'
+import { BLE_SUPPORTED, DEFAULTS, resolveDeviceClassName } from './settings.js'
 import { Logger, macToDeviceId } from './utils/index.js'
 
 /**
@@ -532,7 +532,7 @@ export class SwitchBot extends EventEmitter {
    * Create device instance
    */
   private async createDevice(info: any): Promise<SwitchBotDevice | undefined> {
-    const className = DEVICE_CLASS_MAP[info.deviceType]
+    const className = resolveDeviceClassName(info.deviceType)
     this.logger.debug(`createDevice: deviceType='${info.deviceType}', resolved className='${className}', info=`, info)
     if (!className) {
       this.logger.warn(`createDevice: Unknown device type: ${info.deviceType}`)
