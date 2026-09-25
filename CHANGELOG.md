@@ -1,3 +1,12 @@
+## [4.0.5](https://github.com/OpenWonderLabs/node-switchbot/compare/v4.0.4...v4.0.5) (2026-09-25)
+
+
+### Bug Fixes
+
+* fall back to the available transport in getStatus() ([#338](https://github.com/OpenWonderLabs/node-switchbot/issues/338)) ([f9f8770](https://github.com/OpenWonderLabs/node-switchbot/commit/f9f877072e1d37b025d7db3d31c3d76c295390fd))
+
+
+
 ## [4.0.4](https://github.com/OpenWonderLabs/node-switchbot/compare/v4.0.3...v4.0.4) (2026-09-25)
 
 
