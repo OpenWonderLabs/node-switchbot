@@ -6,6 +6,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { SwitchBotDevice } from '../../src/devices/base.js'
+import { WoSensorTH } from '../../src/devices/wo-sensor-th.js'
 
 /**
  * Exercise getStatusWithFallback directly, standing in for the transport
@@ -66,5 +67,26 @@ describe('getStatusWithFallback transport selection', () => {
     await expect(device({ preferred: 'ble', hasBLE: false, hasAPI: false }).callStatus())
       .rejects
       .toThrow('No connection method available for getStatus')
+  })
+})
+
+// The case above, built the way API discovery builds it: a real device with only
+// an API connection and no preference passed. The constructor defaults
+// preferredConnection to 'ble', so this is every cloud-only device.
+describe('a real device discovered over the API only', () => {
+  it('reads its status through the API', async () => {
+    const device = new WoSensorTH(
+      { id: 'B0E9FED044E3', name: 'Meter', deviceType: 'Meter', connectionTypes: ['api'] } as any,
+      { apiClient: { getStatus: async () => ({ temperature: 22.7, humidity: 59, battery: 100 }) } } as any,
+    )
+
+    expect(device.hasBLE()).toBe(false)
+    expect(device.hasAPI()).toBe(true)
+
+    const status = await device.getStatus()
+
+    expect(status.temperature).toBe(22.7)
+    expect(status.humidity).toBe(59)
+    expect(status.connectionType).toBe('api')
   })
 })
