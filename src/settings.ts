@@ -319,6 +319,32 @@ export const DEVICE_CLASS_MAP: Record<string, string> = {
 } as const
 
 /**
+ * Normalise a device type string so the same model resolves regardless of
+ * which discovery path reported it.
+ *
+ * `DEVICE_CLASS_MAP` is keyed by the BLE display names, for example
+ * `'Meter Pro (CO2)'`. The OpenAPI `deviceType` field uses compact spellings
+ * for the same models, for example `'MeterPro(CO2)'`. Lowercasing and removing
+ * spaces, underscores and hyphens maps both spellings onto one key.
+ */
+export function normalizeDeviceTypeKey(deviceType: string): string {
+  return String(deviceType ?? '').toLowerCase().replace(/[\s_-]+/g, '')
+}
+
+const NORMALIZED_DEVICE_CLASS_MAP: Record<string, string> = Object.fromEntries(
+  Object.entries(DEVICE_CLASS_MAP).map(([key, value]) => [normalizeDeviceTypeKey(key), value]),
+)
+
+/**
+ * Resolve the device class name for a BLE display name or an OpenAPI
+ * `deviceType`. An exact match wins; otherwise the normalised form is used.
+ * Returns `undefined` for models that are genuinely unsupported.
+ */
+export function resolveDeviceClassName(deviceType: string): string | undefined {
+  return DEVICE_CLASS_MAP[deviceType] ?? NORMALIZED_DEVICE_CLASS_MAP[normalizeDeviceTypeKey(deviceType)]
+}
+
+/**
  * Default configuration values
  */
 export const DEFAULTS = {
