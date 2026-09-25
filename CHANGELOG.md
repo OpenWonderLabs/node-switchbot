@@ -1,3 +1,12 @@
+## [4.0.4](https://github.com/OpenWonderLabs/node-switchbot/compare/v4.0.3...v4.0.4) (2026-09-25)
+
+
+### Bug Fixes
+
+* resolve OpenAPI deviceType strings with a normalised lookup ([#336](https://github.com/OpenWonderLabs/node-switchbot/issues/336)) ([0c8fef7](https://github.com/OpenWonderLabs/node-switchbot/commit/0c8fef7d3b839b3d08f31d685b239218754f6bd4))
+
+
+
 # Changelog
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
