@@ -1,3 +1,12 @@
+## [4.0.6](https://github.com/OpenWonderLabs/node-switchbot/compare/v4.0.5...v4.0.6) (2026-09-26)
+
+
+### Features
+
+* report CO2 for the Meter Pro (CO2) ([#340](https://github.com/OpenWonderLabs/node-switchbot/issues/340)) ([4bf3dc2](https://github.com/OpenWonderLabs/node-switchbot/commit/4bf3dc28bd87ef8fbe2533b5ee5b9cd2ebe5d549))
+
+
+
 ## [4.0.5](https://github.com/OpenWonderLabs/node-switchbot/compare/v4.0.4...v4.0.5) (2026-09-25)
 
 
