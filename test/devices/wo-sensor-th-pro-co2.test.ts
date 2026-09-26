@@ -74,3 +74,32 @@ describe('woSensorTHProCO2', () => {
     expect(status.co2).toBeUndefined()
   })
 })
+
+// End to end on a real device, built the way API discovery builds it, fed the
+// status body a real Meter Pro (CO2) returned from the OpenAPI.
+describe('a real Meter Pro (CO2) discovered over the API', () => {
+  it('reports CO2 alongside temperature and humidity', async () => {
+    const apiBody = {
+      version: 'V1.8',
+      temperature: 22.7,
+      battery: 100,
+      humidity: 55,
+      CO2: 483,
+      deviceId: 'B0E9FED044E3',
+      deviceType: 'MeterPro(CO2)',
+      hubDeviceId: '000000000000',
+    }
+    const device = new WoSensorTHProCO2(
+      { ...INFO },
+      { apiClient: { getStatus: async () => apiBody } } as any,
+    )
+
+    const status = await device.getStatus()
+
+    expect(status.co2).toBe(483)
+    expect(status.temperature).toBe(22.7)
+    expect(status.humidity).toBe(55)
+    expect(status.battery).toBe(100)
+    expect(status.connectionType).toBe('api')
+  })
+})
