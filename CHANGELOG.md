@@ -1,3 +1,12 @@
+## [4.0.7](https://github.com/OpenWonderLabs/node-switchbot/compare/v4.0.6...v4.0.7) (2026-10-03)
+
+
+### Bug Fixes
+
+* BLE discovery and commands on macOS (CoreBluetooth) ([#341](https://github.com/OpenWonderLabs/node-switchbot/issues/341)) ([3a0f747](https://github.com/OpenWonderLabs/node-switchbot/commit/3a0f74727f55f945978ee45c37a9fc20fbdb5017))
+
+
+
 ## [4.0.6](https://github.com/OpenWonderLabs/node-switchbot/compare/v4.0.5...v4.0.6) (2026-09-26)
 
 
