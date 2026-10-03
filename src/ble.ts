@@ -12,10 +12,24 @@ import { EventEmitter } from 'node:events'
 
 import { BLENotAvailableError, CommandFailedError, DeviceNotFoundError } from './errors.js'
 import { BLE_COMMAND_TIMEOUT, BLE_CONNECT_TIMEOUT, BLE_NOTIFY_CHARACTERISTIC_UUID, BLE_SCAN_TIMEOUT, BLE_SERVICE_UUID, BLE_WRITE_CHARACTERISTIC_UUID, DEVICE_MODEL_MAP } from './settings.js'
-import { extractMacFromManufacturerData, Logger, macToDeviceId, mergeAdvertisement, normalizeMAC, withTimeout } from './utils/index.js'
+import { extractMacFromManufacturerData, isValidMAC, Logger, macToDeviceId, mergeAdvertisement, normalizeMAC, withTimeout } from './utils/index.js'
 // Move RegExp to module scope to avoid re-compilation
 const CHARACTERISTIC_REGEX = /characteristic/i
 const UUID_DASH_REGEX = /-/g
+
+/**
+ * Resolve a peripheral's MAC address in normalized (lowercase, colon) form.
+ * macOS (CoreBluetooth) never exposes peripheral.address, so fall back to the
+ * MAC embedded in SwitchBot manufacturer data.
+ */
+function resolvePeripheralMac(peripheral: any): string | undefined {
+  const address = peripheral?.address
+  if (typeof address === 'string' && isValidMAC(address)) {
+    return normalizeMAC(address)
+  }
+  const manufacturerMac = extractMacFromManufacturerData(peripheral?.advertisement?.manufacturerData)
+  return manufacturerMac ? normalizeMAC(manufacturerMac) : undefined
+}
 
 /**
  * BLE Scanner for discovering SwitchBot devices
@@ -162,7 +176,7 @@ export class BLEScanner extends EventEmitter {
         return
       }
 
-      const { advertisement, address, rssi, connectable } = peripheral
+      const { advertisement, rssi, connectable } = peripheral
 
       // Skip non-connectable devices
       if (connectable === false) {
@@ -206,15 +220,7 @@ export class BLEScanner extends EventEmitter {
           continue
         }
 
-        let normalizedAddress = typeof address === 'string' && address.length > 0 ? normalizeMAC(address) : undefined
-
-        // Fallback to manufacturer data MAC if service data address is empty
-        if (!normalizedAddress) {
-          const manufacturerMac = extractMacFromManufacturerData(peripheral.advertisement?.manufacturerData)
-          if (manufacturerMac) {
-            normalizedAddress = manufacturerMac
-          }
-        }
+        const normalizedAddress = resolvePeripheralMac(peripheral)
 
         const fallbackId = typeof peripheral.id === 'string' && peripheral.id.length > 0
           ? peripheral.id
@@ -481,6 +487,8 @@ export class BLEConnection {
   private operationLocks: Map<string, Promise<void>> = new Map()
   private encryptionConfig: Map<string, { key: Buffer, iv: Buffer, mode: 'ctr' | 'gcm' }> = new Map()
   private notificationHandlers: Map<string, Set<(payload: Buffer) => void>> = new Map()
+  // noble keeps only the latest pending subscribe callback per characteristic, so share in-flight subscribes
+  private pendingSubscriptions: WeakMap<object, Promise<void>> = new WeakMap()
   private persistentConnectionMs = 8500
   private noblePromise: Promise<any> | null = null
 
@@ -804,19 +812,48 @@ export class BLEConnection {
       }
     }
 
-    this.notificationHandlers.get(normalizedMac)!.add(handler)
+    // Register first so notifications arriving as soon as the CCCD is enabled are delivered.
+    // noble treats subscribing an already-notifying characteristic as a no-op.
+    const handlers = this.notificationHandlers.get(normalizedMac)!
+    const addedHandler = !handlers.has(handler)
+    handlers.add(handler)
+    try {
+      await this.subscribeToNotify(chars.notify)
+    } catch (error) {
+      // Only roll back our own registration; keep the set, it marks the 'data' listener as attached
+      if (addedHandler) {
+        handlers.delete(handler)
+      }
+      throw error
+    }
+  }
 
-    if (typeof chars.notify.subscribe === 'function') {
-      await new Promise<void>((resolve, reject) => {
-        chars.notify.subscribe((error: Error) => {
+  /**
+   * Enable notifications on the notify characteristic (no-op if the backend has no subscribe)
+   */
+  private async subscribeToNotify(notifyChar: any): Promise<void> {
+    if (typeof notifyChar?.subscribe !== 'function') {
+      return
+    }
+    const pending = this.pendingSubscriptions.get(notifyChar)
+    if (pending) {
+      return pending
+    }
+    const subscription = withTimeout(
+      new Promise<void>((resolve, reject) => {
+        notifyChar.subscribe((error: Error | null) => {
           if (error) {
             reject(error)
           } else {
             resolve()
           }
         })
-      })
-    }
+      }),
+      BLE_COMMAND_TIMEOUT,
+      'Notify subscription timed out',
+    ).finally(() => this.pendingSubscriptions.delete(notifyChar))
+    this.pendingSubscriptions.set(notifyChar, subscription)
+    return subscription
   }
 
   unsubscribeNotifications(mac: string, handler: (payload: Buffer) => void): void {
@@ -859,8 +896,8 @@ export class BLEConnection {
       // Look through peripherals to find matching ID
       peripheral = peripherals.find((p: any) => p.id === bleId)
     } else {
-      // MAC-based lookup
-      peripheral = peripherals.find((p: any) => p.address && normalizeMAC(p.address) === normalizedMac)
+      // MAC-based lookup (falls back to manufacturer data on macOS, see resolvePeripheralMac)
+      peripheral = peripherals.find((p: any) => resolvePeripheralMac(p) === normalizedMac)
     }
 
     if (!peripheral) {
@@ -930,6 +967,14 @@ export class BLEConnection {
 
     if (!writeChar || !notifyChar) {
       throw new Error('Required characteristics not found')
+    }
+
+    // SwitchBot devices ignore writes until notifications are enabled on the notify characteristic.
+    // Best effort: a backend that rejects the subscription keeps the previous (unsubscribed) behavior.
+    try {
+      await this.subscribeToNotify(notifyChar)
+    } catch (error) {
+      this.logger.warn(`Failed to enable notifications for ${mac}; commands may be ignored by the device`, error)
     }
 
     this.characteristics.set(mac, { write: writeChar, notify: notifyChar })

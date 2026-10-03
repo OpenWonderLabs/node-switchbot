@@ -139,8 +139,18 @@ export function macToDeviceId(mac: string): string {
 /**
  * Extract MAC address from manufacturer data (SwitchBot: company ID 0x0969)
  * Bytes: [2 bytes company ID (69 09)] + [6 bytes MAC] + ...
+ * Accepts a hex string or the raw Buffer that noble provides in advertisement.manufacturerData.
  */
-export function extractMacFromManufacturerData(manufacturerDataHex?: unknown): string | undefined {
+export function extractMacFromManufacturerData(manufacturerData?: unknown): string | undefined {
+  if (Buffer.isBuffer(manufacturerData)) {
+    // Check the company ID on the raw bytes so non-SwitchBot payloads are never hex-encoded
+    if (manufacturerData.length < 8 || manufacturerData[0] !== 0x69 || manufacturerData[1] !== 0x09) {
+      return undefined
+    }
+  }
+  const manufacturerDataHex = Buffer.isBuffer(manufacturerData)
+    ? manufacturerData.subarray(0, 8).toString('hex')
+    : manufacturerData
   if (!manufacturerDataHex || typeof manufacturerDataHex !== 'string') {
     return undefined
   }

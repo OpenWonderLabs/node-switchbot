@@ -1,3 +1,5 @@
+import { Buffer } from 'node:buffer'
+
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -116,6 +118,19 @@ describe('utility Functions', () => {
       // Manufacturer data with extra bytes at end
       const macHex = extractMacFromManufacturerData('6909b0e9fec3f11200ff69ab864e8308952000')
       expect(macHex).toBe('B0:E9:FE:C3:F1:12')
+    })
+
+    it('should extract MAC from a raw manufacturer data Buffer (as provided by noble)', () => {
+      const macHex = extractMacFromManufacturerData(Buffer.from('6909f63c16b9e724aa', 'hex'))
+      expect(macHex).toBe('F6:3C:16:B9:E7:24')
+    })
+
+    it('should return undefined for a SwitchBot manufacturer data Buffer too short to hold a MAC', () => {
+      expect(extractMacFromManufacturerData(Buffer.from('6909f63c16', 'hex'))).toBeUndefined()
+    })
+
+    it('should return undefined for a non-SwitchBot manufacturer data Buffer', () => {
+      expect(extractMacFromManufacturerData(Buffer.from('4c000215', 'hex'))).toBeUndefined()
     })
 
     it('should return undefined for non-SwitchBot company ID', () => {
