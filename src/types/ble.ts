@@ -243,15 +243,19 @@ export enum SwitchBotBLEModel {
   Bot = 'H',
   Curtain = 'c',
   Curtain3 = '{',
+  /** @deprecated Import-only alias kept for compatibility; use {@link SwitchBotBLEModel.PlugMiniUS} or {@link SwitchBotBLEModel.PlugMiniJP}. */
   Plug = 'g',
-  PlugMiniUS = 'j',
   // eslint-disable-next-line ts/no-duplicate-enum-values
+  PlugMiniUS = 'g',
   PlugMiniJP = 'j',
   Meter = 'T',
   MeterPlus = 'i',
   MeterPro = 'o',
-  MeterProCO2 = 'w',
-  OutdoorMeter = 'n',
+  MeterProCO2 = '5',
+  IndoorOutdoorThermoHygrometer = 'w',
+  /** @deprecated Use {@link SwitchBotBLEModel.IndoorOutdoorThermoHygrometer}. */
+  // eslint-disable-next-line ts/no-duplicate-enum-values
+  OutdoorMeter = 'w',
   // eslint-disable-next-line ts/no-duplicate-enum-values
   Lock = 'o',
   LockPro = '\x11',
@@ -260,7 +264,7 @@ export enum SwitchBotBLEModel {
   MotionSensor = 's',
   ContactSensor = 'd',
   CeilingLight = 'q',
-  CeilingLightPro = 'r',
+  CeilingLightPro = 'n',
   StripLight = 'p',
   ColorBulb = 'u',
   RobotVacuumCleanerS1 = '\x0A',
@@ -289,6 +293,7 @@ export enum SwitchBotBLEModelName {
   Bot = 'WoHand',
   Curtain = 'WoCurtain',
   Curtain3 = 'WoCurtain3',
+  /** @deprecated Import-only alias kept for compatibility; use {@link SwitchBotBLEModelName.PlugMiniUS} or {@link SwitchBotBLEModelName.PlugMiniJP}. */
   Plug = 'WoPlugUS',
   PlugMiniUS = 'WoPlugMiniUS',
   PlugMiniJP = 'WoPlugMiniJP',
@@ -296,6 +301,9 @@ export enum SwitchBotBLEModelName {
   MeterPlus = 'WoSensorTHPlus',
   MeterPro = 'WoSensorTHPro',
   MeterProCO2 = 'WoSensorTHProCO2',
+  IndoorOutdoorThermoHygrometer = 'WoIOSensorTH',
+  /** @deprecated Use {@link SwitchBotBLEModelName.IndoorOutdoorThermoHygrometer}. */
+  // eslint-disable-next-line ts/no-duplicate-enum-values
   OutdoorMeter = 'WoIOSensorTH',
   Lock = 'WoSmartLock',
   LockPro = 'WoSmartLockPro',
