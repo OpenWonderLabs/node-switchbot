@@ -222,6 +222,7 @@ export type PhysicalDeviceType
     | 'Meter Pro'
     | 'Meter Pro (CO2)'
     | 'Outdoor Meter'
+    | 'Indoor/Outdoor Thermo-Hygrometer'
     | 'Lock'
     | 'Lock Pro'
     | 'Keypad'

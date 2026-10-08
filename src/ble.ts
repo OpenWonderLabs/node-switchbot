@@ -7,7 +7,6 @@ import type { BLEAdvertisement, BLEScanOptions, BLEServiceData } from './types/b
 
 import { Buffer } from 'node:buffer'
 import { createCipheriv } from 'node:crypto'
-
 import { EventEmitter } from 'node:events'
 
 import { BLENotAvailableError, CommandFailedError, DeviceNotFoundError } from './errors.js'
@@ -306,7 +305,7 @@ export class BLEScanner extends EventEmitter {
         serviceData.state = (data[1] & 0x40) !== 0
       }
 
-      if ((model === 'c' || model === '{') && data.length > 4) {
+      if ((model === 'c' || model === 'C' || model === '{' || model === '[') && data.length > 4) {
         // Curtain/Curtain3
         serviceData.inMotion = (data[1] & 0x40) !== 0
         serviceData.position = Math.min(100, Math.max(0, data[3] & 0x7F))
