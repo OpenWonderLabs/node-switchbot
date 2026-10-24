@@ -44,7 +44,13 @@ This library tracks pySwitchbot. To port a release:
 `DEVICE_MODEL_MAP` mirrors pySwitchbot's single-byte `SUPPORTED_TYPES` codes. A few extra codes
 (Hub 2 `0x01`, Hub 3 `0x02`, `0x09`, `0x0E`, `0x10`, `0x11`, `k`, `p`) come from earlier
 node-switchbot releases and have no pySwitchbot equivalent. `SwitchBotBLEModel` in
-`src/types/ble.ts` still has older values for some products; changing it is a breaking change.
+`src/types/ble.ts` holds each product's primary pySwitchbot code; changing a value is a breaking
+change.
+
+Encrypted devices (relay switches, locks, air purifiers...) use pySwitchbot's
+`SwitchbotEncryptedDevice` protocol, implemented by `BLEConnection.sendEncryptedCommand`: set the
+account's key id and key with `device.setKey({ keyId, encryptionKey })`. Command replies arrive as
+notifications on the notify characteristic, as in pySwitchbot.
 
 OpenAPI command names and parameters must match the device pages in
 [SwitchBotAPI](https://github.com/OpenWonderLabs/SwitchBotAPI/tree/latest/devices); add a test in
