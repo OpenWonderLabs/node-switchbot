@@ -121,6 +121,8 @@ export interface DeviceInfo {
   bleServiceData?: Record<string, unknown>
   /** Optional BLE encryption key as hex (16 bytes / 32 hex chars) */
   encryptionKey?: string
+  /** BLE encryption key id, 2 hex characters (with encryptionKey; from the SwitchBot account) */
+  keyId?: string
   /** Optional BLE encryption IV as hex */
   encryptionIV?: string
   /** Optional BLE encryption mode */
