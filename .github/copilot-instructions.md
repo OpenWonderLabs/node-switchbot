@@ -1,179 +1,117 @@
-# Node-SwitchBot Development Instructions
+# node-switchbot Development Guide
 
-Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
+TypeScript (ESM) library for controlling SwitchBot devices over Bluetooth LE, with automatic
+OpenAPI (cloud) fallback. Consumed by
+[homebridge-switchbot](https://github.com/OpenWonderLabs/homebridge-switchbot). Protocol docs live
+in [SwitchBotAPI-BLE](https://github.com/OpenWonderLabs/SwitchBotAPI-BLE).
 
-## Working Effectively
+Trust this guide and the source tree. If they disagree, the source tree wins; fix this guide in the
+same change.
 
-### Bootstrap and Setup
-- Install Node.js (^20 || ^22 || ^24): Use the existing version if available
-- Install dependencies: `npm install` -- takes ~5-25 seconds (varies by cache). **NEVER CANCEL**
-- Build the project: `npm run build` -- takes ~5 seconds. **NEVER CANCEL**
-- Run tests: `npm run test` -- takes ~1 second with 12 tests. **NEVER CANCEL**
+## Reference Priority
 
-### Development Workflow
-- **ALWAYS run these commands in order when starting work:**
-  1. `npm install` 
-  2. `npm run build`
-  3. `npm run test`
-  4. `npm run lint`
-- **Build and validate EVERY change**: After any code modification, always run `npm run build && npm run test && npm run lint`
-- **NEVER skip linting**: Run `npm run lint` before committing or the CI (.github/workflows/build.yml) will fail
-- **Use lint:fix for automatic fixes**: `npm run lint:fix` to automatically fix ESLint issues
+- **BLE behaviour** (advertisement parsing, model bytes, commands): follow
+  [sblibs/pySwitchbot](https://github.com/sblibs/pySwitchbot), then SwitchBotAPI-BLE.
+- **OpenAPI** (device lists, `deviceType` strings, commands, status fields):
+  [OpenWonderLabs/SwitchBotAPI](https://github.com/OpenWonderLabs/SwitchBotAPI).
+- If references conflict, prefer the upstream implementation, keep existing behaviour unless it is a
+  clear bug, and note any deliberate deviation in the PR.
 
-### Platform Requirements and Constraints
-- **BLE functionality requires Linux or macOS** (Raspbian, Ubuntu, macOS, etc.)
-- **Windows is NOT supported** for BLE operations (use OpenAPI instead)
-- **Node.js versions**: Must use ^20, ^22, or ^24 (currently using v20.19.4)
-- **ES Modules**: This project uses `"type": "module"` - always use ES import/export syntax
+## Porting a pySwitchbot Release
 
-#### BLE Prerequisites
+This library tracks pySwitchbot. To port a release:
 
-**macOS:**
-- Xcode installed
-- Bluetooth permissions enabled for terminal app in System Preferences
+1. Read the release notes, then read the diff of every `feat`/`fix` commit in it
+   (`git show <sha> -- switchbot/`). Skip `chore(deps)`, `chore(ci)` and pre-commit bumps.
+2. Port each change to the matching place (table below). Skip Python-only plumbing (Home Assistant
+   glue, bleak specifics) unless it changes behaviour.
+3. Add or update tests under `test/` that pin the new behaviour.
+4. Run the full check (below).
+5. Follow-up PRs, each in its own repo:
+   - **homebridge-switchbot**: whatever the plugin needs to use the change (new or renamed device
+     types, new characteristics). Its `node-switchbot` dependency is bumped only after this package
+     is published.
+   - **SwitchBotAPI-BLE**: protocol docs that are now wrong or missing. Docs only.
 
-**Linux (Ubuntu/Debian/Raspbian):**
-- Required packages: `sudo apt-get install bluetooth bluez libbluetooth-dev libudev-dev`
-- For non-root access: `sudo setcap cap_net_raw+eip $(eval readlink -f \`which node\`)`
-- Raspberry Pi: May need to disable pnat plugin in `/etc/bluetooth/main.conf`
+| pySwitchbot | node-switchbot |
+| --- | --- |
+| `switchbot/adv_parser.py` `SUPPORTED_TYPES` (advert byte -> model) | `src/settings.ts` `DEVICE_MODEL_MAP` |
+| `switchbot/const/__init__.py` `SwitchbotModel` | `src/types/ble.ts` `SwitchBotBLEModel` / `SwitchBotBLEModelName` |
+| `switchbot/devices/device.py` `API_MODEL_TO_ENUM` (cloud model codes) | `src/settings.ts` `DEVICE_CLASS_MAP`, resolved by `resolveDeviceClassName` |
+| `switchbot/adv_parsers/*.py` (passive status) | `src/ble.ts` `BLEScanner.parseServiceData` |
+| `switchbot/devices/*.py` (commands, active status) | `src/devices/wo-*.ts` |
 
-**Linux (Fedora/RPM):**
-- Required packages: `sudo yum install bluez bluez-libs bluez-libs-devel`
+Known drift from pySwitchbot, to be aligned only on request and in its own PR: several
+`DEVICE_MODEL_MAP` bytes differ (Meter Pro is `o` here, the same byte as Lock, but `4` in
+pySwitchbot; Remote, Keypad, Lock Pro and Leak also differ).
 
-### Testing and Validation
-- **Basic functionality test**: After any changes to core classes, run this validation:
-  ```javascript
-  const { SwitchBotBLE, SwitchBotOpenAPI } = require('./dist/index.js');
-  const ble = new SwitchBotBLE(); // Should not throw
-  const api = new SwitchBotOpenAPI('test', 'test'); // Should not throw
-  ```
-- **Complete test suite**: `npm run test` (12 tests) -- should always pass before committing
-- **Test coverage**: `npm run test-coverage` to see coverage report (~15% coverage is normal)
-- **Documentation generation**: `npm run docs` generates TypeDoc documentation in ./docs/
+## Commands
 
-### Build and Timing Expectations
-- **npm install**: ~5-25 seconds (varies by cache) -- **NEVER CANCEL**. Set timeout to 5+ minutes for safety
-- **npm run build**: ~5 seconds -- **NEVER CANCEL**. Set timeout to 2+ minutes for safety  
-- **npm run test**: ~1 second (12 tests) -- **NEVER CANCEL**. Set timeout to 2+ minutes for safety
-- **npm run lint**: ~3 seconds -- **NEVER CANCEL**. Set timeout to 2+ minutes for safety
-- **npm run docs**: ~2 seconds -- **NEVER CANCEL**. Set timeout to 2+ minutes for safety
+Node `^22 || ^24`. Run in this order; every step must pass before committing:
 
-## Project Structure and Key Files
-
-### Source Code Organization
-- **src/index.ts**: Main export file - exports SwitchBotBLE, SwitchBotOpenAPI, and device classes
-- **src/switchbot-ble.ts**: Bluetooth Low Energy interface for direct device control
-- **src/switchbot-openapi.ts**: HTTP API interface for cloud-based SwitchBot control
-- **src/device.ts**: Individual device classes (WoHand, WoCurtain, WoSmartLock, etc.)
-- **src/types/**: TypeScript type definitions for all device interfaces
-- **src/settings.ts**: Configuration constants and API URLs
-- **dist/**: Compiled JavaScript output (generated by `npm run build`)
-
-### Configuration Files  
-- **package.json**: Main project config - scripts, dependencies, ES module config
-- **tsconfig.json**: TypeScript compilation settings (target: ES2022, module: ES2022)
-- **eslint.config.js**: ESLint configuration using @antfu/eslint-config
-- **jest.config.js**: Test configuration (uses Vitest, not Jest)
-- **.gitignore**: Excludes dist/, node_modules/, coverage/, and build artifacts
-
-### Documentation
-- **README.md**: Main project documentation and installation instructions
-- **BLE.md**: Comprehensive BLE usage documentation and device examples
-- **OpenAPI.md**: OpenAPI usage documentation and authentication setup
-- **CHANGELOG.md**: Version history and release notes
-- **docs/**: Generated TypeDoc API documentation (HTML format)
-
-## Common Development Tasks
-
-### Adding New Device Support
-- **Add device class**: Create new class in src/device.ts extending SwitchbotDevice
-- **Update exports**: Add export to src/index.ts
-- **Add type definitions**: Create types in src/types/ if needed
-- **Test basic instantiation**: Ensure the device class can be imported and instantiated
-- **Always run full build and test cycle**: `npm run build && npm run test && npm run lint`
-
-### API Changes and Extensions
-- **OpenAPI changes**: Modify src/switchbot-openapi.ts
-- **BLE changes**: Modify src/switchbot-ble.ts
-- **Update type definitions**: Modify corresponding files in src/types/
-- **Always verify exports**: Check that new functionality is exported in src/index.ts
-- **Test import functionality**: Verify new exports can be imported correctly
-
-### Working with Dependencies
-- **Noble (BLE)**: @stoprocent/noble for Bluetooth functionality - Linux only
-- **HTTP requests**: Uses undici for HTTP calls (not axios or fetch)
-- **Async operations**: Uses async-mutex for concurrency control
-- **Adding dependencies**: Use `npm install --save` for runtime deps, `--save-dev` for dev deps
-
-## Validation and Quality Assurance
-
-### Pre-commit Checklist
-1. **Build succeeds**: `npm run build` completes without errors
-2. **All tests pass**: `npm run test` shows all 12 tests passing
-3. **Linting passes**: `npm run lint` shows no errors
-4. **Documentation builds**: `npm run docs` generates without warnings
-5. **Basic import works**: Can import and instantiate main classes
-
-### Manual Testing Scenarios
-- **SwitchBotBLE instantiation**: `new SwitchBotBLE()` should not throw errors
-- **SwitchBotOpenAPI instantiation**: `new SwitchBotOpenAPI('token', 'secret')` should not throw
-- **Module exports**: All exported classes should be importable from main package
-- **TypeScript compilation**: No TypeScript errors in dist/ output
-- **Documentation completeness**: Check that new public APIs appear in generated docs
-
-### CI/CD Integration
-- **GitHub Actions**: Build runs on push to 'latest' branch and PRs
-- **External workflows**: Uses OpenWonderLabs/.github/.github/workflows/nodejs-build-and-test.yml
-- **Required checks**: Build, test, and lint must all pass
-- **Coverage reporting**: Test coverage is tracked and reported
-
-## Troubleshooting Common Issues
-
-### BLE Not Working
-- **Check OS**: BLE works on Linux and macOS systems only
-- **Install noble prerequisites**: May need additional system libraries for @stoprocent/noble
-- **Use OpenAPI instead**: For Windows development, use SwitchBotOpenAPI class
-
-### Build Failures
-- **Check Node.js version**: Must be ^20, ^22, or ^24
-- **Clean and rebuild**: `npm run clean && npm install && npm run build`
-- **TypeScript errors**: Check tsconfig.json settings and type definitions
-
-### Test Failures
-- **Run individual tests**: Use `npm run test:watch` for interactive testing
-- **Check imports**: Ensure all imports use correct ES module syntax
-- **Verify exports**: Check that src/index.ts exports all necessary components
-
-### Linting Errors
-- **Auto-fix**: Use `npm run lint:fix` to automatically fix many issues
-- **ESLint config**: Review eslint.config.js for current rules
-- **Import sorting**: ESLint enforces specific import order - use lint:fix
-
-## Frequently Referenced Information
-
-### Package Scripts (from package.json)
 ```bash
-npm run build       # Clean and compile TypeScript
-npm run test        # Run test suite with Vitest
-npm run lint        # Run ESLint on src/**/*.ts
-npm run lint:fix    # Auto-fix ESLint issues
-npm run docs        # Generate TypeDoc documentation
-npm run clean       # Remove dist/ directory
-npm run watch       # Build and link for development
+npm ci
+npm run build   # clean dist/, tsc -p tsconfig.build.json
+npm test        # vitest run
+npm run lint    # eslint src + test, then tsc --noEmit
 ```
 
-### Main Exports (from src/index.ts)
-- **SwitchBotBLE**: Bluetooth interface class
-- **SwitchBotOpenAPI**: HTTP API interface class  
-- **SwitchbotDevice**: Base device class
-- **Device classes**: WoHand, WoCurtain, WoSmartLock, etc.
-- **Type definitions**: All device status and response types
+- `npm run lint:fix` fixes most style issues, including import order.
+- `npm run docs` regenerates the TypeDoc site in `docs/` (tracked); `npm run lint-docs` checks it.
+  Never hand-edit `docs/`.
+- `npm run ble:scan` runs a live BLE scan (needs Bluetooth hardware).
 
-### Dependencies Summary
-- **@stoprocent/noble**: BLE functionality (Linux/macOS)
-- **undici**: HTTP client for API requests
-- **async-mutex**: Concurrency control
-- **TypeScript**: Language and compilation
-- **Vitest**: Testing framework
-- **ESLint**: Code linting with @antfu/eslint-config
-- **TypeDoc**: API documentation generation
+### BLE prerequisites (only for real-device testing)
+
+- **Linux:** `sudo apt-get install bluetooth bluez libbluetooth-dev libudev-dev`; for non-root use,
+  `sudo setcap cap_net_raw+eip $(eval readlink -f $(which node))`.
+- **macOS:** Xcode, and Bluetooth permission for the terminal app.
+- **Windows:** BLE is not supported; use OpenAPI.
+
+## Project Structure
+
+```
+src/
+├── index.ts             # Public exports (keep sorted; perfectionist/sort-exports)
+├── switchbot.ts         # SwitchBot: the unified entry point; discovery, DEVICE_CLASSES registry
+├── ble.ts               # BLEScanner (discovery, parseServiceData) and BLEConnection
+├── api.ts               # OpenAPIClient
+├── settings.ts          # Constants, DEVICE_MODEL_MAP, DEVICE_CLASS_MAP, resolveDeviceClassName
+├── errors.ts
+├── devices/
+│   ├── base.ts          # SwitchBotDevice, DeviceManager
+│   ├── index.ts         # Device class exports
+│   └── wo-*.ts          # One file per device class
+├── types/               # api.ts, ble.ts (model enums), device.ts
+└── utils/               # retry, circuit breaker, fallback, connection tracking, encryption
+test/                    # Vitest: apis/, devices/, types/, utils/
+```
+
+### Adding a device class
+
+1. Create `src/devices/wo-<model>.ts` extending `SwitchBotDevice` (or the closest existing class).
+2. Export it from `src/devices/index.ts` and `src/index.ts`, and register it in `DEVICE_CLASSES` in
+   `src/switchbot.ts`.
+3. Map its BLE byte(s) in `DEVICE_MODEL_MAP` and its names/codes in `DEVICE_CLASS_MAP`.
+4. Add tests under `test/devices/`.
+
+## Conventions
+
+- ESM only (`"type": "module"`); relative imports end in `.js`.
+- ESLint is `@antfu/eslint-config` with `perfectionist` import/export sorting. Import Node built-ins
+  from `node:` (`import { Buffer } from 'node:buffer'`; using the global `Buffer` fails lint).
+- Runtime dependencies are only `@stoprocent/noble` (BLE) and `undici` (HTTP). Ask before adding one.
+- Changing or re-mapping a model identity breaks consumers that switch on `modelName`. Keep old enum
+  members as `@deprecated` aliases where possible, and say so in the PR.
+
+## Commits, Branches and Releases
+
+- Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `chore:`). Use `feat!:` with a
+  `BREAKING CHANGE:` footer when public identities, enums or behaviour change.
+- Default branch is `latest`. `.github/workflows/release.yml`:
+  - push to `beta-*`: build, test, lint, then publish a beta to npm;
+  - push to `latest`: bump version, update the changelog and publish a stable release.
+- Pull requests have no CI, so run the full check locally before opening one.
+- If a `beta-*` branch newer than the current version exists, target it; otherwise target `latest`.
+- PR description: what changed, why (link the pySwitchbot release/PR being ported), and any breaking
+  changes with migration notes for homebridge-switchbot.
