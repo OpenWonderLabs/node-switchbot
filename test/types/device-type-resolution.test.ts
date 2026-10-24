@@ -53,3 +53,26 @@ describe('resolveDeviceClassName', () => {
     }
   })
 })
+
+// OpenAPI deviceType values from the SwitchBotAPI device pages. These had no class, so the
+// device was never created for OpenAPI users (every lock, for example).
+describe('openAPI deviceType names', () => {
+  it.each([
+    ['Smart Lock', 'WoSmartLock'],
+    ['Smart Lock Pro', 'WoSmartLockPro'],
+    ['Smart Lock Pro Wifi', 'WoSmartLockProWiFi'],
+    ['Smart Lock Ultra', 'WoSmartLockPro'],
+    ['Air Purifier VOC', 'WoAirPurifier'],
+    ['Air Purifier Table PM2.5', 'WoAirPurifierTable'],
+    ['Air Purifier Table VOC', 'WoAirPurifierTable'],
+    ['Smart Radiator Thermostat', 'WoSmartThermostatRadiator'],
+    ['Home Climate Panel', 'WoClimatePanel'],
+    ['Standing Fan', 'WoCirculatorFan'],
+    ['Battery Circulator Fan 2 Pro', 'WoCirculatorFan'],
+    ['RGBIC Neon Rope Light', 'WoRGBICNeonWireRopeLight'],
+    ['AI Art Frame', 'WoArtFrame'],
+    ['Hub', 'WoHub2'],
+  ])('resolves %s', (apiType, className) => {
+    expect(resolveDeviceClassName(apiType)).toBe(className)
+  })
+})
