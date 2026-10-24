@@ -23,6 +23,10 @@ export class WoBulb extends SwitchBotDevice implements BulbCommands {
    */
   private maybeEncryptCommand(cmd: Buffer | readonly number[]): Buffer {
     const arr = Buffer.isBuffer(cmd) ? cmd : Buffer.from([...cmd])
+    // With a key id the BLE transport encrypts (pySwitchbot protocol); do not encrypt twice
+    if (this.info.keyId) {
+      return arr
+    }
     if (!this.needsEncryption()) {
       return arr
     }

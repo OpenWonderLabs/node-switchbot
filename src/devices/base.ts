@@ -77,6 +77,9 @@ export const PASSIVE_POLL_INTERVAL = 60 * 60 * 24 * 1000
  *
  * This pattern ensures all device classes benefit from robust, testable, and consistent connection logic.
  */
+const ENCRYPTION_KEY_REGEX = /^[0-9a-f]{32}$/i
+const KEY_ID_REGEX = /^[0-9a-f]{2}$/i
+
 export abstract class SwitchBotDevice extends EventEmitter {
   protected logger: Logger
   protected bleConnection?: BLEConnection
@@ -417,6 +420,16 @@ export abstract class SwitchBotDevice extends EventEmitter {
       const mac = this.bleAddress()
 
       let response: Buffer | undefined
+      if (this.info.encryptionKey && this.info.keyId && !writeOnly && this.bleConnection?.sendEncryptedCommand) {
+        // Encrypted device: pySwitchbot protocol, reply decrypted by the transport
+        response = await this.bleConnection.sendEncryptedCommand(mac, buffer, {
+          keyId: this.info.keyId,
+          encryptionKey: this.info.encryptionKey,
+          validateResponse,
+          responseTimeoutMs: 5000,
+        })
+        return this.recordBLESuccess(startTime, response)
+      }
       if (this.info.encryptionKey && this.info.encryptionIV && this.bleConnection?.setEncryption) {
         this.bleConnection.setEncryption(
           mac,
@@ -432,30 +445,13 @@ export abstract class SwitchBotDevice extends EventEmitter {
         response = await this.bleConnection.sendCommand(mac, buffer, {
           expectResponse: true,
           validateResponse,
-          responseTimeoutMs: 1200,
+          // Same reply timeout as pySwitchbot
+          responseTimeoutMs: 5000,
         })
       } else {
         await this.bleConnection!.write(mac, buffer)
       }
-      const latencyMs = Date.now() - startTime
-
-      // Record success
-      if (this.enableConnectionIntelligence) {
-        this.connectionTracker.recordSuccess('ble', latencyMs)
-      }
-
-      if (this.enableCircuitBreaker) {
-        this.circuitBreakerBLE.recordSuccess()
-      }
-
-      this.info.activeConnection = 'ble'
-      this.emit('command', { type: 'ble', success: true })
-
-      return {
-        success: true,
-        connectionType: 'ble' as const,
-        data: response,
-      }
+      return this.recordBLESuccess(startTime, response)
     }
 
     try {
@@ -725,6 +721,36 @@ export abstract class SwitchBotDevice extends EventEmitter {
       this.logger.error('Failed to read BLE status', error)
       throw error
     }
+  }
+
+  private recordBLESuccess(startTime: number, response: Buffer | undefined): CommandResult {
+    const latencyMs = Date.now() - startTime
+    if (this.enableConnectionIntelligence) {
+      this.connectionTracker.recordSuccess('ble', latencyMs)
+    }
+    if (this.enableCircuitBreaker) {
+      this.circuitBreakerBLE.recordSuccess()
+    }
+    this.info.activeConnection = 'ble'
+    this.emit('command', { type: 'ble', success: true })
+    return { success: true, connectionType: 'ble', data: response }
+  }
+
+  /**
+   * Set the BLE encryption key for an encrypted device (relay switches, locks, air purifiers...).
+   * Both values come from the SwitchBot account, as for pySwitchbot: `keyId` is 2 hex characters
+   * and `encryptionKey` 32.
+   */
+  setKey(key: { encryptionKey: string, keyId: string }): void {
+    const encryptionKey = String(key?.encryptionKey ?? '').trim()
+    const keyId = String(key?.keyId ?? '').trim()
+    if (!ENCRYPTION_KEY_REGEX.test(encryptionKey)) {
+      throw new Error('encryptionKey must be 32 hex characters')
+    }
+    if (!KEY_ID_REGEX.test(keyId)) {
+      throw new Error('keyId must be 2 hex characters')
+    }
+    this.updateInfo({ encryptionKey, keyId })
   }
 
   /**

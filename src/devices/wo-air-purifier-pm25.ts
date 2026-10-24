@@ -127,7 +127,8 @@ export class WoAirPurifierPM25 extends SwitchBotDevice {
    */
   async resetFilterUsage(): Promise<boolean> {
     return resetAirPurifierFilterUsage({
-      encrypted: !!this.info.encryptionKey,
+      // Encrypted replies are only readable with a key id (pySwitchbot protocol)
+      encrypted: !!this.info.encryptionKey && !this.info.keyId,
       hasBLE: this.hasBLE(),
       send: (command, options) => this.sendBLECommand(command, false, options),
     })

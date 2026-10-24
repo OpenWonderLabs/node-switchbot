@@ -239,51 +239,61 @@ export interface BLEScanOptions {
 /**
  * SwitchBot BLE Model identifiers
  */
+/**
+ * SwitchBot BLE model codes: byte 0 of the service data with bit 7 cleared, as in pySwitchbot's
+ * SUPPORTED_TYPES. Most products also have a second code; DEVICE_MODEL_MAP lists every code.
+ */
 export enum SwitchBotBLEModel {
   Bot = 'H',
   Curtain = 'c',
   Curtain3 = '{',
+  BlindTilt = 'x',
+  RollerShade = ',',
   /** @deprecated Import-only alias kept for compatibility; use {@link SwitchBotBLEModel.PlugMiniUS} or {@link SwitchBotBLEModel.PlugMiniJP}. */
   Plug = 'g',
   // eslint-disable-next-line ts/no-duplicate-enum-values
   PlugMiniUS = 'g',
   PlugMiniJP = 'j',
+  PlugMiniEU = '?',
+  RelaySwitch1 = ';',
+  RelaySwitch1PM = '<',
+  RelaySwitch2PM = '=',
+  GarageDoorOpener = '>',
   Meter = 'T',
   MeterPlus = 'i',
-  MeterPro = 'o',
+  MeterPro = '4',
   MeterProCO2 = '5',
   IndoorOutdoorThermoHygrometer = 'w',
   /** @deprecated Use {@link SwitchBotBLEModel.IndoorOutdoorThermoHygrometer}. */
   // eslint-disable-next-line ts/no-duplicate-enum-values
   OutdoorMeter = 'w',
-  // eslint-disable-next-line ts/no-duplicate-enum-values
   Lock = 'o',
-  LockPro = '\x11',
-  Keypad = 'k',
-  KeypadTouch = '\x0B',
+  LockPro = '$',
+  LockLite = '-',
+  Keypad = 'y',
   MotionSensor = 's',
   ContactSensor = 'd',
+  WaterLeakDetector = '&',
   CeilingLight = 'q',
   CeilingLightPro = 'n',
-  StripLight = 'p',
+  StripLight = 'r',
   ColorBulb = 'u',
-  RobotVacuumCleanerS1 = '\x0A',
-  RobotVacuumCleanerS1Plus = '\x0C',
-  RobotVacuumCleanerK10Plus = '\x0F',
   Humidifier = 'e',
-  Humidifier2 = '\x07',
-  BlindTilt = 'x',
-  Hub2 = '\x01',
+  /** Evaporative Humidifier */
+  Humidifier2 = '#',
+  AirPurifier = '*',
+  AirPurifierTable = '7',
+  BatteryCirculatorFan = '~',
+  Hub2 = 'v',
+  /** Hub 3 has no pySwitchbot single-byte code; this is the code earlier releases used */
   Hub3 = '\x02',
-  Remote = '\x05',
-  BatteryCirculatorFan = '\x04',
-  AirPurifier = '\x08',
-  AirPurifierTable = '\x09',
-  WaterLeakDetector = 'y',
-  PresenceSensor = '\x06',
-  RelaySwitch1PM = '\x0D',
-  RelaySwitch1 = '\x0E',
-  K10ProComboK10Pro = '\x10',
+  HubMiniMatter = '%',
+  Remote = 'b',
+  RobotVacuumCleanerS10 = 'z',
+  RobotVacuumCleanerK10Plus = '}',
+  RobotVacuumCleanerK10PlusPro = '(',
+  RobotVacuumCleanerK20 = '.',
+  K10ProComboK10Pro = '3',
 }
 
 /**
