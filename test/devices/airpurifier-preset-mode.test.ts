@@ -20,13 +20,21 @@ describe('air purifier preset modes', () => {
     const sendCommand = vi.fn().mockResolvedValue({ success: true })
     ;(purifier as any).sendCommand = sendCommand
 
-    const modes = ['level_1', 'level_2', 'level_3', 'auto', 'sleep', 'pet'] as const
-    for (const mode of modes) {
+    // OpenAPI has no preset command: presets are `setMode` with {mode, fanGear} (SwitchBotAPI docs)
+    const modes = [
+      ['level_1', { mode: 1, fanGear: 1 }],
+      ['level_2', { mode: 1, fanGear: 2 }],
+      ['level_3', { mode: 1, fanGear: 3 }],
+      ['auto', { mode: 2 }],
+      ['sleep', { mode: 3 }],
+      ['pet', { mode: 4 }],
+    ] as const
+    for (const [mode, apiParameter] of modes) {
       await purifier.setPresetMode(mode)
       expect(sendCommand).toHaveBeenLastCalledWith(
         expect.arrayContaining([0x57, 0x02, expect.any(Number)]),
-        'setPresetMode',
-        mode,
+        'setMode',
+        apiParameter,
       )
     }
   })

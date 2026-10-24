@@ -106,7 +106,7 @@ export class WoSmartLockPro extends SequenceDevice implements LockCommands {
       throw new Error('BLE not available for lock notifications')
     }
 
-    const mac = this.info.mac ?? `id:${this.info.bleId}`
+    const mac = this.bleAddress()
     await this.bleConnection!.subscribeNotifications(mac, handler)
     this.lockNotificationHandlers.add(handler)
   }
@@ -116,7 +116,7 @@ export class WoSmartLockPro extends SequenceDevice implements LockCommands {
       return
     }
 
-    const mac = this.info.mac ?? `id:${this.info.bleId}`
+    const mac = this.bleAddress()
     this.bleConnection?.unsubscribeNotifications(mac, handler)
     this.lockNotificationHandlers.delete(handler)
   }

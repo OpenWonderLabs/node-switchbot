@@ -15,119 +15,71 @@ import { SwitchBotDevice } from './base.js'
  */
 export class WoBlindTilt extends SwitchBotDevice implements BlindTiltCommands {
   /**
+   * Send one command over the best transport; sendCommand() falls back between BLE and OpenAPI.
+   * OpenAPI commands follow the Blind Tilt docs: fullyOpen, closeUp, closeDown, and
+   * setPosition with `direction;position`.
+   */
+  private async command(bleCommand: readonly number[], apiCommand: string, apiParameter?: string): Promise<boolean> {
+    if (!this.hasBLE() && !this.hasAPI()) {
+      throw new Error('No connection method available')
+    }
+    const result = await this.sendCommand(bleCommand, apiCommand, apiParameter)
+    return result.success
+  }
+
+  /**
    * Open blind (position 50%)
    */
   async open(): Promise<boolean> {
-    // BLE-first, OpenAPI-fallback
-    if (this.hasBLE()) {
-      const result = await this.sendCommand(
-        DEVICE_COMMANDS.BLIND_TILT.OPEN,
-        'turnOn',
-      )
-      if (result.success) {
-        return true
-      }
-    }
-    if (this.hasAPI()) {
-      const result = await this.sendAPICommand('turnOn')
-      return result.success
-    }
-    throw new Error('No connection method available')
+    return this.command(DEVICE_COMMANDS.BLIND_TILT.OPEN, 'fullyOpen')
   }
 
   /**
    * Close blind up (position 100%)
    */
   async closeUp(): Promise<boolean> {
-    // BLE-first, OpenAPI-fallback
-    if (this.hasBLE()) {
-      const result = await this.sendCommand(
-        DEVICE_COMMANDS.BLIND_TILT.CLOSE_UP,
-        'setPosition',
-      )
-      if (result.success) {
-        return true
-      }
-    }
-    if (this.hasAPI()) {
-      const result = await this.sendAPICommand('setPosition', { position: 100 })
-      return result.success
-    }
-    throw new Error('No connection method available')
+    return this.command(DEVICE_COMMANDS.BLIND_TILT.CLOSE_UP, 'closeUp')
   }
 
-  // Add stubs for required BlindTiltCommands interface methods
+  /**
+   * Close blind (closes up)
+   */
   async close(): Promise<boolean> {
-    // BLE-first, OpenAPI-fallback
-    if (this.hasBLE()) {
-      const result = await this.sendCommand(
-        DEVICE_COMMANDS.BLIND_TILT.CLOSE_UP,
-        'turnOff',
-      )
-      if (result.success) {
-        return true
-      }
-    }
-    if (this.hasAPI()) {
-      const result = await this.sendAPICommand('turnOff')
-      return result.success
-    }
-    throw new Error('No connection method available')
+    return this.closeUp()
   }
 
+  /**
+   * Close blind down (position 0%)
+   */
   async closeDown(): Promise<boolean> {
-    // BLE-first, OpenAPI-fallback
-    if (this.hasBLE()) {
-      const result = await this.sendCommand(
-        DEVICE_COMMANDS.BLIND_TILT.CLOSE_DOWN,
-        'setPosition',
-      )
-      if (result.success) {
-        return true
-      }
-    }
-    if (this.hasAPI()) {
-      const result = await this.sendAPICommand('setPosition', { position: 0 })
-      return result.success
-    }
-    throw new Error('No connection method available')
+    return this.command(DEVICE_COMMANDS.BLIND_TILT.CLOSE_DOWN, 'closeDown')
   }
 
+  /**
+   * Stop movement. OpenAPI has no pause command for Blind Tilt, so this needs BLE.
+   */
   async pause(): Promise<boolean> {
-    // BLE-first, OpenAPI-fallback
-    if (this.hasBLE()) {
-      const result = await this.sendCommand(
-        DEVICE_COMMANDS.BLIND_TILT.PAUSE,
-        'pause',
-      )
-      if (result.success) {
-        return true
-      }
-    }
-    if (this.hasAPI()) {
-      const result = await this.sendAPICommand('pause')
-      return result.success
-    }
-    throw new Error('No connection method available')
+    return this.command(DEVICE_COMMANDS.BLIND_TILT.PAUSE, 'pause')
   }
 
+  /**
+   * Set tilt position: 0 = closed down, 50 = open, 100 = closed up (as in pySwitchbot).
+   */
   async setPosition(position: number): Promise<boolean> {
-    // BLE-first, OpenAPI-fallback
-    const pos = clamp(position, 0, 100)
-    if (this.hasBLE()) {
-      // Copy the OPEN command and replace the last byte with the desired position
-      const base = [...DEVICE_COMMANDS.BLIND_TILT.OPEN] as number[]
-      base[base.length - 1] = pos
-      const result = await this.sendCommand(base, 'setPosition')
-      if (result.success) {
-        return true
-      }
-    }
-    if (this.hasAPI()) {
-      const result = await this.sendAPICommand('setPosition', { position: pos })
-      return result.success
-    }
-    throw new Error('No connection method available')
+    const pos = Math.round(clamp(position, 0, 100))
+    // Copy the OPEN command and replace the last byte with the desired position
+    const bleCommand = [...DEVICE_COMMANDS.BLIND_TILT.OPEN] as number[]
+    bleCommand[bleCommand.length - 1] = pos
+    return this.command(bleCommand, 'setPosition', WoBlindTilt.toAPIPosition(pos))
+  }
+
+  /**
+   * Convert a 0-100 tilt position (50 = open) to the OpenAPI `direction;position` parameter,
+   * where position runs from 0 (closed) to 100 (open) and must be even.
+   */
+  static toAPIPosition(position: number): string {
+    const pos = Math.round(clamp(position, 0, 100))
+    return pos <= 50 ? `down;${pos * 2}` : `up;${(100 - pos) * 2}`
   }
 
   private _lastPosition?: number

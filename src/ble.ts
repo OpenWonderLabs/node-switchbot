@@ -316,7 +316,7 @@ export class BLEScanner extends EventEmitter {
         }
       }
 
-      if ((model === 'o' || model === '\x11') && data.length > 1) {
+      if ((model === 'o' || model === 'O' || model === '\x11') && data.length > 1) {
         // Lock / Lock Pro
         const lockStatus = data[1] & 0x0F
         serviceData.status = lockStatus
@@ -332,7 +332,7 @@ export class BLEScanner extends EventEmitter {
         }
       }
 
-      if ((model === '\x0D' || model === '\x0E') && data.length > 1) {
+      if ([';', '<', '\x1B', '\x1C', '\x0E'].includes(model) && data.length > 1) {
         // Relay Switch 1PM / Relay Switch 1
         serviceData.state = (data[1] & 0x01) === 0x01
         serviceData.channel2State = (data[1] & 0x02) === 0x02
@@ -685,15 +685,20 @@ export class BLEConnection {
       throw new CommandFailedError(`Empty BLE response from ${mac}`, 'ble')
     }
 
-    if (response.includes(0x07)) {
+    // Byte 0 is the status; anything after it is payload (battery, firmware, position...), so it
+    // must not be read as a status code. Matches pySwitchbot's _check_command_result.
+    const status = response[0]
+
+    if (status === 0x07) {
       throw new CommandFailedError(`BLE command rejected by ${mac}: password required`, 'ble')
     }
 
-    if (response.includes(0x09)) {
+    if (status === 0x09) {
       throw new CommandFailedError(`BLE command rejected by ${mac}: password incorrect`, 'ble')
     }
 
-    const acknowledged = response.some(byte => byte === 0x01 || byte === 0x05 || byte === 0x06)
+    // 0x01 OK, 0x05 command not supported in the current mode (a Bot in add-on mode), 0x06 low battery
+    const acknowledged = status === 0x01 || status === 0x05 || status === 0x06
     if (!acknowledged) {
       throw new CommandFailedError(`Unexpected BLE response from ${mac}: ${response.toString('hex')}`, 'ble')
     }

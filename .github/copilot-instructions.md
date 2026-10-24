@@ -41,9 +41,14 @@ This library tracks pySwitchbot. To port a release:
 | `switchbot/adv_parsers/*.py` (passive status) | `src/ble.ts` `BLEScanner.parseServiceData` |
 | `switchbot/devices/*.py` (commands, active status) | `src/devices/wo-*.ts` |
 
-Known drift from pySwitchbot, to be aligned only on request and in its own PR: several
-`DEVICE_MODEL_MAP` bytes differ (Meter Pro is `o` here, the same byte as Lock, but `4` in
-pySwitchbot; Remote, Keypad, Lock Pro and Leak also differ).
+`DEVICE_MODEL_MAP` mirrors pySwitchbot's single-byte `SUPPORTED_TYPES` codes. A few extra codes
+(Hub 2 `0x01`, Hub 3 `0x02`, `0x09`, `0x0E`, `0x10`, `0x11`, `k`, `p`) come from earlier
+node-switchbot releases and have no pySwitchbot equivalent. `SwitchBotBLEModel` in
+`src/types/ble.ts` still has older values for some products; changing it is a breaking change.
+
+OpenAPI command names and parameters must match the device pages in
+[SwitchBotAPI](https://github.com/OpenWonderLabs/SwitchBotAPI/tree/latest/devices); add a test in
+`test/devices/openapi-commands.test.ts` for each one.
 
 ## Commands
 

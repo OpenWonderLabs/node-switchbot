@@ -36,7 +36,7 @@ describe('vacuum commands', () => {
     expect(sendCommand).toHaveBeenCalledWith(
       DEVICE_COMMANDS.VACUUM.CLEAN_UP[1],
       'start',
-      { protocolVersion: 1 },
+      undefined,
     )
   })
 
@@ -51,7 +51,7 @@ describe('vacuum commands', () => {
     expect(sendCommand).toHaveBeenCalledWith(
       DEVICE_COMMANDS.VACUUM.CLEAN_UP[2],
       'start',
-      { protocolVersion: 2 },
+      undefined,
     )
   })
 
@@ -66,7 +66,6 @@ describe('vacuum commands', () => {
     expect(sendCommand).toHaveBeenCalledWith(
       DEVICE_COMMANDS.VACUUM.RETURN_TO_DOCK[1],
       'dock',
-      { protocolVersion: 1 },
     )
   })
 

@@ -206,7 +206,7 @@ export class WoHand extends DeviceOverrideStateDuringConnection implements BotCo
       this.logger.debug('Sending password-protected command', { action })
 
       // Send command via BLE
-      const mac = this.info.mac ?? `id:${this.info.bleId}`
+      const mac = this.bleAddress()
       await this.bleConnection!.write(mac, command)
 
       // Read response

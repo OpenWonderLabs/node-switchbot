@@ -16,7 +16,6 @@ import { DEVICE_COMMANDS } from '../settings.js'
 import {
   CircuitBreaker,
 
-  CircuitBreakerState,
   ConnectionTracker,
 
   FallbackHandlerManager,
@@ -395,14 +394,12 @@ export abstract class SwitchBotDevice extends EventEmitter {
     }
 
     // Check circuit breaker
+    // Reject while OPEN, and while HALF_OPEN once its trial request is in use
     if (this.enableCircuitBreaker && !this.circuitBreakerBLE.canExecute()) {
-      const state = this.circuitBreakerBLE.getState()
-      if (state === CircuitBreakerState.OPEN) {
-        return {
-          success: false,
-          connectionType: 'ble',
-          error: 'BLE circuit breaker is OPEN (too many failures)',
-        }
+      return {
+        success: false,
+        connectionType: 'ble',
+        error: `BLE circuit breaker is ${this.circuitBreakerBLE.getState()} (too many failures)`,
       }
     }
 
@@ -411,7 +408,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
       const buffer = Buffer.isBuffer(command) ? command : Buffer.from(command)
 
       const startTime = Date.now()
-      const mac = this.info.mac && this.info.mac.length > 0 ? this.info.mac : `id:${this.info.bleId}`
+      const mac = this.bleAddress()
 
       let response: Buffer | undefined
       if (this.info.encryptionKey && this.info.encryptionIV && this.bleConnection?.setEncryption) {
@@ -501,14 +498,12 @@ export abstract class SwitchBotDevice extends EventEmitter {
     }
 
     // Check circuit breaker
+    // Reject while OPEN, and while HALF_OPEN once its trial request is in use
     if (this.enableCircuitBreaker && !this.circuitBreakerAPI.canExecute()) {
-      const state = this.circuitBreakerAPI.getState()
-      if (state === CircuitBreakerState.OPEN) {
-        return {
-          success: false,
-          connectionType: 'api',
-          error: 'API circuit breaker is OPEN (too many failures)',
-        }
+      return {
+        success: false,
+        connectionType: 'api',
+        error: `API circuit breaker is ${this.circuitBreakerAPI.getState()} (too many failures)`,
       }
     }
 
@@ -516,7 +511,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
       this.logger.debug('Sending API command', { command, parameter })
 
       const startTime = Date.now()
-      const response = await this.apiClient!.sendCommand(this.info.id, command, parameter)
+      const response = await this.apiClient!.sendCommand(this.info.apiDeviceId ?? this.info.id, command, parameter)
       const latencyMs = Date.now() - startTime
 
       // Record success
@@ -615,10 +610,13 @@ export abstract class SwitchBotDevice extends EventEmitter {
     if (this.enableConnectionIntelligence) {
       primaryConnection = this.getBestConnection()
 
-      if (this.preferredConnection === 'ble' && primaryConnection === 'api' && this.hasBLE()) {
-        secondaryConnection = 'ble'
-      } else if (this.preferredConnection === 'api' && primaryConnection === 'ble' && this.hasAPI()) {
+      // Fall back to the other transport whichever one intelligence picked. Previously a
+      // fallback was only set when the pick differed from the preferred transport, so with
+      // BLE preferred and picked, a failed BLE command never reached the API.
+      if (primaryConnection === 'ble' && this.hasAPI()) {
         secondaryConnection = 'api'
+      } else if (primaryConnection === 'api' && this.hasBLE()) {
+        secondaryConnection = 'ble'
       }
     } else {
       // Fallback based on preferred connection
@@ -696,7 +694,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
     try {
       this.logger.debug('Reading BLE status')
       const startTime = Date.now()
-      const data = await this.bleConnection!.read(this.info.mac ?? `id:${this.info.bleId}`)
+      const data = await this.bleConnection!.read(this.bleAddress())
       const latencyMs = Date.now() - startTime
 
       if (this.enableConnectionIntelligence) {
@@ -721,6 +719,14 @@ export abstract class SwitchBotDevice extends EventEmitter {
       this.logger.error('Failed to read BLE status', error)
       throw error
     }
+  }
+
+  /**
+   * The address BLEConnection uses for this device: its MAC, or `id:<bleId>` when there is no
+   * MAC (macOS reports a peripheral id instead).
+   */
+  protected bleAddress(): string {
+    return this.info.mac && this.info.mac.length > 0 ? this.info.mac : `id:${this.info.bleId}`
   }
 
   protected normalizeBLEStatusData(data: any): Record<string, unknown> {
@@ -757,7 +763,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
     try {
       this.logger.debug('Reading API status')
       const startTime = Date.now()
-      const data = await this.apiClient!.getStatus(this.info.id)
+      const data = await this.apiClient!.getStatus(this.info.apiDeviceId ?? this.info.id)
       const latencyMs = Date.now() - startTime
 
       if (this.enableConnectionIntelligence) {

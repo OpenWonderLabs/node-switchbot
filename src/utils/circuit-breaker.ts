@@ -154,6 +154,8 @@ export class CircuitBreaker {
       this.state = CircuitBreakerState.HALF_OPEN
       this.halfOpenAttempts = 0
     }, this.config.resetTimeoutMs)
+    // Do not keep the process alive just to move to HALF_OPEN
+    this.resetTimer.unref?.()
   }
 
   /**

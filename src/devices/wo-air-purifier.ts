@@ -5,6 +5,7 @@ import { Buffer } from 'node:buffer'
 import { DEVICE_COMMANDS } from '../settings.js'
 import { clamp, validateResponseLength } from '../utils/index.js'
 import { encryptRelayCommandIfNeeded } from '../utils/relay-encryption.js'
+import { airPurifierFanParameter, airPurifierModeParameter, airPurifierPresetParameter } from './air-purifier-api.js'
 import { SequenceDevice } from './sequence-device.js'
 
 /**
@@ -80,7 +81,7 @@ export class WoAirPurifier extends SequenceDevice implements AirPurifierCommands
 
     const bleCommand = [...DEVICE_COMMANDS.AIR_PURIFIER.SET_MODE, modeMap[mode]]
     const command = this.maybeEncryptCommand(bleCommand)
-    return this.sendCommand(command, 'setMode', mode)
+    return this.sendCommand(command, 'setMode', airPurifierModeParameter(mode))
   }
 
   /**
@@ -91,7 +92,7 @@ export class WoAirPurifier extends SequenceDevice implements AirPurifierCommands
 
     const bleCommand = [...DEVICE_COMMANDS.AIR_PURIFIER.SET_SPEED, clampedSpeed]
     const command = this.maybeEncryptCommand(bleCommand)
-    const result = await this.sendCommand(command, 'setFanSpeed', clampedSpeed)
+    const result = await this.sendCommand(command, 'setMode', airPurifierFanParameter(clampedSpeed))
     return result.success
   }
 
@@ -161,7 +162,7 @@ export class WoAirPurifier extends SequenceDevice implements AirPurifierCommands
     }
     const bleCommand = [...DEVICE_COMMANDS.AIR_PURIFIER.SET_MODE, modeId]
     // For test compatibility, pass the plain array as the first argument
-    const result = await this.sendCommand(bleCommand, 'setPresetMode', mode)
+    const result = await this.sendCommand(bleCommand, 'setMode', airPurifierPresetParameter(mode))
     return result.success
   }
 }
