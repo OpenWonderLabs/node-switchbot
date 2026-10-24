@@ -384,7 +384,13 @@ export abstract class SwitchBotDevice extends EventEmitter {
   protected async sendBLECommand(
     command: readonly number[] | number[] | Buffer,
     writeOnly = false,
+    options: { retry?: boolean, validateResponse?: boolean } = {},
   ): Promise<CommandResult> {
+    // `retry: false` sends once, for commands that must not be repeated (pySwitchbot `retry=0`).
+    // `validateResponse: false` returns the reply without checking its status byte, for callers
+    // that interpret it themselves.
+    const retry = options.retry ?? this.enableRetry
+    const validateResponse = options.validateResponse ?? true
     if (!this.hasBLE()) {
       return {
         success: false,
@@ -425,7 +431,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
       } else if (this.bleConnection?.sendCommand) {
         response = await this.bleConnection.sendCommand(mac, buffer, {
           expectResponse: true,
-          validateResponse: true,
+          validateResponse,
           responseTimeoutMs: 1200,
         })
       } else {
@@ -454,7 +460,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
 
     try {
       return await this.runWithBLELock(async () => {
-        if (this.enableRetry) {
+        if (retry) {
           this.circuitBreakerBLE.markHalfOpenAttempt()
           return await this.retryExecutor.executeOrThrow(executeCommand, `BLE command for ${this.info.id}`)
         } else {
