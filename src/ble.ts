@@ -590,6 +590,7 @@ export class BLEConnection {
   private scheduleDisconnect(mac: string): void {
     this.clearDisconnectTimer(mac)
     const timer = setTimeout(() => {
+      this.markExpectedDisconnect(mac)
       this.disconnect(mac).catch((error) => {
         this.logger.debug(`Auto-disconnect failed for ${mac}`, error)
       })
@@ -1170,6 +1171,7 @@ export class BLEConnection {
    */
   async disconnectAll(): Promise<void> {
     const macs = [...this.connections.keys()]
+    macs.forEach(mac => this.markExpectedDisconnect(mac))
     await Promise.all(macs.map(mac => this.disconnect(mac)))
   }
 
