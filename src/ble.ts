@@ -566,7 +566,8 @@ export class BLEConnection {
   // Expected disconnect tracking
   private expectedDisconnects: Set<string> = new Set()
   /**
-   * Mark the next disconnect for this MAC as expected
+   * Mark the next disconnect started by the device as expected (for example after a command that
+   * restarts it), so it is not logged as unexpected
    */
   markExpectedDisconnect(mac: string): void {
     this.expectedDisconnects.add(normalizeMAC(mac))
@@ -1106,20 +1107,16 @@ export class BLEConnection {
 
     this.connections.set(normalizedMac, peripheral)
     this.clearDisconnectTimer(normalizedMac)
+    this.expectedDisconnects.delete(normalizedMac)
+    this.watchForDisconnect(normalizedMac, mac, peripheral)
     this.logger.info(`Connected to ${mac}`)
 
     // Discover characteristics (may throw)
     try {
       await this.discoverCharacteristics(normalizedMac, peripheral)
     } catch (error) {
-      // Clean up partial connection if characteristic discovery fails
-      this.connections.delete(normalizedMac)
-      this.characteristics.delete(normalizedMac)
-
-      // Best effort disconnect to avoid leaked active BLE links
-      await new Promise<void>((resolve) => {
-        peripheral.disconnect(() => resolve())
-      })
+      // Clean up the partial connection, and disconnect to avoid leaking an active BLE link
+      await this.disconnect(normalizedMac)
 
       throw error
     }
@@ -1167,11 +1164,12 @@ export class BLEConnection {
   }
 
   /**
-   * Disconnect from a device
+   * Forget the connection state for a device: characteristics, encryption session, notification
+   * handlers and any pending reply.
    */
-  async disconnect(mac: string): Promise<void> {
-    const normalizedMac = normalizeMAC(mac)
-    const peripheral = this.connections.get(normalizedMac)
+  private dropConnectionState(normalizedMac: string, reason: string): void {
+    this.connections.delete(normalizedMac)
+    this.characteristics.delete(normalizedMac)
     this.clearDisconnectTimer(normalizedMac)
     // Reset encryption state (IV, cipher, mode) for this device
     this.clearEncryption(normalizedMac)
@@ -1181,36 +1179,61 @@ export class BLEConnection {
     if (pending) {
       clearTimeout(pending.timer)
       this.notificationFutures.delete(normalizedMac)
-      pending.reject(new Error(`Disconnected from ${mac} while waiting for a reply`))
+      pending.reject(new Error(reason))
     }
+  }
 
-    const wasExpected = this.expectedDisconnects.has(normalizedMac)
-    if (wasExpected) {
-      this.expectedDisconnects.delete(normalizedMac)
+  /**
+   * Watch for the device dropping the link (out of range, powered off, rebooted). Without this the
+   * stale peripheral stays in `connections` and the next command is sent over a dead link.
+   */
+  private watchForDisconnect(normalizedMac: string, mac: string, peripheral: any): void {
+    if (typeof peripheral?.once !== 'function') {
+      return
     }
+    peripheral.once('disconnect', () => {
+      const expected = this.expectedDisconnects.delete(normalizedMac)
+      if (this.connections.get(normalizedMac) !== peripheral) {
+        return
+      }
+      if (expected) {
+        this.logger.debug(`${mac} disconnected`)
+      } else {
+        this.logger.warn(`Unexpected disconnect from ${mac}`)
+      }
+      this.dropConnectionState(normalizedMac, `${mac} disconnected while waiting for a reply`)
+    })
+  }
+
+  /**
+   * Disconnect from a device. Disconnects started here (idle timeout, disconnectAll, a failed
+   * connection) are expected and logged at debug level; only a disconnect the device starts is
+   * reported as unexpected.
+   */
+  async disconnect(mac: string): Promise<void> {
+    const normalizedMac = normalizeMAC(mac)
+    const peripheral = this.connections.get(normalizedMac)
+    this.dropConnectionState(normalizedMac, `Disconnected from ${mac} while waiting for a reply`)
 
     if (!peripheral) {
-      if (!wasExpected) {
-        this.logger.warn(`Unexpected disconnect: peripheral not found for ${mac}`)
-      } else {
-        this.logger.info(`Expected disconnect: peripheral not found for ${mac}`)
-      }
+      this.expectedDisconnects.delete(normalizedMac)
+      this.logger.debug(`Not connected to ${mac}`)
       return
     }
 
+    // Consumed by the 'disconnect' listener from watchForDisconnect
+    this.expectedDisconnects.add(normalizedMac)
     await new Promise<void>((resolve) => {
       peripheral.disconnect(() => {
-        this.connections.delete(normalizedMac)
-        this.characteristics.delete(normalizedMac)
-        if (wasExpected) {
-          this.logger.info(`Expected disconnect from ${mac}`)
-        } else {
-          this.logger.warn(`Unexpected disconnect from ${mac}`)
-        }
+        this.logger.debug(`Disconnected from ${mac}`)
         resolve()
       })
     })
+    if (typeof peripheral.once !== 'function') {
+      this.expectedDisconnects.delete(normalizedMac)
+    }
   }
+
 
   /**
    * Write data to device
