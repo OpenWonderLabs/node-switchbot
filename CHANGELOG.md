@@ -1,3 +1,12 @@
+# [5.1.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v5.0.0...v5.1.0) (2026-10-24)
+
+
+### Bug Fixes
+
+* OpenAPI fallback, BLE replies, discovery merging, OpenAPI commands and BLE model codes ([#344](https://github.com/OpenWonderLabs/node-switchbot/issues/344)) ([9c915cb](https://github.com/OpenWonderLabs/node-switchbot/commit/9c915cb254d720ef89630b62b1bab805219728cc))
+
+
+
 ## [4.0.7](https://github.com/OpenWonderLabs/node-switchbot/compare/v4.0.6...v4.0.7) (2026-10-03)
 
 
