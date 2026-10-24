@@ -108,10 +108,15 @@ test/                    # Vitest: apis/, devices/, types/, utils/
 
 - Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `chore:`). Use `feat!:` with a
   `BREAKING CHANGE:` footer when public identities, enums or behaviour change.
-- Default branch is `latest`. `.github/workflows/release.yml`:
+- Default branch is `latest`. PRs are squash-merged, so the PR title becomes the commit message.
+- `.github/workflows/ci.yml` runs build, test and lint on Node 22 and 24 for every PR to `latest`
+  or `beta-*`. Run the full check locally first anyway.
+- `.github/workflows/release.yml`:
   - push to `beta-*`: build, test, lint, then publish a beta to npm;
   - push to `latest`: bump version, update the changelog and publish a stable release.
-- Pull requests have no CI, so run the full check locally before opening one.
+- Changes with no effect on the published package (docs, CI, contributor tooling) should not cut a
+  release: end the PR title with `[skip ci]` so the merge to `latest` skips `release.yml`. Do not
+  put `[skip ci]` in branch commit messages; that also skips the PR's own CI.
 - If a `beta-*` branch newer than the current version exists, target it; otherwise target `latest`.
 - PR description: what changed, why (link the pySwitchbot release/PR being ported), and any breaking
   changes with migration notes for homebridge-switchbot.
