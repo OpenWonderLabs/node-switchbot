@@ -1,3 +1,12 @@
+# [5.2.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v5.1.1...v5.2.0) (2026-10-24)
+
+
+### Features
+
+* **air-purifier:** add verified filter usage reset (pySwitchbot 3.1.0) ([#346](https://github.com/OpenWonderLabs/node-switchbot/issues/346)) ([ce4d6ed](https://github.com/OpenWonderLabs/node-switchbot/commit/ce4d6ed58a3cca97d3d128fc13311a9ad178d1bb)), closes [sblibs/pySwitchbot#583](https://github.com/sblibs/pySwitchbot/issues/583)
+
+
+
 ## [5.1.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v5.1.0...v5.1.1) (2026-10-24)
 
 
