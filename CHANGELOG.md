@@ -1,3 +1,12 @@
+## [5.1.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v5.1.0...v5.1.1) (2026-10-24)
+
+
+### Bug Fixes
+
+* resolve the OpenAPI deviceType names for locks and other devices ([#345](https://github.com/OpenWonderLabs/node-switchbot/issues/345)) ([85f42c2](https://github.com/OpenWonderLabs/node-switchbot/commit/85f42c22840703116b60674770d28e047cd17219))
+
+
+
 # [5.1.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v5.0.0...v5.1.0) (2026-10-24)
 
 
