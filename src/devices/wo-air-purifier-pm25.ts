@@ -2,7 +2,7 @@ import type { AirPurifierStatus } from '../types/device.js'
 
 import { Buffer } from 'node:buffer'
 
-import { airPurifierFanParameter, airPurifierModeParameter, airPurifierPresetParameter } from './air-purifier-api.js'
+import { airPurifierFanParameter, airPurifierModeParameter, airPurifierPresetParameter, resetAirPurifierFilterUsage } from './air-purifier-api.js'
 import { SwitchBotDevice } from './base.js'
 
 export class WoAirPurifierPM25 extends SwitchBotDevice {
@@ -119,6 +119,18 @@ export class WoAirPurifierPM25 extends SwitchBotDevice {
       return result.success
     }
     throw new Error('No connection method available')
+  }
+
+  /**
+   * Reset filter usage and confirm the device reads 0 hours afterwards (BLE only).
+   * Throws if the reset is rejected or cannot be verified. See resetAirPurifierFilterUsage.
+   */
+  async resetFilterUsage(): Promise<boolean> {
+    return resetAirPurifierFilterUsage({
+      encrypted: !!this.info.encryptionKey,
+      hasBLE: this.hasBLE(),
+      send: (command, options) => this.sendBLECommand(command, false, options),
+    })
   }
 
   /**

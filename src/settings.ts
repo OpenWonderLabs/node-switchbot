@@ -123,6 +123,9 @@ export const DEVICE_COMMANDS = {
     TURN_OFF: [0x57, 0x01, 0x02] as const,
     SET_MODE: [0x57, 0x02] as const, // Add mode byte
     SET_SPEED: [0x57, 0x03] as const, // Add speed byte
+    // pySwitchbot 3.1.0 (air_purifier.py): reset filter usage, then read it back
+    RESET_FILTER_USAGE: [0x57, 0x0F, 0x4C, 0x09] as const,
+    READ_FILTER_USAGE: [0x57, 0x0F, 0x4D, 0x09] as const,
   },
 
   // Vacuum

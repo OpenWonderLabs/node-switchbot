@@ -3,6 +3,13 @@
  * devices/air-purifier-api.ts: OpenAPI parameters for air purifiers
  */
 
+import type { CommandResult } from '../types/index.js'
+
+import { Buffer } from 'node:buffer'
+
+import { CommandFailedError } from '../errors.js'
+import { DEVICE_COMMANDS } from '../settings.js'
+
 /**
  * OpenAPI `setMode` parameter for air purifiers: `{"mode": mode_int, "fanGear": fan_level_int}`,
  * where mode is 1 (normal/fan), 2 (auto), 3 (sleep) or 4 (pet), and fanGear (1-3) applies only
@@ -33,4 +40,44 @@ export function airPurifierPresetParameter(preset: 'level_1' | 'level_2' | 'leve
     sleep: { mode: 3 },
     pet: { mode: 4 },
   }[preset] as AirPurifierAPIMode
+}
+
+type SendOnce = (command: readonly number[], options: { retry?: boolean, validateResponse?: boolean }) => Promise<CommandResult>
+
+/**
+ * Reset an air purifier's filter usage over BLE and confirm it, as pySwitchbot 3.1.0
+ * `reset_filter_usage` does: send the reset once (never retried), require status 0x01, then read
+ * the usage back and succeed only if it is 0 hours. Throws CommandFailedError otherwise.
+ *
+ * OpenAPI has no filter reset command. node-switchbot cannot decrypt replies yet, so on an
+ * encrypted connection the readback cannot be checked; the reset is refused before anything is
+ * sent rather than reported as done.
+ */
+export async function resetAirPurifierFilterUsage(device: { encrypted: boolean, hasBLE: boolean, send: SendOnce }): Promise<boolean> {
+  if (!device.hasBLE) {
+    throw new CommandFailedError('Filter usage reset needs a BLE connection (OpenAPI has no reset command)', 'ble')
+  }
+  if (device.encrypted) {
+    throw new CommandFailedError('Filter usage reset cannot be verified on an encrypted connection: node-switchbot does not decrypt replies yet', 'ble')
+  }
+
+  const reset = await device.send(DEVICE_COMMANDS.AIR_PURIFIER.RESET_FILTER_USAGE, { retry: false, validateResponse: false })
+  const resetReply = Buffer.isBuffer(reset.data) ? reset.data : undefined
+  if (!reset.success || resetReply?.[0] !== 0x01) {
+    throw new CommandFailedError(`Filter usage reset was rejected${reset.error ? `: ${reset.error}` : ''}`, 'ble')
+  }
+
+  const read = await device.send(DEVICE_COMMANDS.AIR_PURIFIER.READ_FILTER_USAGE, { validateResponse: false })
+  const reply = Buffer.isBuffer(read.data) ? read.data : undefined
+  if (!read.success || !reply || reply.length < 3) {
+    throw new CommandFailedError('Reset was sent, but filter usage could not be verified. Check the device before retrying', 'ble')
+  }
+  if (reply[0] !== 0x01) {
+    throw new CommandFailedError('Filter usage read was rejected', 'ble')
+  }
+  const usedHours = reply.readUInt16BE(1)
+  if (usedHours !== 0) {
+    throw new CommandFailedError(`Reset was sent, but the device still reports ${usedHours} used hours. Check the device before retrying`, 'ble')
+  }
+  return true
 }

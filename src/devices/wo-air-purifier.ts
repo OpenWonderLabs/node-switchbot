@@ -5,7 +5,7 @@ import { Buffer } from 'node:buffer'
 import { DEVICE_COMMANDS } from '../settings.js'
 import { clamp, validateResponseLength } from '../utils/index.js'
 import { encryptRelayCommandIfNeeded } from '../utils/relay-encryption.js'
-import { airPurifierFanParameter, airPurifierModeParameter, airPurifierPresetParameter } from './air-purifier-api.js'
+import { airPurifierFanParameter, airPurifierModeParameter, airPurifierPresetParameter, resetAirPurifierFilterUsage } from './air-purifier-api.js'
 import { SequenceDevice } from './sequence-device.js'
 
 /**
@@ -141,6 +141,18 @@ export class WoAirPurifier extends SequenceDevice implements AirPurifierCommands
         }
       },
     )
+  }
+
+  /**
+   * Reset filter usage and confirm the device reads 0 hours afterwards (BLE only).
+   * Throws if the reset is rejected or cannot be verified. See resetAirPurifierFilterUsage.
+   */
+  async resetFilterUsage(): Promise<boolean> {
+    return resetAirPurifierFilterUsage({
+      encrypted: !!this.info.encryptionKey,
+      hasBLE: this.hasBLE(),
+      send: (command, options) => this.sendBLECommand(command, false, options),
+    })
   }
 
   /**
