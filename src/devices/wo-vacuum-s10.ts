@@ -8,4 +8,9 @@ import { WoVacuum } from './wo-vacuum.js'
 /**
  * Robot Vacuum Cleaner S10
  */
-export class WoVacuumS10 extends WoVacuum {}
+export class WoVacuumS10 extends WoVacuum {
+  /** OpenAPI `startClean`: sweep once at fan level 1 */
+  protected override apiCleanCommand(): { command: string, parameter?: unknown } {
+    return { command: 'startClean', parameter: { action: 'sweep', param: { fanLevel: 1, waterLevel: 1, times: 1 } } }
+  }
+}

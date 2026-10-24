@@ -104,3 +104,49 @@ describe('deprecated enum aliases', () => {
     expect(SwitchBotBLEModel.PlugMiniJP).toBe('j')
   })
 })
+
+// Codes follow pySwitchbot's SUPPORTED_TYPES. Several used to map to a different product
+// (e.g. 'y' was read as a leak detector, 0x0D as a relay switch), and others were not
+// recognised at all, so those devices were ignored or mislabelled over BLE.
+describe('bLE model codes match pySwitchbot', () => {
+  it.each([
+    ['4', 'Meter Pro'],
+    ['\x14', 'Meter Pro'],
+    [';', 'Relay Switch 1'],
+    ['<', 'Relay Switch 1PM'],
+    ['=', 'Relay Switch 2PM'],
+    ['>', 'Garage Door Opener'],
+    ['?', 'Plug Mini (EU)'],
+    ['&', 'Water Leak Detector'],
+    ['\x06', 'Water Leak Detector'],
+    ['y', 'Keypad'],
+    ['-', 'Lock Lite'],
+    ['\x0D', 'Lock Lite'],
+    ['$', 'Lock Pro'],
+    ['\x04', 'Lock Pro'],
+    ['%', 'HubMini Matter'],
+    ['\x05', 'HubMini Matter'],
+    ['\x0C', 'Roller Shade'],
+    ['#', 'Evaporative Humidifier'],
+    ['*', 'Air Purifier'],
+    ['7', 'Air Purifier Table'],
+    ['v', 'Hub 2'],
+    ['~', 'Circulator Fan'],
+    ['b', 'Remote'],
+    ['z', 'Robot Vacuum Cleaner S10'],
+    ['}', 'Robot Vacuum Cleaner K10+'],
+    ['.', 'Robot Vacuum Cleaner K20'],
+  ])('maps %j to %s', (code, displayName) => {
+    expect(DEVICE_MODEL_MAP[code]).toBe(displayName)
+    expect(resolveDeviceClassName(displayName), displayName).toBeDefined()
+  })
+
+  it('does not label a Universal Remote (0x07) as a humidifier', () => {
+    expect(DEVICE_MODEL_MAP['\x07']).toBeUndefined()
+  })
+
+  it('reads relay state from the Relay Switch codes, not from Lock Lite', () => {
+    expect(parse(';'.charCodeAt(0), [0x03, 0x64, 0x00])?.state).toBe(true)
+    expect(parse(0x0D, [0x03, 0x64, 0x00])?.state).toBeUndefined()
+  })
+})

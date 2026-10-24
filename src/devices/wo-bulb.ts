@@ -129,7 +129,8 @@ export class WoBulb extends SwitchBotDevice implements BulbCommands {
       ...tempBytes,
     ]
     const command = this.maybeEncryptCommand(bleCommand)
-    const result = await this.sendCommand(command, 'setColorTemp', `${finalMinTemp}-${finalMaxTemp}:${clampedTemp}`)
+    // OpenAPI has no range command; setColorTemperature takes the target in kelvin
+    const result = await this.sendCommand(command, 'setColorTemperature', clampedTemp)
     return result.success
   }
 

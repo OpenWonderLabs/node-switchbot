@@ -2,6 +2,7 @@ import type { AirPurifierStatus } from '../types/device.js'
 
 import { Buffer } from 'node:buffer'
 
+import { airPurifierFanParameter, airPurifierModeParameter, airPurifierPresetParameter } from './air-purifier-api.js'
 import { SwitchBotDevice } from './base.js'
 
 export class WoAirPurifierPM25 extends SwitchBotDevice {
@@ -90,13 +91,13 @@ export class WoAirPurifierPM25 extends SwitchBotDevice {
     const modeMap: Record<string, number> = { auto: 0, manual: 1, sleep: 2 }
     if (this.hasBLE()) {
       const bleCommand = Buffer.from([0x57, 0x02, modeMap[mode]])
-      const result = await this.sendCommand(bleCommand, 'setMode', mode)
+      const result = await this.sendCommand(bleCommand, 'setMode', airPurifierModeParameter(mode))
       if (result.success) {
         return result
       }
     }
     if (this.hasAPI()) {
-      return this.sendAPICommand('setMode', mode)
+      return this.sendAPICommand('setMode', airPurifierModeParameter(mode))
     }
     throw new Error('No connection method available')
   }
@@ -108,13 +109,13 @@ export class WoAirPurifierPM25 extends SwitchBotDevice {
     const clampedSpeed = Math.max(1, Math.min(4, speed))
     if (this.hasBLE()) {
       const bleCommand = Buffer.from([0x57, 0x03, clampedSpeed])
-      const result = await this.sendCommand(bleCommand, 'setFanSpeed', clampedSpeed)
+      const result = await this.sendCommand(bleCommand, 'setMode', airPurifierFanParameter(clampedSpeed))
       if (result.success) {
         return true
       }
     }
     if (this.hasAPI()) {
-      const result = await this.sendAPICommand('setFanSpeed', clampedSpeed)
+      const result = await this.sendAPICommand('setMode', airPurifierFanParameter(clampedSpeed))
       return result.success
     }
     throw new Error('No connection method available')
@@ -138,13 +139,13 @@ export class WoAirPurifierPM25 extends SwitchBotDevice {
     }
     if (this.hasBLE()) {
       const bleCommand = Buffer.from([0x57, 0x02, modeId])
-      const result = await this.sendCommand(bleCommand, 'setPresetMode', mode)
+      const result = await this.sendCommand(bleCommand, 'setMode', airPurifierPresetParameter(mode))
       if (result.success) {
         return true
       }
     }
     if (this.hasAPI()) {
-      const result = await this.sendAPICommand('setPresetMode', mode)
+      const result = await this.sendAPICommand('setMode', airPurifierPresetParameter(mode))
       return result.success
     }
     throw new Error('No connection method available')

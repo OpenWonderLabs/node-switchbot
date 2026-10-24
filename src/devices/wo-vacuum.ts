@@ -13,6 +13,14 @@ import { SequenceDevice } from './sequence-device.js'
  */
 export class WoVacuum extends SequenceDevice implements VacuumCommands {
   /**
+   * OpenAPI command that starts cleaning. The S1, S1 Plus, K10+ and K10+ Pro use `start`; newer
+   * models (S10, S20, K10+ Pro Combo, K11+, K20+ Pro) only accept `startClean` and override this.
+   */
+  protected apiCleanCommand(): { command: string, parameter?: unknown } {
+    return { command: 'start' }
+  }
+
+  /**
    * Start cleaning (BLE-first, API-fallback)
    */
   async cleanUp(protocolVersion: number): Promise<boolean> {
@@ -24,7 +32,8 @@ export class WoVacuum extends SequenceDevice implements VacuumCommands {
     if (this.hasBLE()) {
       try {
         const command = this.getCommandForProtocol(DEVICE_COMMANDS.VACUUM.CLEAN_UP, protocolVersion)
-        const result = await this.sendCommand(command, 'start', { protocolVersion })
+        const { command: apiCommand, parameter } = this.apiCleanCommand()
+        const result = await this.sendCommand(command, apiCommand, parameter)
         if (result.success) {
           return true
         }
@@ -34,7 +43,8 @@ export class WoVacuum extends SequenceDevice implements VacuumCommands {
     }
     // Fallback to API
     if (this.hasAPI()) {
-      const apiResult = await this.sendAPICommand('start', { protocolVersion })
+      const { command: apiCommand, parameter } = this.apiCleanCommand()
+      const apiResult = await this.sendAPICommand(apiCommand, parameter)
       return apiResult.success
     }
     throw new Error('No connection method available for cleanUp')
@@ -52,7 +62,7 @@ export class WoVacuum extends SequenceDevice implements VacuumCommands {
     if (this.hasBLE()) {
       try {
         const command = this.getCommandForProtocol(DEVICE_COMMANDS.VACUUM.RETURN_TO_DOCK, protocolVersion)
-        const result = await this.sendCommand(command, 'dock', { protocolVersion })
+        const result = await this.sendCommand(command, 'dock')
         if (result.success) {
           return true
         }
@@ -62,7 +72,7 @@ export class WoVacuum extends SequenceDevice implements VacuumCommands {
     }
     // Fallback to API
     if (this.hasAPI()) {
-      const apiResult = await this.sendAPICommand('dock', { protocolVersion })
+      const apiResult = await this.sendAPICommand('dock')
       return apiResult.success
     }
     throw new Error('No connection method available for returnToDock')

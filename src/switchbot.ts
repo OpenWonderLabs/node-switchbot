@@ -441,9 +441,9 @@ export class SwitchBot extends EventEmitter {
 
     this.logger.debug(`Processing API device: ${deviceName} (${deviceId}, type: ${deviceType})`)
 
-    // Try to find matching BLE device
-    // Strategy: look for BLE devices of the same type that haven't been fully populated yet
-    const matchedBLEDevice = this.findMatchingBLEDevice(deviceType, deviceName)
+    // A BLE device's id is its MAC without colons, which is also its OpenAPI deviceId, so match
+    // on id first. Only a BLE device with no MAC (macOS) falls back to matching by type.
+    const matchedBLEDevice = this.deviceManager.get(deviceId) ?? this.findMatchingBLEDevice(deviceType, deviceName)
 
     if (matchedBLEDevice) {
       // Update existing BLE device with API information
@@ -454,6 +454,8 @@ export class SwitchBot extends EventEmitter {
         hubDeviceId,
         version,
         cloudServiceEnabled: enableCloudService,
+        // API calls must use the OpenAPI deviceId when the device is known by a BLE peripheral id
+        ...(deviceId_internal !== deviceId ? { apiDeviceId: deviceId } : {}),
       })
       this.logger.info(`Matched API device to existing BLE device: ${deviceName} (${deviceId_internal})`)
       this.emit('device-updated', matchedBLEDevice)
@@ -490,42 +492,35 @@ export class SwitchBot extends EventEmitter {
    * Returns a BLE device if a good match is found
    */
   private findMatchingBLEDevice(apiDeviceType: string, apiDeviceName: string): SwitchBotDevice | undefined {
-    // Get all BLE devices
+    // Only BLE-only devices without a MAC are candidates. A device with a MAC has the same id as
+    // its OpenAPI record, so if the id did not match, it is a different physical device.
     const bleDevices = this.deviceManager.list().filter((device) => {
       const info = device.getInfo()
-      return info.connectionTypes.includes('ble') && !info.connectionTypes.includes('api')
+      return info.connectionTypes.includes('ble') && !info.connectionTypes.includes('api') && !device.getMAC()
     })
 
-    // Try exact device type match first
-    const typeMatches = bleDevices.filter(device => device.getDeviceType() === apiDeviceType)
+    // BLE and OpenAPI spell types differently ("Meter Plus" vs "MeterPlus"), so compare the
+    // device class each resolves to.
+    const apiClass = resolveDeviceClassName(apiDeviceType)
+    if (!apiClass) {
+      return undefined
+    }
+    const typeMatches = bleDevices.filter(device => resolveDeviceClassName(device.getDeviceType()) === apiClass)
 
     if (typeMatches.length === 1) {
-      // If only one device of this type, it's likely a match
-      this.logger.debug(`Found exact type match for ${apiDeviceType}`)
+      this.logger.debug(`Found type match for ${apiDeviceType}`)
       return typeMatches[0]
     }
 
-    if (typeMatches.length > 1) {
-      // If multiple devices of same type, try to match by name similarity
-      const nameMatch = typeMatches.find((device) => {
-        const devName = device.getName()
-        // Simple name comparison (could be enhanced)
-        return devName === apiDeviceName || devName.includes(apiDeviceName) || apiDeviceName.includes(devName)
-      })
-
-      if (nameMatch) {
-        this.logger.debug(`Found name match for ${apiDeviceName}`)
-        return nameMatch
-      }
-
-      // No good name match, return the first one as fallback for single device
-      // (better to merge than to duplicate)
-      if (typeMatches.length === 1) {
-        return typeMatches[0]
-      }
+    // Several candidates: only merge on a name match rather than guess.
+    const nameMatch = typeMatches.find((device) => {
+      const devName = device.getName()
+      return devName === apiDeviceName || devName.includes(apiDeviceName) || apiDeviceName.includes(devName)
+    })
+    if (nameMatch) {
+      this.logger.debug(`Found name match for ${apiDeviceName}`)
     }
-
-    return undefined
+    return nameMatch
   }
 
   /**

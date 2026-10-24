@@ -92,13 +92,13 @@ export class WoRGBICNeonWireRopeLight extends SwitchBotDevice {
   async setColor(red: number, green: number, blue: number): Promise<boolean> {
     if (this.hasBLE()) {
       const command = Buffer.from([0x57, 0x03, red, green, blue])
-      const result = await this.sendCommand(command, 'setColor', { red, green, blue })
+      const result = await this.sendCommand(command, 'setColor', `${red}:${green}:${blue}`)
       if (result.success) {
         return true
       }
     }
     if (this.hasAPI()) {
-      const result = await this.sendAPICommand('setColor', { red, green, blue })
+      const result = await this.sendAPICommand('setColor', `${red}:${green}:${blue}`)
       return result.success
     }
     throw new Error('No connection method available')

@@ -109,6 +109,8 @@ export interface DeviceInfo {
   connectionTypes: ConnectionType[]
   /** Current active connection type */
   activeConnection?: ConnectionType
+  /** OpenAPI deviceId, when it differs from `id` (a device found over BLE by peripheral id on macOS) */
+  apiDeviceId?: string
   /** Hub device ID (if device is controlled through a hub) */
   hubDeviceId?: string
   /** Battery level (0-100) */

@@ -64,11 +64,10 @@ export abstract class DeviceOverrideStateDuringConnection extends SwitchBotDevic
       return false
     }
 
-    const macOrBleId = this.info.mac ?? (this.info.bleId ? `id:${this.info.bleId}` : undefined)
-    if (!macOrBleId) {
+    if (!this.info.mac && !this.info.bleId) {
       return false
     }
 
-    return this.bleConnection.isConnected(macOrBleId)
+    return this.bleConnection.isConnected(this.bleAddress())
   }
 }
