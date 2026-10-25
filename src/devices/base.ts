@@ -346,7 +346,10 @@ export abstract class SwitchBotDevice extends EventEmitter {
       try {
         return await tryBLE()
       } catch (err) {
-        this.logger?.warn?.('BLE getStatus failed, falling back to API', err)
+        this.logger?.warn?.('BLE getStatus failed', err)
+        if (this.enableFallback && this.hasAPI()) {
+          this.logger?.warn?.('Falling back to API getStatus', err)
+        }
       }
       if (this.enableFallback && this.hasAPI()) {
         return await tryAPI()
@@ -357,7 +360,10 @@ export abstract class SwitchBotDevice extends EventEmitter {
       try {
         return await tryAPI()
       } catch (err) {
-        this.logger?.warn?.('API getStatus failed, falling back to BLE', err)
+        this.logger?.warn?.('API getStatus failed', err)
+        if (this.enableFallback && this.hasBLE()) {
+          this.logger?.warn?.('Falling back to BLE getStatus', err)
+        }
       }
       if (this.enableFallback && this.hasBLE()) {
         return await tryBLE()
