@@ -349,7 +349,11 @@ export abstract class SwitchBotDevice extends EventEmitter {
       try {
         return await tryBLE()
       } catch (err) {
-        this.logger?.warn?.('BLE getStatus failed, falling back to API', err)
+        if (this.enableFallback && this.hasAPI()) {
+          this.logger?.debug?.('BLE getStatus failed, falling back to API', err)
+        } else {
+          this.logger?.debug?.('BLE getStatus failed', err)
+        }
       }
       if (this.enableFallback && this.hasAPI()) {
         return await tryAPI()
@@ -360,7 +364,11 @@ export abstract class SwitchBotDevice extends EventEmitter {
       try {
         return await tryAPI()
       } catch (err) {
-        this.logger?.warn?.('API getStatus failed, falling back to BLE', err)
+        if (this.enableFallback && this.hasBLE()) {
+          this.logger?.debug?.('API getStatus failed, falling back to BLE', err)
+        } else {
+          this.logger?.debug?.('API getStatus failed', err)
+        }
       }
       if (this.enableFallback && this.hasBLE()) {
         return await tryBLE()
@@ -476,7 +484,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
         this.circuitBreakerBLE.recordFailure()
       }
 
-      this.logger.error('BLE command failed', error)
+      this.logger.debug('BLE command failed', error)
       this.emitError({ type: 'ble', error })
 
       return {
@@ -555,7 +563,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
         this.circuitBreakerAPI.recordFailure()
       }
 
-      this.logger.error('API command failed', error)
+      this.logger.debug('API command failed', error)
       this.emitError({ type: 'api', error })
 
       return {
@@ -718,7 +726,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
         this.circuitBreakerBLE.recordFailure()
       }
 
-      this.logger.error('Failed to read BLE status', error)
+      this.logger.debug('Failed to read BLE status', error)
       throw error
     }
   }
@@ -817,7 +825,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
         this.circuitBreakerAPI.recordFailure()
       }
 
-      this.logger.error('Failed to read API status', error)
+      this.logger.debug('Failed to read API status', error)
       throw error
     }
   }
