@@ -5,7 +5,7 @@
 
 import type { SwitchBotDevice } from './devices/base.js'
 import type { BLEAdvertisement } from './types/ble.js'
-import type { ConnectionType, DeviceInfo, DiscoveryOptions, LogLevel, SwitchBotConfig } from './types/index.js'
+import type { ConnectionType, DiscoveryOptions, LogLevel, SwitchBotConfig } from './types/index.js'
 
 import { EventEmitter } from 'node:events'
 
@@ -74,7 +74,6 @@ import { WoVacuumS10 } from './devices/wo-vacuum-s10.js'
 import { WoVacuumS20 } from './devices/wo-vacuum-s20.js'
 import { WoVacuum } from './devices/wo-vacuum.js'
 import { WoWaterDetector } from './devices/wo-water-detector.js'
-import { BLENotAvailableError } from './errors.js'
 import { BLE_SUPPORTED, DEFAULTS, resolveDeviceClassName } from './settings.js'
 import { Logger, macToDeviceId, normalizeMAC } from './utils/index.js'
 
@@ -165,9 +164,8 @@ export class SwitchBot extends EventEmitter {
   private initialized = false
   // Track pending device creations for async API discovery
   private _pendingDeviceCreations: Promise<void>[] = []
-  // A short scan started to hear a sensor's advertisement runs until this time (ms)
-  private passiveScanUntil = 0
-  // Keeps known devices' advertisement data current whenever the scanner is running
+  // Keeps known devices' advertisement data current whenever any scan is running, not only during
+  // discover(), so sensors read from advertisements stay fresh
   private readonly advertisementListener = (advertisement: BLEAdvertisement): void => {
     this.applyAdvertisement(advertisement)
   }
@@ -379,7 +377,7 @@ export class SwitchBot extends EventEmitter {
       activeConnection: undefined,
       battery: serviceData.battery,
       bleServiceData: serviceData,
-      bleUpdatedAt: Date.now(),
+      bleServiceDataAt: Date.now(),
       rssi,
     }
 
@@ -393,7 +391,7 @@ export class SwitchBot extends EventEmitter {
         connectionTypes: [...new Set([...device.getInfo().connectionTypes, 'ble' as ConnectionType])],
         battery: serviceData.battery,
         bleServiceData: serviceData,
-        bleUpdatedAt: info.bleUpdatedAt,
+        bleServiceDataAt: Date.now(),
         rssi,
       })
       this.logger.debug(`Updated device: ${info.name} (${info.id})`)
@@ -558,14 +556,53 @@ export class SwitchBot extends EventEmitter {
         ...extractDeviceOptionsFromConfig(this.config),
         apiClient: this.apiClient,
         bleConnection: this.bleConnection,
-        advertisementSource: this.bleScanner
-          ? (deviceInfo: DeviceInfo, timeoutMs: number) => this.waitForAdvertisement(deviceInfo, timeoutMs)
-          : undefined,
+        advertisementSource: this.bleScanner ? this.listenForAdvertisement.bind(this) : undefined,
       })
     } catch (error) {
       this.logger.error(`createDevice: Failed to create device ${className}`, error)
       return undefined
     }
+  }
+
+  /** One short scan shared by every device waiting for an advertisement */
+  private advertisementScan?: Promise<void>
+
+  /**
+   * Wait for the next advertisement from one device, scanning briefly if no scan is running.
+   * Used to read sensors, which report their state in advertisements and are not connected to.
+   */
+  private async listenForAdvertisement(address: string, bleId: string | undefined, timeoutMs: number): Promise<Record<string, unknown> | undefined> {
+    const scanner = this.bleScanner
+    if (!scanner) {
+      return undefined
+    }
+    const normalized = address.startsWith('id:') ? undefined : normalizeMAC(address)
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => finish(undefined), timeoutMs)
+      timer.unref?.()
+      const handler = (advertisement: any) => {
+        const matches = (normalized && advertisement.address && normalizeMAC(advertisement.address) === normalized)
+          || (bleId && advertisement.id === bleId)
+        if (matches) {
+          finish(advertisement.serviceData)
+        }
+      }
+      function finish(result: Record<string, unknown> | undefined): void {
+        clearTimeout(timer)
+        scanner!.off('discover', handler)
+        resolve(result)
+      }
+      scanner.on('discover', handler)
+      if (!scanner.isScanning() && !this.advertisementScan) {
+        this.advertisementScan = scanner.startScan({ duration: timeoutMs })
+          .catch(error => this.logger.debug('Advertisement scan failed', error))
+          .finally(() => {
+            setTimeout(() => {
+              this.advertisementScan = undefined
+            }, timeoutMs).unref?.()
+          })
+      }
+    })
   }
 
   /**
@@ -643,45 +680,10 @@ export class SwitchBot extends EventEmitter {
     const { serviceData, rssi } = advertisement
     device.updateInfo({
       bleServiceData: serviceData as Record<string, unknown>,
-      bleUpdatedAt: Date.now(),
+      bleServiceDataAt: Date.now(),
       rssi,
       ...(typeof serviceData.battery === 'number' ? { battery: serviceData.battery } : {}),
     })
-  }
-
-  /**
-   * Wait for the next advertisement from a device, running a short scan if none is running.
-   * Used to read sensors (meters, contact, motion, leak) without connecting to them.
-   */
-  private async waitForAdvertisement(info: DeviceInfo, timeoutMs: number): Promise<Record<string, unknown>> {
-    const scanner = this.bleScanner
-    if (!scanner) {
-      throw new BLENotAvailableError('BLE not available')
-    }
-    const mac = info.mac ? normalizeMAC(info.mac) : undefined
-    const received = new Promise<Record<string, unknown>>((resolve, reject) => {
-      const timer = setTimeout(() => {
-        scanner.off('discover', handler)
-        reject(new BLENotAvailableError(`No BLE advertisement from ${info.id} within ${timeoutMs}ms`))
-      }, timeoutMs)
-      function handler(advertisement: BLEAdvertisement): void {
-        const matches = (mac && advertisement.address && normalizeMAC(advertisement.address) === mac)
-          || (info.bleId && advertisement.id === info.bleId)
-        if (matches) {
-          clearTimeout(timer)
-          scanner!.off('discover', handler)
-          resolve(advertisement.serviceData as Record<string, unknown>)
-        }
-      }
-      scanner.on('discover', handler)
-    })
-    if (!scanner.isScanning() && Date.now() >= this.passiveScanUntil) {
-      this.passiveScanUntil = Date.now() + timeoutMs
-      scanner.startScan({ duration: timeoutMs }).catch((error) => {
-        this.logger.debug('BLE scan for a sensor advertisement failed', error)
-      })
-    }
-    return received
   }
 
   /**

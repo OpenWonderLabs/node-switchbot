@@ -11,8 +11,10 @@ import { SwitchBotDevice } from './base.js'
  * Meter (Temperature/Humidity Sensor)
  */
 export class WoSensorTH extends SwitchBotDevice {
-  /** Read from BLE advertisements, without connecting (pySwitchbot) */
-  protected override readonly passiveBLE = true
+  /** Read from BLE advertisements; sensors are not connected to */
+  protected override get readsFromAdvertisement(): boolean {
+    return true
+  }
 
   /**
    * Get device status (BLE-first, API-fallback)

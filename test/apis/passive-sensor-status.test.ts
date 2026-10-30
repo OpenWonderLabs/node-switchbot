@@ -5,8 +5,9 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { SwitchBot } from '../../src/switchbot.js'
 
-// Meters and other sensors were read by connecting over GATT, which many of them refuse
-// ("Unknown Connection Identifier (0x2)"), so their values stayed at 0.
+// End to end with a fake adapter: real advertisement bytes must produce readings. Reading sensors
+// from advertisements (6.0.1) still returned 0 because the scanner never parsed their readings,
+// ignored manufacturer data and dropped non-connectable advertisements.
 // https://github.com/OpenWonderLabs/homebridge-switchbot/issues/1437
 
 class MockNoble extends EventEmitter {
@@ -63,7 +64,7 @@ describe('passive sensor status', () => {
 
   it('listens for a fresh advertisement when the last one is stale', async () => {
     const { device, noble, peripheral, switchbot } = await discoverMeter()
-    device.updateInfo({ bleUpdatedAt: Date.now() - 10 * 60 * 1000 })
+    device.updateInfo({ bleServiceDataAt: Date.now() - 10 * 60 * 1000 })
     const warmer = meterPeripheral(0x99) // 25.6 °C
     noble.startScanning.mockImplementation(() => {
       noble.emit('scanStart')
@@ -82,13 +83,13 @@ describe('passive sensor status', () => {
     await switchbot.cleanup()
   })
 
-  it('fails without connecting when no advertisement arrives and there is no API', async () => {
+  it('keeps the last reading, without connecting, when no new advertisement arrives', async () => {
     const { device, noble, peripheral, switchbot } = await discoverMeter()
-    device.updateInfo({ bleUpdatedAt: Date.now() - 10 * 60 * 1000 })
+    device.updateInfo({ bleServiceDataAt: Date.now() - 10 * 60 * 1000 })
     noble.startScanning.mockImplementation(() => {
       noble.emit('scanStart')
     })
-    await expect(device.getStatus()).rejects.toThrow()
+    expect((await device.getStatus()).temperature).toBe(24.6)
     expect(peripheral.connect).not.toHaveBeenCalled()
     await switchbot.cleanup()
   }, 15_000)
