@@ -11,6 +11,11 @@ import { SwitchBotDevice } from './base.js'
  * Contact Sensor (Door/Window Sensor)
  */
 export class WoContact extends SwitchBotDevice {
+  /** Read from BLE advertisements; sensors are not connected to */
+  protected override get readsFromAdvertisement(): boolean {
+    return true
+  }
+
   /**
    * Get device status (BLE-first, API-fallback)
    */

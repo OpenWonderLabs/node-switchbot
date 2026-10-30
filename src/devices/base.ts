@@ -11,7 +11,7 @@ import type { CircuitBreakerConfig, FallbackHandler, FallbackHandlerOptions, Ret
 import { Buffer } from 'node:buffer'
 import { EventEmitter } from 'node:events'
 
-import { APINotAvailableError, BLENotAvailableError } from '../errors.js'
+import { APINotAvailableError, BLENotAvailableError, DeviceNotFoundError } from '../errors.js'
 import { DEVICE_COMMANDS } from '../settings.js'
 import {
   CircuitBreaker,
@@ -26,6 +26,17 @@ import {
 } from '../utils/index.js'
 // Passive polling interval (24 hours)
 export const PASSIVE_POLL_INTERVAL = 60 * 60 * 24 * 1000
+
+/**
+ * Wait for the next advertisement from a device (by MAC, or `id:<bleId>`); resolves with its parsed
+ * service data, or undefined when none arrives in time
+ */
+export type AdvertisementSource = (address: string, bleId: string | undefined, timeoutMs: number) => Promise<Record<string, unknown> | undefined>
+
+/** Advertisement data newer than this is used as is */
+const ADVERTISEMENT_MAX_AGE_MS = 60_000
+/** How long to listen for a new advertisement (sensors advertise every few seconds) */
+const ADVERTISEMENT_WAIT_MS = 10_000
 
 /**
  * Base class for all SwitchBot devices
@@ -83,6 +94,7 @@ const KEY_ID_REGEX = /^[0-9a-f]{2}$/i
 export abstract class SwitchBotDevice extends EventEmitter {
   protected logger: Logger
   protected bleConnection?: BLEConnection
+  private advertisementSource?: AdvertisementSource
   protected apiClient?: OpenAPIClient
   protected enableFallback: boolean
   protected preferredConnection: ConnectionType
@@ -126,6 +138,8 @@ export abstract class SwitchBotDevice extends EventEmitter {
     options: {
       bleConnection?: BLEConnection
       apiClient?: OpenAPIClient
+      /** Listen for this device's next BLE advertisement (used by sensors, which are not connected to) */
+      advertisementSource?: AdvertisementSource
       enableFallback?: boolean
       preferredConnection?: ConnectionType
       enableConnectionIntelligence?: boolean
@@ -142,6 +156,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
 
     this.logger = new Logger(`${info.deviceType}:${info.id}`, options.logLevel)
     this.bleConnection = options.bleConnection
+    this.advertisementSource = options.advertisementSource
     this.apiClient = options.apiClient
     this.enableFallback = options.enableFallback ?? true
     this.preferredConnection = options.preferredConnection ?? 'ble'
@@ -696,9 +711,49 @@ export abstract class SwitchBotDevice extends EventEmitter {
   /**
    * Get device status via BLE
    */
+  /**
+   * Sensors (meters, contact, motion, leak) report their state in BLE advertisements and are not
+   * connected to, as in pySwitchbot. Many refuse connections, so connecting to read them fails.
+   */
+  protected get readsFromAdvertisement(): boolean {
+    return false
+  }
+
+  /** Read status from the latest advertisement, listening for a new one when it is stale */
+  private async getAdvertisedStatus(): Promise<Record<string, unknown>> {
+    const startTime = Date.now()
+    const age = this.info.bleServiceDataAt ? startTime - this.info.bleServiceDataAt : Number.POSITIVE_INFINITY
+    if (this.info.bleServiceData && age <= ADVERTISEMENT_MAX_AGE_MS) {
+      return this.info.bleServiceData
+    }
+
+    const address = this.info.mac ?? (this.info.bleId ? `id:${this.info.bleId}` : undefined)
+    if (address && this.advertisementSource) {
+      const serviceData = await this.advertisementSource(address, this.info.bleId, ADVERTISEMENT_WAIT_MS).catch((error) => {
+        this.logger.debug('Listening for advertisement failed', error)
+        return undefined
+      })
+      if (serviceData) {
+        this.updateInfo({ bleServiceData: serviceData, bleServiceDataAt: Date.now(), battery: (serviceData.battery as number | undefined) ?? this.info.battery })
+        this.recordBLESuccess(startTime, undefined)
+        return serviceData
+      }
+    }
+
+    if (this.info.bleServiceData) {
+      this.logger.debug('No new advertisement; using the last one received')
+      return this.info.bleServiceData
+    }
+    throw new DeviceNotFoundError(this.info.mac ?? this.info.id)
+  }
+
   protected async getBLEStatus(): Promise<any> {
     if (!this.hasBLE()) {
       throw new BLENotAvailableError('BLE not available for this device')
+    }
+
+    if (this.readsFromAdvertisement) {
+      return this.getAdvertisedStatus()
     }
 
     try {

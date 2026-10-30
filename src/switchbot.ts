@@ -74,7 +74,7 @@ import { WoVacuumS20 } from './devices/wo-vacuum-s20.js'
 import { WoVacuum } from './devices/wo-vacuum.js'
 import { WoWaterDetector } from './devices/wo-water-detector.js'
 import { BLE_SUPPORTED, DEFAULTS, resolveDeviceClassName } from './settings.js'
-import { Logger, macToDeviceId } from './utils/index.js'
+import { Logger, macToDeviceId, normalizeMAC } from './utils/index.js'
 
 /**
  * Device class constructor type
@@ -369,6 +369,7 @@ export class SwitchBot extends EventEmitter {
       activeConnection: undefined,
       battery: serviceData.battery,
       bleServiceData: serviceData,
+      bleServiceDataAt: Date.now(),
       rssi,
     }
 
@@ -382,6 +383,7 @@ export class SwitchBot extends EventEmitter {
         connectionTypes: [...new Set([...device.getInfo().connectionTypes, 'ble' as ConnectionType])],
         battery: serviceData.battery,
         bleServiceData: serviceData,
+        bleServiceDataAt: Date.now(),
         rssi,
       })
       this.logger.debug(`Updated device: ${info.name} (${info.id})`)
@@ -546,11 +548,53 @@ export class SwitchBot extends EventEmitter {
         ...extractDeviceOptionsFromConfig(this.config),
         apiClient: this.apiClient,
         bleConnection: this.bleConnection,
+        advertisementSource: this.bleScanner ? this.listenForAdvertisement.bind(this) : undefined,
       })
     } catch (error) {
       this.logger.error(`createDevice: Failed to create device ${className}`, error)
       return undefined
     }
+  }
+
+  /** One short scan shared by every device waiting for an advertisement */
+  private advertisementScan?: Promise<void>
+
+  /**
+   * Wait for the next advertisement from one device, scanning briefly if no scan is running.
+   * Used to read sensors, which report their state in advertisements and are not connected to.
+   */
+  private async listenForAdvertisement(address: string, bleId: string | undefined, timeoutMs: number): Promise<Record<string, unknown> | undefined> {
+    const scanner = this.bleScanner
+    if (!scanner) {
+      return undefined
+    }
+    const normalized = address.startsWith('id:') ? undefined : normalizeMAC(address)
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => finish(undefined), timeoutMs)
+      timer.unref?.()
+      const handler = (advertisement: any) => {
+        const matches = (normalized && advertisement.address && normalizeMAC(advertisement.address) === normalized)
+          || (bleId && advertisement.id === bleId)
+        if (matches) {
+          finish(advertisement.serviceData)
+        }
+      }
+      function finish(result: Record<string, unknown> | undefined): void {
+        clearTimeout(timer)
+        scanner!.off('discover', handler)
+        resolve(result)
+      }
+      scanner.on('discover', handler)
+      if (!scanner.isScanning() && !this.advertisementScan) {
+        this.advertisementScan = scanner.startScan({ duration: timeoutMs })
+          .catch(error => this.logger.debug('Advertisement scan failed', error))
+          .finally(() => {
+            setTimeout(() => {
+              this.advertisementScan = undefined
+            }, timeoutMs).unref?.()
+          })
+      }
+    })
   }
 
   /**
