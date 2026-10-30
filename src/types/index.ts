@@ -119,6 +119,8 @@ export interface DeviceInfo {
   rssi?: number
   /** Last parsed BLE advertisement service data */
   bleServiceData?: Record<string, unknown>
+  /** When `bleServiceData` was received (ms since epoch) */
+  bleUpdatedAt?: number
   /** Optional BLE encryption key as hex (16 bytes / 32 hex chars) */
   encryptionKey?: string
   /** BLE encryption key id, 2 hex characters (with encryptionKey; from the SwitchBot account) */

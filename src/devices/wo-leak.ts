@@ -11,6 +11,9 @@ import { SwitchBotDevice } from './base.js'
  * Water Leak Detector Device
  */
 export class WoLeak extends SwitchBotDevice {
+  /** Read from BLE advertisements, without connecting (pySwitchbot) */
+  protected override readonly passiveBLE = true
+
   /**
    * Get device status (BLE-first, API-fallback)
    */

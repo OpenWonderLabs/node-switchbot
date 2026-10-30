@@ -11,6 +11,9 @@ import { SwitchBotDevice } from './base.js'
  * Motion/Presence Sensor
  */
 export class WoPresence extends SwitchBotDevice {
+  /** Read from BLE advertisements, without connecting (pySwitchbot) */
+  protected override readonly passiveBLE = true
+
   /**
    * Get device status (BLE-first, API-fallback)
    */
@@ -20,7 +23,7 @@ export class WoPresence extends SwitchBotDevice {
         deviceId: this.info.id,
         connectionType: 'ble',
         moveDetected: bleData.movement || false,
-        brightness: bleData.lightLevel,
+        brightness: bleData.brightness,
         battery: bleData.battery,
         updatedAt: new Date(),
       }),

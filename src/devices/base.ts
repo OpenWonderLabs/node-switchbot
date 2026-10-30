@@ -80,10 +80,27 @@ export const PASSIVE_POLL_INTERVAL = 60 * 60 * 24 * 1000
 const ENCRYPTION_KEY_REGEX = /^[0-9a-f]{32}$/i
 const KEY_ID_REGEX = /^[0-9a-f]{2}$/i
 
+/** How long a sensor's last advertisement counts as its current state */
+export const ADVERTISEMENT_MAX_AGE_MS = 5 * 60 * 1000
+/** How long to listen for a fresh advertisement when the last one is too old */
+export const ADVERTISEMENT_WAIT_MS = 10_000
+
+/**
+ * Waits for the next advertisement from a device and returns its parsed service data. Provided by
+ * SwitchBot, which owns the BLE scanner.
+ */
+export type AdvertisementSource = (info: DeviceInfo, timeoutMs: number) => Promise<Record<string, unknown>>
+
 export abstract class SwitchBotDevice extends EventEmitter {
   protected logger: Logger
   protected bleConnection?: BLEConnection
   protected apiClient?: OpenAPIClient
+  protected advertisementSource?: AdvertisementSource
+  /**
+   * Sensors (meters, contact, motion, leak) report their state only in BLE advertisements and are
+   * read without connecting, as in pySwitchbot. Many of them refuse GATT connections.
+   */
+  protected readonly passiveBLE: boolean = false
   protected enableFallback: boolean
   protected preferredConnection: ConnectionType
 
@@ -134,6 +151,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
       retryConfig?: RetryConfig
       circuitBreakerConfig?: CircuitBreakerConfig
       logLevel?: number
+      advertisementSource?: AdvertisementSource
     } = {},
   ) {
     super()
@@ -143,6 +161,7 @@ export abstract class SwitchBotDevice extends EventEmitter {
     this.logger = new Logger(`${info.deviceType}:${info.id}`, options.logLevel)
     this.bleConnection = options.bleConnection
     this.apiClient = options.apiClient
+    this.advertisementSource = options.advertisementSource
     this.enableFallback = options.enableFallback ?? true
     this.preferredConnection = options.preferredConnection ?? 'ble'
 
@@ -349,30 +368,28 @@ export abstract class SwitchBotDevice extends EventEmitter {
       try {
         return await tryBLE()
       } catch (err) {
-        if (this.enableFallback && this.hasAPI()) {
-          this.logger?.debug?.('BLE getStatus failed, falling back to API', err)
-        } else {
+        if (!this.enableFallback || !this.hasAPI()) {
+          // Nothing to fall back to: report this failure rather than trying BLE again below
           this.logger?.debug?.('BLE getStatus failed', err)
+          throw err
         }
+        this.logger?.debug?.('BLE getStatus failed, falling back to API', err)
       }
-      if (this.enableFallback && this.hasAPI()) {
-        return await tryAPI()
-      }
+      return await tryAPI()
     }
     // API-first
     if (!preferBLE && this.hasAPI()) {
       try {
         return await tryAPI()
       } catch (err) {
-        if (this.enableFallback && this.hasBLE()) {
-          this.logger?.debug?.('API getStatus failed, falling back to BLE', err)
-        } else {
+        if (!this.enableFallback || !this.hasBLE()) {
+          // Nothing to fall back to: report this failure rather than trying the API again below
           this.logger?.debug?.('API getStatus failed', err)
+          throw err
         }
+        this.logger?.debug?.('API getStatus failed, falling back to BLE', err)
       }
-      if (this.enableFallback && this.hasBLE()) {
-        return await tryBLE()
-      }
+      return await tryBLE()
     }
     // Neither preference branch applied, which happens when the preferred
     // transport is unavailable: a BLE-preferring device with no BLE, or an
@@ -700,6 +717,9 @@ export abstract class SwitchBotDevice extends EventEmitter {
     if (!this.hasBLE()) {
       throw new BLENotAvailableError('BLE not available for this device')
     }
+    if (this.passiveBLE) {
+      return this.getAdvertisedStatus()
+    }
 
     try {
       this.logger.debug('Reading BLE status')
@@ -729,6 +749,36 @@ export abstract class SwitchBotDevice extends EventEmitter {
       this.logger.debug('Failed to read BLE status', error)
       throw error
     }
+  }
+
+  /**
+   * Status of a passive sensor from its advertisements: the last one if it is recent, otherwise the
+   * next one. Never connects. Throws when no reading arrives, so the caller can fall back to the API.
+   */
+  protected async getAdvertisedStatus(): Promise<Record<string, unknown>> {
+    const last = this.info.bleServiceData
+    const updatedAt = this.info.bleUpdatedAt
+    if (last?.sensor && updatedAt !== undefined && Date.now() - updatedAt <= ADVERTISEMENT_MAX_AGE_MS) {
+      this.info.activeConnection = 'ble'
+      return last
+    }
+    if (this.advertisementSource) {
+      try {
+        const fresh = await this.advertisementSource(this.info, ADVERTISEMENT_WAIT_MS)
+        this.updateInfo({
+          bleServiceData: fresh,
+          bleUpdatedAt: Date.now(),
+          ...(typeof fresh.battery === 'number' ? { battery: fresh.battery } : {}),
+        })
+        if (fresh.sensor) {
+          this.info.activeConnection = 'ble'
+          return fresh
+        }
+      } catch (error) {
+        this.logger.debug('No BLE advertisement received', error)
+      }
+    }
+    throw new BLENotAvailableError(`No recent BLE advertisement with a reading from ${this.info.id}`)
   }
 
   private recordBLESuccess(startTime: number, response: Buffer | undefined): CommandResult {

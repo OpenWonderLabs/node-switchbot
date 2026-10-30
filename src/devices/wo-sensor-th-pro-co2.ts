@@ -32,6 +32,7 @@ export class WoSensorTHProCO2 extends WoSensorTH {
         humidity: bleData.humidity || 0,
         temperatureScale: bleData.fahrenheit ? 'f' : 'c',
         battery: bleData.battery,
+        ...(typeof bleData.co2 === 'number' ? { co2: bleData.co2 } : {}),
         updatedAt: new Date(),
       }),
       (apiStatus) => {

@@ -4,7 +4,8 @@
  */
 
 import type { SwitchBotDevice } from './devices/base.js'
-import type { ConnectionType, DiscoveryOptions, LogLevel, SwitchBotConfig } from './types/index.js'
+import type { BLEAdvertisement } from './types/ble.js'
+import type { ConnectionType, DeviceInfo, DiscoveryOptions, LogLevel, SwitchBotConfig } from './types/index.js'
 
 import { EventEmitter } from 'node:events'
 
@@ -73,8 +74,9 @@ import { WoVacuumS10 } from './devices/wo-vacuum-s10.js'
 import { WoVacuumS20 } from './devices/wo-vacuum-s20.js'
 import { WoVacuum } from './devices/wo-vacuum.js'
 import { WoWaterDetector } from './devices/wo-water-detector.js'
+import { BLENotAvailableError } from './errors.js'
 import { BLE_SUPPORTED, DEFAULTS, resolveDeviceClassName } from './settings.js'
-import { Logger, macToDeviceId } from './utils/index.js'
+import { Logger, macToDeviceId, normalizeMAC } from './utils/index.js'
 
 /**
  * Device class constructor type
@@ -163,6 +165,12 @@ export class SwitchBot extends EventEmitter {
   private initialized = false
   // Track pending device creations for async API discovery
   private _pendingDeviceCreations: Promise<void>[] = []
+  // A short scan started to hear a sensor's advertisement runs until this time (ms)
+  private passiveScanUntil = 0
+  // Keeps known devices' advertisement data current whenever the scanner is running
+  private readonly advertisementListener = (advertisement: BLEAdvertisement): void => {
+    this.applyAdvertisement(advertisement)
+  }
 
   constructor(config: SwitchBotConfig = {}) {
     super()
@@ -219,6 +227,8 @@ export class SwitchBot extends EventEmitter {
             noble: this.config.noble,
             logLevel: this.config.logLevel,
           })
+
+          this.bleScanner.on('discover', this.advertisementListener)
 
           this.logger.info('BLE initialized')
         } catch (error) {
@@ -369,6 +379,7 @@ export class SwitchBot extends EventEmitter {
       activeConnection: undefined,
       battery: serviceData.battery,
       bleServiceData: serviceData,
+      bleUpdatedAt: Date.now(),
       rssi,
     }
 
@@ -382,6 +393,7 @@ export class SwitchBot extends EventEmitter {
         connectionTypes: [...new Set([...device.getInfo().connectionTypes, 'ble' as ConnectionType])],
         battery: serviceData.battery,
         bleServiceData: serviceData,
+        bleUpdatedAt: info.bleUpdatedAt,
         rssi,
       })
       this.logger.debug(`Updated device: ${info.name} (${info.id})`)
@@ -546,6 +558,9 @@ export class SwitchBot extends EventEmitter {
         ...extractDeviceOptionsFromConfig(this.config),
         apiClient: this.apiClient,
         bleConnection: this.bleConnection,
+        advertisementSource: this.bleScanner
+          ? (deviceInfo: DeviceInfo, timeoutMs: number) => this.waitForAdvertisement(deviceInfo, timeoutMs)
+          : undefined,
       })
     } catch (error) {
       this.logger.error(`createDevice: Failed to create device ${className}`, error)
@@ -608,6 +623,67 @@ export class SwitchBot extends EventEmitter {
     return !!this.apiClient
   }
 
+  /** Find the known device an advertisement belongs to */
+  private findAdvertisedDevice(advertisement: BLEAdvertisement): SwitchBotDevice | undefined {
+    if (advertisement.address) {
+      const byMac = this.deviceManager.get(macToDeviceId(advertisement.address))
+      if (byMac) {
+        return byMac
+      }
+    }
+    return this.deviceManager.list().find(device => device.getInfo().bleId === advertisement.id)
+  }
+
+  /** Store an advertisement's data on the known device it belongs to */
+  private applyAdvertisement(advertisement: BLEAdvertisement): void {
+    const device = this.findAdvertisedDevice(advertisement)
+    if (!device) {
+      return
+    }
+    const { serviceData, rssi } = advertisement
+    device.updateInfo({
+      bleServiceData: serviceData as Record<string, unknown>,
+      bleUpdatedAt: Date.now(),
+      rssi,
+      ...(typeof serviceData.battery === 'number' ? { battery: serviceData.battery } : {}),
+    })
+  }
+
+  /**
+   * Wait for the next advertisement from a device, running a short scan if none is running.
+   * Used to read sensors (meters, contact, motion, leak) without connecting to them.
+   */
+  private async waitForAdvertisement(info: DeviceInfo, timeoutMs: number): Promise<Record<string, unknown>> {
+    const scanner = this.bleScanner
+    if (!scanner) {
+      throw new BLENotAvailableError('BLE not available')
+    }
+    const mac = info.mac ? normalizeMAC(info.mac) : undefined
+    const received = new Promise<Record<string, unknown>>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        scanner.off('discover', handler)
+        reject(new BLENotAvailableError(`No BLE advertisement from ${info.id} within ${timeoutMs}ms`))
+      }, timeoutMs)
+      function handler(advertisement: BLEAdvertisement): void {
+        const matches = (mac && advertisement.address && normalizeMAC(advertisement.address) === mac)
+          || (info.bleId && advertisement.id === info.bleId)
+        if (matches) {
+          clearTimeout(timer)
+          scanner!.off('discover', handler)
+          resolve(advertisement.serviceData as Record<string, unknown>)
+        }
+      }
+      scanner.on('discover', handler)
+    })
+    if (!scanner.isScanning() && Date.now() >= this.passiveScanUntil) {
+      this.passiveScanUntil = Date.now() + timeoutMs
+      scanner.startScan({ duration: timeoutMs }).catch((error) => {
+        this.logger.debug('BLE scan for a sensor advertisement failed', error)
+      })
+    }
+    return received
+  }
+
   /**
    * Cleanup and disconnect
    */
@@ -615,6 +691,7 @@ export class SwitchBot extends EventEmitter {
     this.logger.info('Cleaning up')
 
     if (this.bleScanner) {
+      this.bleScanner.off('discover', this.advertisementListener)
       this.bleScanner.destroy()
     }
 

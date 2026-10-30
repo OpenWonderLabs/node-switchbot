@@ -11,6 +11,9 @@ import { SwitchBotDevice } from './base.js'
  * Contact Sensor (Door/Window Sensor)
  */
 export class WoContact extends SwitchBotDevice {
+  /** Read from BLE advertisements, without connecting (pySwitchbot) */
+  protected override readonly passiveBLE = true
+
   /**
    * Get device status (BLE-first, API-fallback)
    */
@@ -19,9 +22,9 @@ export class WoContact extends SwitchBotDevice {
       bleData => ({
         deviceId: this.info.id,
         connectionType: 'ble',
-        openState: bleData.position || 'closed',
+        openState: bleData.openState ?? 'closed',
         moveDetected: bleData.movement,
-        brightness: bleData.lightLevel,
+        brightness: bleData.brightness,
         battery: bleData.battery,
         updatedAt: new Date(),
       }),
