@@ -364,30 +364,28 @@ export abstract class SwitchBotDevice extends EventEmitter {
       try {
         return await tryBLE()
       } catch (err) {
-        if (this.enableFallback && this.hasAPI()) {
-          this.logger?.debug?.('BLE getStatus failed, falling back to API', err)
-        } else {
+        if (!this.enableFallback || !this.hasAPI()) {
+          // Nothing to fall back to: report this failure rather than trying BLE again below
           this.logger?.debug?.('BLE getStatus failed', err)
+          throw err
         }
+        this.logger?.debug?.('BLE getStatus failed, falling back to API', err)
       }
-      if (this.enableFallback && this.hasAPI()) {
-        return await tryAPI()
-      }
+      return await tryAPI()
     }
     // API-first
     if (!preferBLE && this.hasAPI()) {
       try {
         return await tryAPI()
       } catch (err) {
-        if (this.enableFallback && this.hasBLE()) {
-          this.logger?.debug?.('API getStatus failed, falling back to BLE', err)
-        } else {
+        if (!this.enableFallback || !this.hasBLE()) {
+          // Nothing to fall back to: report this failure rather than trying the API again below
           this.logger?.debug?.('API getStatus failed', err)
+          throw err
         }
+        this.logger?.debug?.('API getStatus failed, falling back to BLE', err)
       }
-      if (this.enableFallback && this.hasBLE()) {
-        return await tryBLE()
-      }
+      return await tryBLE()
     }
     // Neither preference branch applied, which happens when the preferred
     // transport is unavailable: a BLE-preferring device with no BLE, or an

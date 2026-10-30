@@ -4,6 +4,7 @@
  */
 
 import type { SwitchBotDevice } from './devices/base.js'
+import type { BLEAdvertisement } from './types/ble.js'
 import type { ConnectionType, DiscoveryOptions, LogLevel, SwitchBotConfig } from './types/index.js'
 
 import { EventEmitter } from 'node:events'
@@ -163,6 +164,11 @@ export class SwitchBot extends EventEmitter {
   private initialized = false
   // Track pending device creations for async API discovery
   private _pendingDeviceCreations: Promise<void>[] = []
+  // Keeps known devices' advertisement data current whenever any scan is running, not only during
+  // discover(), so sensors read from advertisements stay fresh
+  private readonly advertisementListener = (advertisement: BLEAdvertisement): void => {
+    this.applyAdvertisement(advertisement)
+  }
 
   constructor(config: SwitchBotConfig = {}) {
     super()
@@ -219,6 +225,8 @@ export class SwitchBot extends EventEmitter {
             noble: this.config.noble,
             logLevel: this.config.logLevel,
           })
+
+          this.bleScanner.on('discover', this.advertisementListener)
 
           this.logger.info('BLE initialized')
         } catch (error) {
@@ -652,6 +660,32 @@ export class SwitchBot extends EventEmitter {
     return !!this.apiClient
   }
 
+  /** Find the known device an advertisement belongs to */
+  private findAdvertisedDevice(advertisement: BLEAdvertisement): SwitchBotDevice | undefined {
+    if (advertisement.address) {
+      const byMac = this.deviceManager.get(macToDeviceId(advertisement.address))
+      if (byMac) {
+        return byMac
+      }
+    }
+    return this.deviceManager.list().find(device => device.getInfo().bleId === advertisement.id)
+  }
+
+  /** Store an advertisement's data on the known device it belongs to */
+  private applyAdvertisement(advertisement: BLEAdvertisement): void {
+    const device = this.findAdvertisedDevice(advertisement)
+    if (!device) {
+      return
+    }
+    const { serviceData, rssi } = advertisement
+    device.updateInfo({
+      bleServiceData: serviceData as Record<string, unknown>,
+      bleServiceDataAt: Date.now(),
+      rssi,
+      ...(typeof serviceData.battery === 'number' ? { battery: serviceData.battery } : {}),
+    })
+  }
+
   /**
    * Cleanup and disconnect
    */
@@ -659,6 +693,7 @@ export class SwitchBot extends EventEmitter {
     this.logger.info('Cleaning up')
 
     if (this.bleScanner) {
+      this.bleScanner.off('discover', this.advertisementListener)
       this.bleScanner.destroy()
     }
 

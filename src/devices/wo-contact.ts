@@ -24,9 +24,9 @@ export class WoContact extends SwitchBotDevice {
       bleData => ({
         deviceId: this.info.id,
         connectionType: 'ble',
-        openState: bleData.position || 'closed',
+        openState: bleData.openState ?? 'closed',
         moveDetected: bleData.movement,
-        brightness: bleData.lightLevel,
+        brightness: bleData.brightness,
         battery: bleData.battery,
         updatedAt: new Date(),
       }),

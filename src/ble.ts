@@ -11,7 +11,7 @@ import { EventEmitter } from 'node:events'
 
 import { BLENotAvailableError, CommandFailedError, DeviceNotFoundError } from './errors.js'
 import { BLE_COMMAND_TIMEOUT, BLE_CONNECT_TIMEOUT, BLE_NOTIFY_CHARACTERISTIC_UUID, BLE_SCAN_TIMEOUT, BLE_SERVICE_UUID, BLE_WRITE_CHARACTERISTIC_UUID, DEVICE_MODEL_MAP } from './settings.js'
-import { extractMacFromManufacturerData, isValidMAC, Logger, macToDeviceId, mergeAdvertisement, normalizeMAC, withTimeout } from './utils/index.js'
+import { extractMacFromManufacturerData, isPassiveSensorModel, isValidMAC, Logger, macToDeviceId, mergeAdvertisement, normalizeMAC, parseSensorAdvertisement, switchBotManufacturerPayload, withTimeout } from './utils/index.js'
 // Move RegExp to module scope to avoid re-compilation
 const CHARACTERISTIC_REGEX = /characteristic/i
 const UUID_DASH_REGEX = /-/g
@@ -177,11 +177,6 @@ export class BLEScanner extends EventEmitter {
 
       const { advertisement, rssi, connectable } = peripheral
 
-      // Skip non-connectable devices
-      if (connectable === false) {
-        return
-      }
-
       // Skip devices with invalid RSSI (typical range: -120 to 0 dBm)
       if (typeof rssi !== 'number' || rssi < -120 || rssi > 0) {
         return
@@ -213,9 +208,18 @@ export class BLEScanner extends EventEmitter {
           continue
         }
 
-        const serviceData = this.parseServiceData(serviceDataItem.data)
+        const serviceData = this.parseServiceData(
+          serviceDataItem.data,
+          switchBotManufacturerPayload(peripheral.advertisement.manufacturerData),
+        )
 
         if (!serviceData) {
+          continue
+        }
+
+        // Sensors may advertise as non-connectable; they are read from the advertisement only.
+        // Skip other non-connectable devices, which cannot be controlled.
+        if (connectable === false && !isPassiveSensorModel(serviceData.model)) {
           continue
         }
 
@@ -272,7 +276,7 @@ export class BLEScanner extends EventEmitter {
   /**
    * Parse service data from BLE advertisement
    */
-  private parseServiceData(data: Buffer): BLEServiceData | null {
+  private parseServiceData(data: Buffer, manufacturerPayload?: Buffer): BLEServiceData | null {
     if (!data || data.length < 1) {
       return null
     }
@@ -329,6 +333,16 @@ export class BLEScanner extends EventEmitter {
             : 'locked'
         if (data.length > 3) {
           serviceData.sequenceNumber = data[3]
+        }
+      }
+
+      // Meters, contact, motion and leak sensors: readings from the advertisement (pySwitchbot)
+      const sensor = parseSensorAdvertisement(model, data, manufacturerPayload)
+      if (sensor) {
+        for (const [key, value] of Object.entries(sensor)) {
+          if (value !== undefined) {
+            serviceData[key] = value
+          }
         }
       }
 
@@ -1233,7 +1247,6 @@ export class BLEConnection {
       this.expectedDisconnects.delete(normalizedMac)
     }
   }
-
 
   /**
    * Write data to device

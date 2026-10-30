@@ -394,3 +394,4 @@ export {
 } from './fallback-handler.js'
 // Export advanced utilities
 export { type RetryConfig, RetryExecutor, type RetryResult } from './retry.js'
+export { isPassiveSensorModel, parseSensorAdvertisement, type SensorAdvertisement, switchBotManufacturerPayload } from './sensor-advertisement.js'
