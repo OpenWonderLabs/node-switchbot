@@ -1,3 +1,12 @@
+## [6.0.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.0.0...v6.0.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* **ble:** read sensors from advertisements instead of connecting ([4112d4b](https://github.com/OpenWonderLabs/node-switchbot/commit/4112d4b4492ef1a5d0f47f105bac0b35391210f3)), closes [homebridge-switchbot#1437](https://github.com/homebridge-switchbot/issues/1437)
+
+
+
 ## [5.2.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v5.2.0...v5.2.1) (2026-10-25)
 
 
