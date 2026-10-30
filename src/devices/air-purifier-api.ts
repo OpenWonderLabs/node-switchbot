@@ -49,16 +49,16 @@ type SendOnce = (command: readonly number[], options: { retry?: boolean, validat
  * `reset_filter_usage` does: send the reset once (never retried), require status 0x01, then read
  * the usage back and succeed only if it is 0 hours. Throws CommandFailedError otherwise.
  *
- * OpenAPI has no filter reset command. node-switchbot cannot decrypt replies yet, so on an
- * encrypted connection the readback cannot be checked; the reset is refused before anything is
- * sent rather than reported as done.
+ * OpenAPI has no filter reset command. On an encrypted device the transport decrypts the reply
+ * (setKey with key id and key). An encryption key without a key id uses the legacy scheme, whose
+ * replies cannot be read, so the reset is refused before anything is sent.
  */
 export async function resetAirPurifierFilterUsage(device: { encrypted: boolean, hasBLE: boolean, send: SendOnce }): Promise<boolean> {
   if (!device.hasBLE) {
     throw new CommandFailedError('Filter usage reset needs a BLE connection (OpenAPI has no reset command)', 'ble')
   }
   if (device.encrypted) {
-    throw new CommandFailedError('Filter usage reset cannot be verified on an encrypted connection: node-switchbot does not decrypt replies yet', 'ble')
+    throw new CommandFailedError('Filter usage reset cannot be verified with an encryption key but no key id: set both with setKey()', 'ble')
   }
 
   const reset = await device.send(DEVICE_COMMANDS.AIR_PURIFIER.RESET_FILTER_USAGE, { retry: false, validateResponse: false })

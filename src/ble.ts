@@ -6,7 +6,7 @@
 import type { BLEAdvertisement, BLEScanOptions, BLEServiceData } from './types/ble.js'
 
 import { Buffer } from 'node:buffer'
-import { createCipheriv } from 'node:crypto'
+import { createCipheriv, createDecipheriv } from 'node:crypto'
 import { EventEmitter } from 'node:events'
 
 import { BLENotAvailableError, CommandFailedError, DeviceNotFoundError } from './errors.js'
@@ -474,6 +474,71 @@ export class BLEScanner extends EventEmitter {
   }
 }
 
+interface EncryptedSession {
+  mode: 'ctr' | 'gcm'
+  iv: Buffer
+}
+
+/** Parse the reply to the encryption init command (pySwitchbot _ensure_encryption_initialized) */
+export function parseEncryptionInit(reply: Buffer | undefined, mac: string): EncryptedSession {
+  if (!reply || reply[0] !== 0x01) {
+    throw new CommandFailedError(`Encryption init rejected by ${mac}${reply?.length ? `: ${reply.toString('hex')}` : ''}`, 'ble')
+  }
+  const modeByte = reply[2]
+  if (modeByte !== 0 && modeByte !== 1) {
+    throw new CommandFailedError(`Unsupported encryption mode ${modeByte} from ${mac}`, 'ble')
+  }
+  const mode = modeByte === 1 ? 'gcm' : 'ctr'
+  const iv = mode === 'gcm' ? reply.subarray(4, reply.length - 4) : reply.subarray(4)
+  const expected = mode === 'gcm' ? 12 : 16
+  if (iv.length !== expected) {
+    throw new CommandFailedError(`Invalid IV length ${iv.length} for ${mode.toUpperCase()} from ${mac} (expected ${expected})`, 'ble')
+  }
+  return { mode, iv: Buffer.from(iv) }
+}
+
+/** Encrypt a command body; returns the ciphertext and the 2-byte packet header */
+export function encryptPayload(key: Buffer, session: EncryptedSession, data: Buffer): { ciphertext: Buffer, header: Buffer } {
+  if (data.length === 0) {
+    return { ciphertext: Buffer.alloc(0), header: Buffer.alloc(0) }
+  }
+  if (session.mode === 'gcm') {
+    const cipher = createCipheriv('aes-128-gcm', key, session.iv)
+    const ciphertext = Buffer.concat([cipher.update(data), cipher.final()])
+    return { ciphertext, header: cipher.getAuthTag().subarray(0, 2) }
+  }
+  const cipher = createCipheriv('aes-128-ctr', key, session.iv)
+  return { ciphertext: Buffer.concat([cipher.update(data), cipher.final()]), header: session.iv.subarray(0, 2) }
+}
+
+/** Decrypt a reply payload. GCM replies carry only a partial tag, so the tag is not checked. */
+export function decryptPayload(key: Buffer, session: EncryptedSession, data: Buffer): Buffer {
+  if (data.length === 0) {
+    return Buffer.alloc(0)
+  }
+  if (session.mode === 'gcm') {
+    const decipher = createDecipheriv('aes-128-gcm', key, session.iv)
+    decipher.setAuthTag(Buffer.alloc(16))
+    return decipher.update(data)
+  }
+  const decipher = createDecipheriv('aes-128-ctr', key, session.iv)
+  return Buffer.concat([decipher.update(data), decipher.final()])
+}
+
+/** Increment an IV as a big-endian integer */
+function incrementIv(iv: Buffer): Buffer {
+  const next = Buffer.from(iv)
+  for (let i = next.length - 1; i >= 0; i--) {
+    if (next[i] === 0xFF) {
+      next[i] = 0
+    } else {
+      next[i]++
+      break
+    }
+  }
+  return next
+}
+
 /**
  * BLE Connection for communicating with SwitchBot devices
  */
@@ -485,6 +550,8 @@ export class BLEConnection {
   private disconnectTimers: Map<string, NodeJS.Timeout> = new Map()
   private operationLocks: Map<string, Promise<void>> = new Map()
   private encryptionConfig: Map<string, { key: Buffer, iv: Buffer, mode: 'ctr' | 'gcm' }> = new Map()
+  // pySwitchbot-style encrypted sessions (IV and mode reported by the device), reset on disconnect
+  private encryptedSessions: Map<string, EncryptedSession> = new Map()
   private notificationHandlers: Map<string, Set<(payload: Buffer) => void>> = new Map()
   // noble keeps only the latest pending subscribe callback per characteristic, so share in-flight subscribes
   private pendingSubscriptions: WeakMap<object, Promise<void>> = new WeakMap()
@@ -493,6 +560,8 @@ export class BLEConnection {
 
   // Notification handling
   private notificationFutures: Map<string, { resolve: (payload: Buffer) => void, reject: (err: Error) => void, timer: NodeJS.Timeout }> = new Map()
+  // Notify characteristics that already have our 'data' listener (rediscovery yields new objects)
+  private notifyListeners: WeakSet<object> = new WeakSet()
 
   // Expected disconnect tracking
   private expectedDisconnects: Set<string> = new Set()
@@ -720,56 +789,193 @@ export class BLEConnection {
     const {
       expectResponse = true,
       validateResponse = true,
-      responseTimeoutMs = 1200,
+      responseTimeoutMs = 5000,
       expectNotification = false,
       notificationTimeoutMs = 5000,
     } = options
 
     return this.withMacLock(normalizedMac, async () => {
       const payload = this.encryptIfConfigured(normalizedMac, data)
+      return this.exchangeLocked(normalizedMac, payload, { expectResponse, validateResponse, responseTimeoutMs, expectNotification, notificationTimeoutMs })
+    })
+  }
+
+  /**
+   * Write a packet and return the device's reply. The caller holds the MAC lock.
+   */
+  private async exchangeLocked(
+    normalizedMac: string,
+    payload: Buffer,
+    options: { expectResponse: boolean, validateResponse: boolean, responseTimeoutMs: number, expectNotification: boolean, notificationTimeoutMs: number },
+  ): Promise<Buffer | undefined> {
+    const { expectResponse, validateResponse, responseTimeoutMs, expectNotification, notificationTimeoutMs } = options
+    if (!expectNotification && !expectResponse && !validateResponse) {
       await this.write(normalizedMac, payload)
+      return undefined
+    }
 
-      if (expectNotification) {
-        // DEBUG: Log future creation
-        this.logger.debug(`[DEBUG] Creating notification future for ${normalizedMac}`)
-        // Wait for notification (per-command future)
-        return await new Promise<Buffer>((resolve, reject) => {
-          if (this.notificationFutures.has(normalizedMac)) {
-            this.logger.warn(`Notification future already exists for ${normalizedMac}, overwriting`)
-            const prev = this.notificationFutures.get(normalizedMac)
-            if (prev) {
-              clearTimeout(prev.timer)
-            }
-          }
-          const timer = setTimeout(() => {
-            this.logger.debug(`[DEBUG] Notification future timed out for ${normalizedMac}`)
-            this.notificationFutures.delete(normalizedMac)
-            reject(new Error(`Notification timeout (${notificationTimeoutMs}ms) for ${normalizedMac}`))
-          }, notificationTimeoutMs)
-          this.notificationFutures.set(normalizedMac, { resolve, reject, timer })
-          // TEST HOOK: Notify when the notification future is set
-          if (typeof (this as any)._onNotificationFutureSet === 'function') {
-            (this as any)._onNotificationFutureSet(normalizedMac)
-          }
-          this.logger.debug(`[DEBUG] notificationFutures after set: ${[...this.notificationFutures.keys()].join(',')}`)
-        })
+    // A SwitchBot device answers a command with a notification on the notify characteristic
+    // (pySwitchbot _execute_command_locked). Start waiting before writing, so a fast reply is
+    // not missed. Backends without notification events fall back to reading the characteristic.
+    const reply = await this.prepareReply(normalizedMac, expectNotification ? notificationTimeoutMs : responseTimeoutMs)
+    try {
+      await this.write(normalizedMac, payload)
+    } catch (error) {
+      reply?.cancel()
+      throw error
+    }
+
+    const response = reply
+      ? await reply.promise
+      : await withTimeout(this.read(normalizedMac), responseTimeoutMs, `BLE response timeout from ${normalizedMac}`)
+
+    if (validateResponse && !expectNotification) {
+      this.validateCommandResult(response, normalizedMac)
+    }
+
+    return response
+  }
+
+  /**
+   * Send a command to an encrypted device and return its decrypted reply, using the protocol in
+   * pySwitchbot's SwitchbotEncryptedDevice:
+   *
+   * - Session setup, once per connection: send `57 000000 0F2103 <keyId>` unencrypted. The reply is
+   *   status (0x01), byte 2 the AES mode (0 CTR, 1 GCM), then the IV (CTR: bytes 4..; GCM: 12 bytes
+   *   from byte 4).
+   * - Command `57 <rest>` is sent as `57 <keyId> <2-byte header> <AES(rest)>`, where the header is
+   *   IV[0..2] for CTR or the first 2 bytes of the GCM tag.
+   * - The reply is `<status> <3 bytes> <AES(payload)>`; this returns `<status> <payload>`. In GCM
+   *   mode the IV is incremented after every command.
+   */
+  async sendEncryptedCommand(
+    mac: string,
+    command: Buffer,
+    options: {
+      keyId: string
+      encryptionKey: string
+      validateResponse?: boolean
+      responseTimeoutMs?: number
+    },
+  ): Promise<Buffer> {
+    const normalizedMac = normalizeMAC(mac)
+    const key = Buffer.from(options.encryptionKey, 'hex')
+    const keyId = Buffer.from(options.keyId, 'hex')
+    if (key.length !== 16) {
+      throw new CommandFailedError('Invalid BLE encryption key (expected 32 hex characters)', 'ble')
+    }
+    if (keyId.length !== 1 || options.keyId.length !== 2) {
+      throw new CommandFailedError('Invalid BLE key id (expected 2 hex characters)', 'ble')
+    }
+    if (command.length < 1) {
+      throw new CommandFailedError('Empty BLE command', 'ble')
+    }
+    const exchange = {
+      expectResponse: true,
+      validateResponse: options.validateResponse ?? true,
+      responseTimeoutMs: options.responseTimeoutMs ?? 5000,
+      expectNotification: false,
+      notificationTimeoutMs: 5000,
+    }
+
+    return this.withMacLock(normalizedMac, async () => {
+      let session = this.encryptedSessions.get(normalizedMac)
+      if (!session) {
+        const init = await this.exchangeLocked(
+          normalizedMac,
+          Buffer.from([0x57, 0x00, 0x00, 0x00, 0x0F, 0x21, 0x03, keyId[0]]),
+          { ...exchange, validateResponse: false },
+        )
+        session = parseEncryptionInit(init, normalizedMac)
+        this.encryptedSessions.set(normalizedMac, session)
       }
 
-      if (!expectResponse && !validateResponse) {
-        return undefined
+      const { ciphertext, header } = encryptPayload(key, session, command.subarray(1))
+      const packet = Buffer.concat([command.subarray(0, 1), keyId, header, ciphertext])
+      const reply = await this.exchangeLocked(normalizedMac, packet, exchange)
+      if (!reply || reply.length === 0) {
+        throw new CommandFailedError(`Empty BLE response from ${normalizedMac}`, 'ble')
       }
-
-      const response = await withTimeout(
-        this.read(normalizedMac),
-        responseTimeoutMs,
-        `BLE response timeout from ${normalizedMac}`,
-      )
-
-      if (validateResponse) {
-        this.validateCommandResult(response, normalizedMac)
+      const decrypted = Buffer.concat([reply.subarray(0, 1), decryptPayload(key, session, reply.subarray(4))])
+      if (session.mode === 'gcm') {
+        session.iv = incrementIv(session.iv)
       }
+      return decrypted
+    })
+  }
 
-      return response
+  /**
+   * Register a wait for the next notification from a device, before the command is written.
+   * Returns undefined when the notify characteristic emits no events (then the caller reads it).
+   */
+  private async prepareReply(mac: string, timeoutMs: number): Promise<{ promise: Promise<Buffer>, cancel: () => void } | undefined> {
+    if (!this.connections.has(mac)) {
+      await this.connect(mac)
+    }
+    let chars = this.characteristics.get(mac)
+    if (!chars) {
+      await this.discoverCharacteristics(mac, this.connections.get(mac))
+      chars = this.characteristics.get(mac)
+    }
+    if (!chars?.notify || typeof chars.notify.on !== 'function') {
+      return undefined
+    }
+    this.ensureNotifyListener(mac, chars.notify)
+
+    const previous = this.notificationFutures.get(mac)
+    if (previous) {
+      clearTimeout(previous.timer)
+      previous.reject(new Error(`Superseded by a newer command for ${mac}`))
+    }
+
+    let future!: { resolve: (payload: Buffer) => void, reject: (err: Error) => void, timer: NodeJS.Timeout }
+    const promise = new Promise<Buffer>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        if (this.notificationFutures.get(mac) === future) {
+          this.notificationFutures.delete(mac)
+        }
+        reject(new Error(`Notification timeout (${timeoutMs}ms) for ${mac}`))
+      }, timeoutMs)
+      future = { resolve, reject, timer }
+    })
+    // Avoid an unhandled rejection if the caller stops waiting (e.g. the write failed)
+    promise.catch(() => {})
+    this.notificationFutures.set(mac, future)
+    // TEST HOOK: Notify when the notification future is set
+    if (typeof (this as any)._onNotificationFutureSet === 'function') {
+      (this as any)._onNotificationFutureSet(mac)
+    }
+
+    const cancel = () => {
+      clearTimeout(future.timer)
+      if (this.notificationFutures.get(mac) === future) {
+        this.notificationFutures.delete(mac)
+      }
+    }
+    return { promise, cancel }
+  }
+
+  /**
+   * Attach one 'data' listener per notify characteristic: a notification answers the pending
+   * command if there is one, otherwise it goes to subscribeNotifications() handlers.
+   */
+  private ensureNotifyListener(mac: string, notifyChar: any): void {
+    if (this.notifyListeners.has(notifyChar)) {
+      return
+    }
+    this.notifyListeners.add(notifyChar)
+    notifyChar.on('data', (payload: Buffer) => {
+      const future = this.notificationFutures.get(mac)
+      if (future) {
+        clearTimeout(future.timer)
+        this.notificationFutures.delete(mac)
+        future.resolve(payload)
+        return
+      }
+      this.logger.debug(`Unsolicited notification from ${mac}: ${payload.toString('hex')}`)
+      for (const listener of this.notificationHandlers.get(mac) ?? []) {
+        listener(payload)
+      }
     })
   }
 
@@ -787,34 +993,9 @@ export class BLEConnection {
 
     if (!this.notificationHandlers.has(normalizedMac)) {
       this.notificationHandlers.set(normalizedMac, new Set())
-
-      if (typeof chars.notify.on === 'function') {
-        chars.notify.on('data', (payload: Buffer) => {
-          // DEBUG: Log notification future state
-          this.logger.debug(`[DEBUG] notifyChar handler called for ${normalizedMac}`)
-          this.logger.debug(`[DEBUG] notificationFutures keys at handler: ${[...this.notificationFutures.keys()].join(',')}`)
-          const future = this.notificationFutures.get(normalizedMac)
-          if (future) {
-            this.logger.debug(`[DEBUG] notificationFutures present, resolving as solicited`)
-            clearTimeout(future.timer)
-            this.notificationFutures.delete(normalizedMac)
-            this.logger.debug(`[DEBUG] notificationFutures after delete: ${[...this.notificationFutures.keys()].join(',')}`)
-            future.resolve(payload)
-            return
-          }
-          this.logger.debug(`[DEBUG] unsolicited notification branch`)
-          this.logger.debug(`[DEBUG] about to call logger.info for unsolicited notification`)
-          this.logger.info(`Unsolicited notification from ${normalizedMac}: ${payload.toString('hex')}`)
-          this.logger.debug(`[DEBUG] after logger.info for unsolicited notification`)
-          const handlers = this.notificationHandlers.get(normalizedMac)
-          if (!handlers) {
-            return
-          }
-          for (const listener of handlers) {
-            listener(payload)
-          }
-        })
-      }
+    }
+    if (typeof chars.notify.on === 'function') {
+      this.ensureNotifyListener(normalizedMac, chars.notify)
     }
 
     // Register first so notifications arriving as soon as the CCCD is enabled are delivered.
@@ -992,6 +1173,7 @@ export class BLEConnection {
     this.clearDisconnectTimer(normalizedMac)
     // Reset encryption state (IV, cipher, mode) for this device
     this.clearEncryption(normalizedMac)
+    this.encryptedSessions.delete(normalizedMac)
     this.notificationHandlers.delete(normalizedMac)
     const pending = this.notificationFutures.get(normalizedMac)
     if (pending) {

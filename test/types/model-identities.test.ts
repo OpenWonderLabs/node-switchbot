@@ -150,3 +150,29 @@ describe('bLE model codes match pySwitchbot', () => {
     expect(parse(0x0D, [0x03, 0x64, 0x00])?.state).toBeUndefined()
   })
 })
+
+// SwitchBotBLEModel used to hold codes that now belong to other products (MeterPro 'o' was the
+// Lock's code, WaterLeakDetector 'y' the Keypad's, Remote 0x05 HubMini Matter's...).
+describe('switchBotBLEModel values', () => {
+  it('every value is a known model code that resolves to a device class', () => {
+    for (const [name, code] of Object.entries(SwitchBotBLEModel)) {
+      const displayName = DEVICE_MODEL_MAP[code]
+      expect(displayName, name).toBeDefined()
+      expect(resolveDeviceClassName(displayName), `${name} -> ${displayName}`).toBeDefined()
+    }
+  })
+
+  it.each([
+    ['MeterPro', 'Meter Pro'],
+    ['WaterLeakDetector', 'Water Leak Detector'],
+    ['Keypad', 'Keypad'],
+    ['Remote', 'Remote'],
+    ['RelaySwitch1PM', 'Relay Switch 1PM'],
+    ['AirPurifier', 'Air Purifier'],
+    ['BatteryCirculatorFan', 'Circulator Fan'],
+    ['Humidifier2', 'Evaporative Humidifier'],
+    ['RobotVacuumCleanerK10Plus', 'Robot Vacuum Cleaner K10+'],
+  ])('%s names the right product', (name, displayName) => {
+    expect(DEVICE_MODEL_MAP[(SwitchBotBLEModel as any)[name]]).toBe(displayName)
+  })
+})

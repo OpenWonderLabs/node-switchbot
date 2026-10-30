@@ -70,9 +70,9 @@ describe('air purifier resetFilterUsage', () => {
     expect(sendCommand).toHaveBeenCalledTimes(3)
   })
 
-  it('refuses on an encrypted connection without sending anything', async () => {
+  it('refuses an encryption key without a key id, without sending anything', async () => {
     const { device, sendCommand } = purifier([], { encryptionKey: '00112233445566778899aabbccddeeff' })
-    await expect(device.resetFilterUsage()).rejects.toThrow('encrypted connection')
+    await expect(device.resetFilterUsage()).rejects.toThrow('no key id')
     expect(sendCommand).not.toHaveBeenCalled()
   })
 

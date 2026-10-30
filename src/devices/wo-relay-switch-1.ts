@@ -24,6 +24,10 @@ export class WoRelaySwitch1 extends SequenceDevice implements RelaySwitchCommand
   protected maybeEncryptCommand(cmd: Buffer | readonly number[]): Buffer {
     // Convert readonly arrays to mutable arrays for compatibility
     const arr = Buffer.isBuffer(cmd) ? cmd : Buffer.from([...cmd])
+    // With a key id the BLE transport encrypts (pySwitchbot protocol); do not encrypt twice
+    if (this.info.keyId) {
+      return arr
+    }
     if (!this.needsEncryption()) {
       return arr
     }

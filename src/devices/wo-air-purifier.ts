@@ -24,6 +24,10 @@ export class WoAirPurifier extends SequenceDevice implements AirPurifierCommands
    */
   private maybeEncryptCommand(cmd: Buffer | readonly number[]): Buffer {
     const arr = Buffer.isBuffer(cmd) ? cmd : Buffer.from([...cmd])
+    // With a key id the BLE transport encrypts (pySwitchbot protocol); do not encrypt twice
+    if (this.info.keyId) {
+      return arr
+    }
     if (!this.needsEncryption()) {
       return arr
     }
@@ -149,7 +153,8 @@ export class WoAirPurifier extends SequenceDevice implements AirPurifierCommands
    */
   async resetFilterUsage(): Promise<boolean> {
     return resetAirPurifierFilterUsage({
-      encrypted: !!this.info.encryptionKey,
+      // Encrypted replies are only readable with a key id (pySwitchbot protocol)
+      encrypted: !!this.info.encryptionKey && !this.info.keyId,
       hasBLE: this.hasBLE(),
       send: (command, options) => this.sendBLECommand(command, false, options),
     })
