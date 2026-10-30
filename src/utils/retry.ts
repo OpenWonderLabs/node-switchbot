@@ -137,14 +137,14 @@ export class RetryExecutor {
         if (attemptNumber < this.config.maxAttempts && (isDBusError || isBleakRetry || attemptNumber < this.config.maxAttempts)) {
           // DBus error: always backoff 0.25s (250ms) before normal backoff
           if (isDBusError) {
-            this.logger.warn(
+            this.logger.debug(
               `${description} DBus error detected on attempt ${attemptNumber}, applying 250ms backoff`,
               { error: errorMsg },
             )
             await new Promise(resolve => setTimeout(resolve, 250))
           }
           const delayMs = this.calculateDelay(attemptNumber)
-          this.logger.warn(
+          this.logger.debug(
             `${description} failed on attempt ${attemptNumber}/${this.config.maxAttempts}, retrying in ${delayMs}ms`,
             {
               error: errorMsg,
@@ -156,7 +156,7 @@ export class RetryExecutor {
           )
           await new Promise(resolve => setTimeout(resolve, delayMs))
         } else {
-          this.logger.error(
+          this.logger.debug(
             `${description} failed after ${attemptNumber} attempts`,
             {
               error: errorMsg,

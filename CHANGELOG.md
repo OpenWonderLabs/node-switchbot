@@ -1,3 +1,12 @@
+## [5.2.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v5.2.0...v5.2.1) (2026-10-25)
+
+
+### Bug Fixes
+
+* **ble:** only report disconnects the device starts as unexpected ([d36216d](https://github.com/OpenWonderLabs/node-switchbot/commit/d36216d0e0b03820753c9d40ed23d87631657904)), closes [#348](https://github.com/OpenWonderLabs/node-switchbot/issues/348)
+
+
+
 # [5.2.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v5.1.1...v5.2.0) (2026-10-24)
 
 
