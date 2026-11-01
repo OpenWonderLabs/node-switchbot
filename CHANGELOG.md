@@ -1,3 +1,12 @@
+## [6.0.4](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.0.3...v6.0.4) (2026-11-01)
+
+
+### Features
+
+* resolve the Lock Ultra and Permanent Outdoor Lights OpenAPI device types ([f0e2790](https://github.com/OpenWonderLabs/node-switchbot/commit/f0e2790db4f45c1730ce740594050ec9db0f73b2))
+
+
+
 ## [6.0.3](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.0.2...v6.0.3) (2026-11-01)
 
 
