@@ -58,7 +58,7 @@ OpenAPI command names and parameters must match the device pages in
 
 ## Commands
 
-Node `^22 || ^24`. Run in this order; every step must pass before committing:
+Node `^22 || ^24 || ^26`. Run in this order; every step must pass before committing:
 
 ```bash
 npm ci
@@ -120,7 +120,7 @@ test/                    # Vitest: apis/, devices/, types/, utils/
 - Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `chore:`). Use `feat!:` with a
   `BREAKING CHANGE:` footer when public identities, enums or behaviour change.
 - Default branch is `latest`. PRs are squash-merged, so the PR title becomes the commit message.
-- `.github/workflows/ci.yml` runs build, test and lint on Node 22 and 24 for every PR to `latest`
+- `.github/workflows/ci.yml` runs build, test and lint on Node 22, 24 and 26 for every PR to `latest`
   or `beta-*`. Run the full check locally first anyway.
 - `.github/workflows/release.yml`:
   - push to `beta-*`: build, test, lint, then publish a beta to npm;

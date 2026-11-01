@@ -38,7 +38,7 @@ The `SwitchBot` class allows you to interact with SwitchBot devices using the Sw
 
   ## Requirements
 
-  - Node.js `^20 || ^22 || ^24`
+  - Node.js `^22 || ^24 || ^26`
   - `@stoprocent/noble` is included as a dependency
 
   ## Prerequisites
