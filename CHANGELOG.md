@@ -1,3 +1,12 @@
+## [6.0.3](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.0.2...v6.0.3) (2026-11-01)
+
+
+### Bug Fixes
+
+* **deps:** require undici 8.12.3 for security fixes ([a71dbb8](https://github.com/OpenWonderLabs/node-switchbot/commit/a71dbb8c8cc3108c140c03afdfa4cddd636346a7))
+
+
+
 ## [6.0.2](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.0.1...v6.0.2) (2026-10-30)
 
 
