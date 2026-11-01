@@ -64,7 +64,7 @@
   "readmeFilename": "README.md",
   "dependencies": {
     "@stoprocent/noble": "^2.4.0",
-    "undici": "^8.0.2"
+    "undici": "^8.12.3"
   },
   "optionalDependencies": {
     "@stoprocent/bluetooth-hci-socket": "^2.2.5"
