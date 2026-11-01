@@ -73,6 +73,31 @@ describe('openAPI commands', () => {
     expect(calls()).toEqual([['setColor', '255:128:0']])
   })
 
+  // devices/lighting/permanent-outdoor-lights.md
+  it('permanent Outdoor Lights send the documented light commands', async () => {
+    const { device, calls } = await apiDevice('Permanent Outdoor Lights')
+    await device.turnOn()
+    await device.turnOff()
+    await device.setBrightness(40)
+    await device.setColorTemperature(2700)
+    await device.setColor(255, 128, 0)
+    expect(calls()).toEqual([
+      ['turnOn', undefined],
+      ['turnOff', undefined],
+      ['setBrightness', 40],
+      ['setColorTemperature', 2700],
+      ['setColor', '255:128:0'],
+    ])
+  })
+
+  // devices/locks-security/lock-ultra.md: the status response reports deviceType "Lock Ultra"
+  it('lock Ultra sends lock and unlock', async () => {
+    const { device, calls } = await apiDevice('Lock Ultra')
+    await device.lock()
+    await device.unlock()
+    expect(calls()).toEqual([['lock', undefined], ['unlock', undefined]])
+  })
+
   it('color Bulb sends setColorTemperature in kelvin', async () => {
     const { device, calls } = await apiDevice('Color Bulb')
     await device.setColorTemp(2700, 6500, 4000)

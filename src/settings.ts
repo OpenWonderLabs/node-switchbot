@@ -316,6 +316,7 @@ export const DEVICE_CLASS_MAP: Record<string, string> = {
   'Smart Lock Pro': 'WoSmartLockPro',
   'Smart Lock Pro Wifi': 'WoSmartLockProWiFi',
   'Smart Lock Ultra': 'WoSmartLockPro',
+  'Lock Ultra': 'WoSmartLockPro', // deviceType in the Lock Ultra status response
   'Lock Vision': 'WoSmartLockVision',
   'Lock Vision Pro': 'WoSmartLockVisionPro',
   'Keypad': 'WoKeypad',
@@ -337,6 +338,8 @@ export const DEVICE_CLASS_MAP: Record<string, string> = {
   'SwitchBot Floor Lamp': 'WoFloorLamp',
   'RGBICWW Strip Light': 'WoRGBICWWStripLight',
   'SwitchBot RGBICWW Strip Light': 'WoRGBICWWStripLight',
+  // Same OpenAPI commands as the RGBICWW Strip Light: turnOn/turnOff/toggle, setBrightness, setColor, setColorTemperature
+  'Permanent Outdoor Lights': 'WoRGBICWWStripLight',
   'RGBICWW Floor Lamp': 'WoRGBICWWFloorLamp',
   'SwitchBot RGBICWW Floor Lamp': 'WoRGBICWWFloorLamp',
   'Art Frame': 'WoArtFrame',

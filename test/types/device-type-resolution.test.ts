@@ -62,6 +62,8 @@ describe('openAPI deviceType names', () => {
     ['Smart Lock Pro', 'WoSmartLockPro'],
     ['Smart Lock Pro Wifi', 'WoSmartLockProWiFi'],
     ['Smart Lock Ultra', 'WoSmartLockPro'],
+    ['Lock Ultra', 'WoSmartLockPro'],
+    ['Permanent Outdoor Lights', 'WoRGBICWWStripLight'],
     ['Air Purifier VOC', 'WoAirPurifier'],
     ['Air Purifier Table PM2.5', 'WoAirPurifierTable'],
     ['Air Purifier Table VOC', 'WoAirPurifierTable'],
