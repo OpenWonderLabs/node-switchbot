@@ -1210,7 +1210,8 @@ export class BLEConnection {
       if (this.connections.get(normalizedMac) !== peripheral) {
         return
       }
-      if (expected) {
+      const established = this.characteristics.has(normalizedMac)
+      if (expected || !established) {
         this.logger.debug(`${mac} disconnected`)
       } else {
         this.logger.warn(`Unexpected disconnect from ${mac}`)
@@ -1315,6 +1316,24 @@ export class BLEConnection {
     }
   }
 
+  private async readNotification(normalizedMac: string, chars: any): Promise<Buffer> {
+    return withTimeout(
+      new Promise<Buffer>((resolve, reject) => {
+        (chars.notify).read((error: Error, data: Buffer) => {
+          if (error) {
+            reject(error)
+          } else {
+            this.markExpectedDisconnect(normalizedMac)
+            this.scheduleDisconnect(normalizedMac)
+            resolve(data)
+          }
+        })
+      }),
+      BLE_COMMAND_TIMEOUT,
+      'Read operation timed out',
+    )
+  }
+
   /**
    * Read data from device
    */
@@ -1338,20 +1357,7 @@ export class BLEConnection {
     this.logger.debug(`Reading from ${mac}`)
 
     try {
-      return await withTimeout(
-        new Promise<Buffer>((resolve, reject) => {
-          (chars!.notify).read((error: Error, data: Buffer) => {
-            if (error) {
-              reject(error)
-            } else {
-              this.scheduleDisconnect(normalizedMac)
-              resolve(data)
-            }
-          })
-        }),
-        BLE_COMMAND_TIMEOUT,
-        'Read operation timed out',
-      )
+      return await this.readNotification(normalizedMac, chars)
     } catch (err: any) {
       // If error is characteristic-related, clear cache and retry once
       if (CHARACTERISTIC_REGEX.test(err?.message || '')) {
@@ -1362,20 +1368,7 @@ export class BLEConnection {
           throw err
         }
         // Retry once
-        return await withTimeout(
-          new Promise<Buffer>((resolve, reject) => {
-            (chars!.notify).read((error: Error, data: Buffer) => {
-              if (error) {
-                reject(error)
-              } else {
-                this.scheduleDisconnect(normalizedMac)
-                resolve(data)
-              }
-            })
-          }),
-          BLE_COMMAND_TIMEOUT,
-          'Read operation timed out',
-        )
+        return await this.readNotification(normalizedMac, chars)
       } else {
         throw err
       }
