@@ -1,3 +1,12 @@
+## [6.0.6](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.0.5...v6.0.6) (2026-11-06)
+
+
+### Features
+
+* support Node.js 26 LTS ([#360](https://github.com/OpenWonderLabs/node-switchbot/issues/360)) ([b238e78](https://github.com/OpenWonderLabs/node-switchbot/commit/b238e78e1b26642f6c50c2f6c40cc01dfcfdebf6)), closes [/www.linuxcompatible.org/story/nodejs-26130-lithium-reaches-lts-support-throu#april-2029](https://github.com//www.linuxcompatible.org/story/nodejs-26130-lithium-reaches-lts-support-throu/issues/april-2029)
+
+
+
 ## [6.0.4](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.0.3...v6.0.4) (2026-11-01)
 
 
