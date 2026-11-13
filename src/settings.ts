@@ -7,6 +7,8 @@
  * settings.ts: SwitchBot v4.0.0 - Configuration and Constants
  */
 
+import type { Buffer } from 'node:buffer'
+
 import process from 'node:process'
 
 export const PASSIVE_POLL_INTERVAL = 60 * 60 * 24 * 1000
@@ -163,7 +165,7 @@ export const DEVICE_COMMANDS = {
 } as const
 
 /**
- * Lock Command Constants (WoSmartLock)
+ * @deprecated These bytes never matched the lock protocol. Locks use {@link LOCK_COMMANDS}.
  */
 export const WoSmartLockCommands = {
   LOCK: [0x57, 0x0F, 0x4E, 0x01, 0x00] as const,
@@ -171,13 +173,153 @@ export const WoSmartLockCommands = {
 } as const
 
 /**
- * Lock Pro Command Constants (WoSmartLockPro)
+ * @deprecated These bytes never matched the lock protocol. Locks use {@link LOCK_COMMANDS}.
  */
 export const WoSmartLockProCommands = {
   LOCK: [0x57, 0x0F, 0x4F, 0x01, 0x00] as const,
   UNLOCK: [0x57, 0x0F, 0x4F, 0x01, 0x01] as const,
   UNLATCH: [0x57, 0x0F, 0x4F, 0x01, 0x02] as const,
 } as const
+
+/** Lock models, with pySwitchbot's names */
+export type LockModel
+  = | 'Lock'
+    | 'Lock Lite'
+    | 'Lock Pro'
+    | 'Lock Pro WiFi'
+    | 'Lock Ultra'
+    | 'Lock Ultra Max'
+    | 'UWB Lock'
+    | 'Lock Nano'
+    | 'Lock Vision'
+    | 'Lock Vision Pro'
+
+/** BLE commands for one lock model, before encryption */
+export interface LockCommandSet {
+  lock: readonly number[]
+  unlock: readonly number[]
+  unlockWithoutUnlatch: readonly number[]
+  /** Read the lock info */
+  info: readonly number[]
+  enableNotifications: readonly number[]
+  /** Lock Ultra only */
+  halfLock?: readonly number[]
+}
+
+function hex(value: string): readonly number[] {
+  return Object.freeze(value.match(/../g)!.map(byte => Number.parseInt(byte, 16)))
+}
+
+/** Lock, Lock Lite: lock and unlock commands end with a mode byte (pySwitchbot) */
+function lock1Commands(modelByte: string): LockCommandSet {
+  return {
+    lock: hex('570f4e01011000'),
+    unlock: hex('570f4e01011080'),
+    unlockWithoutUnlatch: hex('570f4e010110a0'),
+    info: hex(`570f4f81${modelByte}`),
+    enableNotifications: hex(`570e01001e000081${modelByte}`),
+  }
+}
+
+/** Every other lock model */
+function lock2Commands(modelByte: string): LockCommandSet {
+  return {
+    lock: hex('570f4e0101000000'),
+    unlock: hex('570f4e0101000080'),
+    unlockWithoutUnlatch: hex('570f4e01010000a0'),
+    info: hex(`570f4f81${modelByte}`),
+    enableNotifications: hex(`570e01001e000081${modelByte}`),
+  }
+}
+
+/**
+ * BLE lock commands for each lock model, as pySwitchbot's tables in switchbot/devices/lock.py.
+ * Locks are encrypted devices: set the key with `device.setKey({ keyId, encryptionKey })`.
+ */
+export const LOCK_COMMANDS: Record<LockModel, LockCommandSet> = {
+  'Lock': lock1Commands('01'),
+  'Lock Lite': lock1Commands('01'),
+  'Lock Pro': lock2Commands('04'),
+  'Lock Ultra': { ...lock2Commands('07'), halfLock: hex('570f4e0101000008') },
+  'Lock Ultra Max': lock2Commands('07'),
+  'UWB Lock': lock2Commands('07'),
+  'Lock Nano': lock2Commands('0c'),
+  'Lock Vision Pro': lock2Commands('02'),
+  'Lock Vision': lock2Commands('02'),
+  'Lock Pro WiFi': lock2Commands('0a'),
+}
+
+/** Lock Ultra Quick Key: read the settings */
+export const LOCK_QUICK_KEY_GET = hex('570f4f0401')
+/** Lock Ultra Quick Key: write prefix, followed by the update, value and motor speed bytes */
+export const LOCK_QUICK_KEY_SET_PREFIX = hex('570f4e040100')
+
+/**
+ * Lock models for the device type names node-switchbot and the OpenAPI use. Device types that
+ * are not listed fall back to the lock class's own model.
+ */
+export const LOCK_MODEL_BY_DEVICE_TYPE: Record<string, LockModel> = {
+  'lock': 'Lock',
+  'smart lock': 'Lock',
+  'lock lite': 'Lock Lite',
+  'smart lock lite': 'Lock Lite',
+  'lock pro': 'Lock Pro',
+  'smart lock pro': 'Lock Pro',
+  'lock pro wifi': 'Lock Pro WiFi',
+  'smart lock pro wifi': 'Lock Pro WiFi',
+  'lock ultra': 'Lock Ultra',
+  'smart lock ultra': 'Lock Ultra',
+  'lock ultra max': 'Lock Ultra Max',
+  'smart lock ultra max': 'Lock Ultra Max',
+  'uwb lock': 'UWB Lock',
+  'smart lock uwb': 'UWB Lock',
+  'lock nano': 'Lock Nano',
+  'smart lock nano': 'Lock Nano',
+  'lock vision': 'Lock Vision',
+  'lock vision pro': 'Lock Vision Pro',
+}
+
+/**
+ * Devices identified by the 4-byte product ID at the end of their service data, as pySwitchbot's
+ * multi-byte SUPPORTED_TYPES keys (found by `_find_model_from_service_data_suffix`). Keys are hex;
+ * each product has a `00` and a `01` form.
+ *
+ * Only products whose BLE status and commands node-switchbot implements are listed: recognising a
+ * product over BLE makes its status BLE-first.
+ */
+export const PRODUCT_ID_MODEL_MAP: Record<string, string> = {
+  '0010a5b8': 'Lock Ultra',
+  '0110a5b8': 'Lock Ultra',
+  '00119fb8': 'Lock Ultra Max',
+  '01119fb8': 'Lock Ultra Max',
+  '00121100': 'UWB Lock',
+  '01121100': 'UWB Lock',
+  '00122488': 'Lock Nano',
+  '01122488': 'Lock Nano',
+  '00116908': 'Lock Vision',
+  '01116908': 'Lock Vision',
+  '00116909': 'Lock Vision Pro',
+  '01116909': 'Lock Vision Pro',
+  '0010ff90': 'Lock Pro WiFi',
+  '0110ff90': 'Lock Pro WiFi',
+}
+
+/**
+ * The product ID from the end of a service data payload, as pySwitchbot checks it: the last 4
+ * bytes, then the 4 bytes before the last.
+ */
+export function findProductId(data: Buffer): string | undefined {
+  if (data.length <= 5) {
+    return undefined
+  }
+  for (const candidate of [data.subarray(-4), data.subarray(-5, -1)]) {
+    const key = candidate.toString('hex')
+    if (Object.hasOwn(PRODUCT_ID_MODEL_MAP, key)) {
+      return key
+    }
+  }
+  return undefined
+}
 
 /**
  * Device Model to Type Mapping
@@ -297,6 +439,11 @@ export const DEVICE_CLASS_MAP: Record<string, string> = {
   'Plug Mini (JP)': 'WoPlugMiniJP',
   'WoPlugJP': 'WoPlugMiniJP',
   'Plug Mini (EU)': 'WoPlugMiniEU',
+  // Same relay-type plug as the Plug Mini (EU) in pySwitchbot
+  'Plug Mini (IT)': 'WoPlugMiniEU',
+  // Plug Mini (EU) relay with production metering in pySwitchbot (SwitchbotOutdoorPlug)
+  'Outdoor Plug (EU)': 'WoPlugMiniEU',
+  'Outdoor Plug': 'WoPlugMiniEU',
   'Meter': 'WoSensorTH',
   'Meter Plus': 'WoSensorTHPlus',
   'WoMeterPlus': 'WoSensorTHPlus',
@@ -315,8 +462,14 @@ export const DEVICE_CLASS_MAP: Record<string, string> = {
   'Smart Lock': 'WoSmartLock',
   'Smart Lock Pro': 'WoSmartLockPro',
   'Smart Lock Pro Wifi': 'WoSmartLockProWiFi',
-  'Smart Lock Ultra': 'WoSmartLockPro',
-  'Lock Ultra': 'WoSmartLockPro', // deviceType in the Lock Ultra status response
+  'Smart Lock Ultra': 'WoSmartLockUltra',
+  'Lock Ultra': 'WoSmartLockUltra', // deviceType in the Lock Ultra status response
+  'Lock Ultra Max': 'WoSmartLockUltra',
+  'Smart Lock Ultra Max': 'WoSmartLockUltra',
+  'UWB Lock': 'WoSmartLockUltra',
+  'Smart Lock UWB': 'WoSmartLockUltra',
+  'Lock Nano': 'WoSmartLockNano',
+  'Smart Lock Nano': 'WoSmartLockNano',
   'Lock Vision': 'WoSmartLockVision',
   'Lock Vision Pro': 'WoSmartLockVisionPro',
   'Keypad': 'WoKeypad',
@@ -365,6 +518,9 @@ export const DEVICE_CLASS_MAP: Record<string, string> = {
   'Hub 2': 'WoHub2',
   'Hub 3': 'WoHub3',
   'SwitchBot Hub 3': 'WoHub3',
+  'Hub 4': 'WoHub4',
+  'Hub4': 'WoHub4',
+  'SwitchBot Hub 4': 'WoHub4',
   'Hub Mini': 'WoHub2',
   'WoLinkMini': 'WoHub2',
   'HubMini Matter': 'WoHubMiniMatter',

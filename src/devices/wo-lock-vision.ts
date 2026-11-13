@@ -3,9 +3,13 @@
  * devices/wo-lock-vision.ts: SwitchBot v4.0.0 - Smart Lock Vision Device
  */
 
+import type { LockModel } from '../settings.js'
+
 import { WoSmartLock } from './wo-lock.js'
 
 /**
  * Smart Lock Vision Device (with camera)
  */
-export class WoSmartLockVision extends WoSmartLock {}
+export class WoSmartLockVision extends WoSmartLock {
+  protected override readonly defaultLockModel: LockModel = 'Lock Vision'
+}

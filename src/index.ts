@@ -9,6 +9,9 @@ export { BLEConnection, BLEScanner } from './ble.js'
 export { DeviceManager, SwitchBotDevice } from './devices/base.js'
 export { DeviceOverrideStateDuringConnection } from './devices/device-override-state-during-connection.js'
 export {
+  buildQuickKeyCommand,
+  parseQuickKeyConfig,
+  QuickKeyFunction,
   WoAIHub,
   WoAirPurifier,
   WoAirPurifierPM25,
@@ -27,6 +30,7 @@ export {
   WoHand,
   WoHub2,
   WoHub3,
+  WoHub4,
   WoHubMiniMatter,
   WoHumi,
   WoHumi2,
@@ -55,8 +59,10 @@ export {
   WoSensorTHProCO2,
   WoSmartLock,
   WoSmartLockLite,
+  WoSmartLockNano,
   WoSmartLockPro,
   WoSmartLockProWiFi,
+  WoSmartLockUltra,
   WoSmartLockVision,
   WoSmartLockVisionPro,
   WoSmartThermostatRadiator,
@@ -88,6 +94,7 @@ export { updateBaseURL, urls } from './settings.js'
 export { SwitchBot } from './switchbot.js'
 
 // Type exports (alphabetically by module path, then by export name)
+export type { QuickKeySettings, QuickKeyUpdate } from './devices/wo-lock-ultra.js'
 export type {
   APICommandRequest,
   APICommandResponse,

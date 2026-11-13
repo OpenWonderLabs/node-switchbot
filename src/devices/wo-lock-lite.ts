@@ -3,9 +3,13 @@
  * devices/wo-lock-lite.ts: SwitchBot v4.0.0 - Smart Lock Lite Device
  */
 
+import type { LockModel } from '../settings.js'
+
 import { WoSmartLock } from './wo-lock.js'
 
 /**
  * Smart Lock Lite Device
  */
-export class WoSmartLockLite extends WoSmartLock {}
+export class WoSmartLockLite extends WoSmartLock {
+  protected override readonly defaultLockModel: LockModel = 'Lock Lite'
+}

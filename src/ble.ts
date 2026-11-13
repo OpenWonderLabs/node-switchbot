@@ -10,8 +10,8 @@ import { createCipheriv, createDecipheriv } from 'node:crypto'
 import { EventEmitter } from 'node:events'
 
 import { BLENotAvailableError, CommandFailedError, DeviceNotFoundError } from './errors.js'
-import { BLE_COMMAND_TIMEOUT, BLE_CONNECT_TIMEOUT, BLE_NOTIFY_CHARACTERISTIC_UUID, BLE_SCAN_TIMEOUT, BLE_SERVICE_UUID, BLE_WRITE_CHARACTERISTIC_UUID, DEVICE_MODEL_MAP } from './settings.js'
-import { extractMacFromManufacturerData, isPassiveSensorModel, isValidMAC, Logger, macToDeviceId, mergeAdvertisement, normalizeMAC, parseSensorAdvertisement, switchBotManufacturerPayload, withTimeout } from './utils/index.js'
+import { BLE_COMMAND_TIMEOUT, BLE_CONNECT_TIMEOUT, BLE_NOTIFY_CHARACTERISTIC_UUID, BLE_SCAN_TIMEOUT, BLE_SERVICE_UUID, BLE_WRITE_CHARACTERISTIC_UUID, DEVICE_MODEL_MAP, findProductId, PRODUCT_ID_MODEL_MAP } from './settings.js'
+import { extractMacFromManufacturerData, isPassiveSensorModel, isValidMAC, LOCK_FAMILY_BY_DEVICE_TYPE, Logger, macToDeviceId, mergeAdvertisement, normalizeMAC, parseLockAdvertisement, parseSensorAdvertisement, switchBotManufacturerPayload, withTimeout } from './utils/index.js'
 // Move RegExp to module scope to avoid re-compilation
 const CHARACTERISTIC_REGEX = /characteristic/i
 const UUID_DASH_REGEX = /-/g
@@ -282,11 +282,20 @@ export class BLEScanner extends EventEmitter {
     }
 
     try {
-      const model = String.fromCharCode(data[0] & 0x7F)
-      const modelName = DEVICE_MODEL_MAP[model]
+      // The model byte first; then the 4-byte product ID at the end of the service data, which
+      // newer products use instead (pySwitchbot _find_model_from_service_data_suffix)
+      let model = String.fromCharCode(data[0] & 0x7F)
+      let modelName = DEVICE_MODEL_MAP[model]
+      if (!modelName) {
+        const productId = findProductId(data)
+        if (productId) {
+          model = productId
+          modelName = PRODUCT_ID_MODEL_MAP[productId]
+        }
+      }
 
       if (!modelName) {
-        this.logger.debug(`Unknown device model: ${model} (0x${data[0].toString(16)})`)
+        this.logger.debug(`Unknown device model: 0x${data[0].toString(16)}`)
         return null
       }
 
@@ -320,19 +329,16 @@ export class BLEScanner extends EventEmitter {
         }
       }
 
-      if ((model === 'o' || model === 'O' || model === '\x11') && data.length > 1) {
-        // Lock / Lock Pro
-        const lockStatus = data[1] & 0x0F
-        serviceData.status = lockStatus
-        serviceData.doorOpen = (data[1] & 0x10) !== 0
-        serviceData.calibration = (data[1] & 0x80) !== 0
-        serviceData.lockState = lockStatus === 1
-          ? 'unlocked'
-          : lockStatus === 2
-            ? 'jammed'
-            : 'locked'
-        if (data.length > 3) {
-          serviceData.sequenceNumber = data[3]
+      // Locks: state from the manufacturer data, in the layout of the lock family (pySwitchbot)
+      const lockFamily = LOCK_FAMILY_BY_DEVICE_TYPE[modelName]
+      if (lockFamily) {
+        const lock = parseLockAdvertisement(lockFamily, data, manufacturerPayload)
+        if (lock) {
+          for (const [key, value] of Object.entries(lock)) {
+            if (value !== undefined) {
+              serviceData[key] = value
+            }
+          }
         }
       }
 

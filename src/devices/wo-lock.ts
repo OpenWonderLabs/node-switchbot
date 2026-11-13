@@ -5,9 +5,10 @@
 
 import type { Buffer } from 'node:buffer'
 
+import type { LockCommandSet, LockModel } from '../settings.js'
 import type { LockCommands, LockStatus } from '../types/device.js'
 
-import { WoSmartLockCommands } from '../settings.js'
+import { lockCommandsFor, resolveLockModel } from './lock-model.js'
 import { SequenceDevice } from './sequence-device.js'
 
 /**
@@ -15,6 +16,23 @@ import { SequenceDevice } from './sequence-device.js'
  */
 export class WoSmartLock extends SequenceDevice implements LockCommands {
   private lockNotificationHandlers = new Set<(payload: Buffer) => void>()
+
+  /** The lock model used when the device type does not name one */
+  protected readonly defaultLockModel: LockModel = 'Lock'
+
+  /** This lock's model, which selects its BLE commands (pySwitchbot's per-model tables) */
+  get lockModel(): LockModel {
+    return resolveLockModel(this.info.deviceType, this.defaultLockModel)
+  }
+
+  protected get lockCommands(): LockCommandSet {
+    return lockCommandsFor(this.lockModel)
+  }
+
+  /** Lock state comes from the manufacturer data in advertisements, as in pySwitchbot */
+  protected override get readsFromAdvertisement(): boolean {
+    return true
+  }
 
   /**
    * Lock the lock
@@ -30,7 +48,7 @@ export class WoSmartLock extends SequenceDevice implements LockCommands {
     }
 
     const result = await this.sendCommand(
-      WoSmartLockCommands.LOCK,
+      this.lockCommands.lock,
       'lock',
     )
     return result.success
@@ -50,7 +68,7 @@ export class WoSmartLock extends SequenceDevice implements LockCommands {
     }
 
     const result = await this.sendCommand(
-      WoSmartLockCommands.UNLOCK,
+      this.lockCommands.unlock,
       'unlock',
     )
     return result.success
