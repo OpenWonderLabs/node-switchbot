@@ -197,6 +197,11 @@ describe('product IDs and lock advertisements in the scanner', () => {
     expect(parse('00806400999999')).toBeNull()
   })
 
+  it('drops a lock advertisement with an unknown status, so the last state stands', () => {
+    // Lock Ultra fixture with status 15 in byte 7 (SwitchBotAPI-BLE #54)
+    expect(parse('0080340010a5b8', 'b0e9feb66a3d25f830340004')).toBeNull()
+  })
+
   it('parses the lock state from the manufacturer data', () => {
     expect(parse('00806400122488', 'b0e9fe1122332a88086470')).toMatchObject({
       modelName: 'Lock Nano',

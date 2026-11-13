@@ -2,7 +2,7 @@ import { Buffer } from 'node:buffer'
 
 import { describe, expect, it } from 'vitest'
 
-import { lockStateFromStatus, LockStatusCode, parseLockAdvertisement } from '../../src/utils/lock-advertisement.js'
+import { isKnownLockStatus, lockStateFromStatus, LockStatusCode, parseLockAdvertisement } from '../../src/utils/lock-advertisement.js'
 
 // Fixtures and expected values are pySwitchbot's (tests/test_adv_parser.py, the lock cases).
 // `mfr` is the manufacturer data after the company ID; `data` is the service data.
@@ -146,5 +146,36 @@ describe('lockStateFromStatus', () => {
       'locked',
       'locked',
     ])
+  })
+
+  it('has no state for values pySwitchbot does not define', () => {
+    expect([8, 11, 13, 14, 15].map(lockStateFromStatus)).toEqual([undefined, undefined, undefined, undefined, undefined])
+    expect(isKnownLockStatus(7)).toBe(true)
+    expect(isKnownLockStatus(11)).toBe(false)
+  })
+})
+
+// A Lock Ultra on firmware 3.1 reports status values 11, 13, 14 and 15 (SwitchBotAPI-BLE #54,
+// pySwitchbot #595). They must be ignored, never read as locked (pySwitchbot PR #596).
+describe('unknown lock status values', () => {
+  // The Lock Ultra fixture with byte 7 (calibrated, status in bits 6-3) replaced
+  const ultra = (status: number) => {
+    const mfr = hex('b0e9feb66a3d258230340004')
+    mfr[7] = 0x80 | (status << 3)
+    return mfr
+  }
+
+  it.each([11, 13, 14, 15])('ignores status %i', (status) => {
+    expect(parseLockAdvertisement('lock2', hex('0080340010a5b8'), ultra(status))).toBeNull()
+  })
+
+  it('still parses known values in the same layout', () => {
+    expect(parseLockAdvertisement('lock2', hex('0080340010a5b8'), ultra(1))).toMatchObject({ status: 1, lockState: 'unlocked' })
+  })
+
+  it('ignores unknown values in the Lock Nano layout too', () => {
+    const mfr = hex('b0e9fe1122332a88086470')
+    mfr[7] = 0x80 | (15 << 3)
+    expect(parseLockAdvertisement('nano', hex('00806400122488'), mfr)).toBeNull()
   })
 })
