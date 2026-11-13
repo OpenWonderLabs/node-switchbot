@@ -1,3 +1,12 @@
+# [6.1.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.0.6...v6.1.0) (2026-11-13)
+
+
+### Features
+
+* port pySwitchbot 3.2.0-3.8.1 ([8b487f1](https://github.com/OpenWonderLabs/node-switchbot/commit/8b487f1fada8b71eb8eaed982ebcf7ee46d05758))
+
+
+
 ## [6.0.6](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.0.5...v6.0.6) (2026-11-06)
 
 
