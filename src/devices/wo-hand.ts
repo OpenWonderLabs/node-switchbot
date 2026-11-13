@@ -3,6 +3,8 @@
  * devices/wo-hand.ts: SwitchBot v4.0.0 - Bot (WoHand) Device
  */
 
+import type { Buffer } from 'node:buffer'
+
 import type { OpenAPIClient } from '../api.js'
 import type { BLEConnection } from '../ble.js'
 import type { BotCommands, BotStatus } from '../types/device.js'
@@ -145,6 +147,37 @@ export class WoHand extends DeviceOverrideStateDuringConnection implements BotCo
       'setMode',
       mode,
     )
+  }
+
+  /**
+   * Read the Bot's mode settings from its basic info (pySwitchbot `get_basic_info`). BLE only.
+   */
+  async getModeSettings(): Promise<{ strength: number, switchMode: boolean, inverseDirection: boolean }> {
+    const result = await this.sendBLECommand([0x57, 0x02], false, { validateResponse: false })
+    const reply: Buffer | undefined = result.data
+    if (!result.success || !reply || reply[0] !== 0x01 || reply.length < 10) {
+      throw new Error(`Unable to get the Bot's mode settings${result.error ? `: ${result.error}` : ''}`)
+    }
+    return {
+      strength: reply[3],
+      switchMode: (reply[9] & 0x10) !== 0,
+      inverseDirection: (reply[9] & 0x01) !== 0,
+    }
+  }
+
+  /**
+   * Set the Bot's inverse direction, keeping its other mode settings (pySwitchbot
+   * `set_inverse_direction`). BLE only.
+   *
+   * Command: `57 03 <strength> <mode>`, where the mode byte's high nibble is the switch mode and
+   * its low nibble the inverse direction.
+   */
+  async setInverseDirection(inverse: boolean): Promise<boolean> {
+    const { strength, switchMode } = await this.getModeSettings()
+    const modeByte = (switchMode ? 0x10 : 0x00) | (inverse ? 0x01 : 0x00)
+    const result = await this.sendBLECommand([0x57, 0x03, strength, modeByte], false, { validateResponse: false })
+    const reply: Buffer | undefined = result.data
+    return result.success && !!reply && reply[0] === 0x01
   }
 
   /**

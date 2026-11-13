@@ -5,9 +5,10 @@
 
 import type { Buffer } from 'node:buffer'
 
+import type { LockCommandSet, LockModel } from '../settings.js'
 import type { LockCommands, LockStatus } from '../types/device.js'
 
-import { WoSmartLockProCommands } from '../settings.js'
+import { lockCommandsFor, resolveLockModel } from './lock-model.js'
 import { SequenceDevice } from './sequence-device.js'
 
 /**
@@ -15,6 +16,23 @@ import { SequenceDevice } from './sequence-device.js'
  */
 export class WoSmartLockPro extends SequenceDevice implements LockCommands {
   private lockNotificationHandlers = new Set<(payload: Buffer) => void>()
+
+  /** The lock model used when the device type does not name one */
+  protected readonly defaultLockModel: LockModel = 'Lock Pro'
+
+  /** This lock's model, which selects its BLE commands (pySwitchbot's per-model tables) */
+  get lockModel(): LockModel {
+    return resolveLockModel(this.info.deviceType, this.defaultLockModel)
+  }
+
+  protected get lockCommands(): LockCommandSet {
+    return lockCommandsFor(this.lockModel)
+  }
+
+  /** Lock state comes from the manufacturer data in advertisements, as in pySwitchbot */
+  protected override get readsFromAdvertisement(): boolean {
+    return true
+  }
 
   /**
    * Lock the lock
@@ -30,7 +48,7 @@ export class WoSmartLockPro extends SequenceDevice implements LockCommands {
     }
 
     const result = await this.sendCommand(
-      WoSmartLockProCommands.LOCK,
+      this.lockCommands.lock,
       'lock',
     )
     return result.success
@@ -50,7 +68,7 @@ export class WoSmartLockPro extends SequenceDevice implements LockCommands {
     }
 
     const result = await this.sendCommand(
-      WoSmartLockProCommands.UNLOCK,
+      this.lockCommands.unlock,
       'unlock',
     )
     return result.success
@@ -61,7 +79,7 @@ export class WoSmartLockPro extends SequenceDevice implements LockCommands {
    */
   async unlockWithoutUnlatch(): Promise<boolean> {
     const result = await this.sendCommand(
-      WoSmartLockProCommands.UNLOCK,
+      this.lockCommands.unlockWithoutUnlatch,
       'unlock',
       'withoutUnlatch',
     )
@@ -69,11 +87,12 @@ export class WoSmartLockPro extends SequenceDevice implements LockCommands {
   }
 
   /**
-   * Unlatch the lock (Lock Pro only)
+   * Unlatch the lock. An unlock also unlatches when the lock's unlatch feature is on, so this
+   * sends the unlock command (pySwitchbot has no separate unlatch command).
    */
   async unlatch(): Promise<boolean> {
     const result = await this.sendCommand(
-      WoSmartLockProCommands.UNLATCH,
+      this.lockCommands.unlock,
       'unlock',
     )
     return result.success

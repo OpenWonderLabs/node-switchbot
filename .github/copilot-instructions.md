@@ -41,6 +41,16 @@ This library tracks pySwitchbot. To port a release:
 | `switchbot/adv_parsers/*.py` (passive status) | `src/ble.ts` `BLEScanner.parseServiceData` |
 | `switchbot/devices/*.py` (commands, active status) | `src/devices/wo-*.ts` |
 
+Newer products have no model byte: pySwitchbot identifies them by the 4-byte product ID at the end
+of the service data (its multi-byte `SUPPORTED_TYPES` keys). node-switchbot does the same with
+`PRODUCT_ID_MODEL_MAP` and `findProductId` in `src/settings.ts`. List a product there only once
+its BLE status and commands are implemented: recognising it over BLE makes its status BLE-first,
+so an unfinished one would replace good cloud data.
+
+Locks use pySwitchbot's per-model command tables (`LOCK_COMMANDS`, chosen by the lock model from
+the device type) and read their state from the manufacturer data in advertisements
+(`src/utils/lock-advertisement.ts`).
+
 `DEVICE_MODEL_MAP` mirrors pySwitchbot's single-byte `SUPPORTED_TYPES` codes. A few extra codes
 (Hub 2 `0x01`, Hub 3 `0x02`, `0x09`, `0x0E`, `0x10`, `0x11`, `k`, `p`) come from earlier
 node-switchbot releases and have no pySwitchbot equivalent. `SwitchBotBLEModel` in

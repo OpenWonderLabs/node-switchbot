@@ -30,6 +30,7 @@ import { WoGarageDoorOpener } from './devices/wo-garage-door-opener.js'
 import { WoHand } from './devices/wo-hand.js'
 import { WoHub2 } from './devices/wo-hub2.js'
 import { WoHub3 } from './devices/wo-hub3.js'
+import { WoHub4 } from './devices/wo-hub4.js'
 import { WoHubMiniMatter } from './devices/wo-hubmini-matter.js'
 import { WoHumi2 } from './devices/wo-humi2.js'
 import { WoHumi } from './devices/wo-humi.js'
@@ -39,8 +40,10 @@ import { WoKeypadVision } from './devices/wo-keypad-vision.js'
 import { WoKeypad } from './devices/wo-keypad.js'
 import { WoLeak } from './devices/wo-leak.js'
 import { WoSmartLockLite } from './devices/wo-lock-lite.js'
+import { WoSmartLockNano } from './devices/wo-lock-nano.js'
 import { WoSmartLockProWiFi } from './devices/wo-lock-pro-wifi.js'
 import { WoSmartLockPro } from './devices/wo-lock-pro.js'
+import { WoSmartLockUltra } from './devices/wo-lock-ultra.js'
 import { WoSmartLockVisionPro } from './devices/wo-lock-vision-pro.js'
 import { WoSmartLockVision } from './devices/wo-lock-vision.js'
 import { WoSmartLock } from './devices/wo-lock.js'
@@ -91,8 +94,10 @@ const DEVICE_CLASSES: Record<string, DeviceConstructor> = {
   WoRollerShade,
   WoSmartLock,
   WoSmartLockLite,
+  WoSmartLockNano,
   WoSmartLockPro,
   WoSmartLockProWiFi,
+  WoSmartLockUltra,
   WoSmartThermostatRadiator,
   WoSmartLockVision,
   WoSmartLockVisionPro,
@@ -122,6 +127,7 @@ const DEVICE_CLASSES: Record<string, DeviceConstructor> = {
   WoAirPurifierTable,
   WoHub2,
   WoHub3,
+  WoHub4,
   WoHubMiniMatter,
   WoLeak,
   WoGarageDoorOpener,
