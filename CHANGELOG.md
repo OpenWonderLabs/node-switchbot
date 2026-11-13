@@ -1,3 +1,12 @@
+## [6.1.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.1.0...v6.1.1) (2026-11-13)
+
+
+### Bug Fixes
+
+* **lock:** ignore advertisements with an unknown lock status ([fa754c8](https://github.com/OpenWonderLabs/node-switchbot/commit/fa754c8f4aa8537495656e55e2995f2171d9b23a)), closes [#54](https://github.com/OpenWonderLabs/node-switchbot/issues/54) [#595](https://github.com/OpenWonderLabs/node-switchbot/issues/595) [#596](https://github.com/OpenWonderLabs/node-switchbot/issues/596)
+
+
+
 # [6.1.0](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.0.6...v6.1.0) (2026-11-13)
 
 
