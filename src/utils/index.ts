@@ -392,7 +392,7 @@ export {
   FallbackHandlerManager,
   type FallbackHandlerOptions,
 } from './fallback-handler.js'
-export { LOCK_FAMILY_BY_DEVICE_TYPE, type LockAdvertisement, type LockFamily, lockStateFromStatus, LockStatusCode, parseLockAdvertisement } from './lock-advertisement.js'
+export { isKnownLockStatus, LOCK_FAMILY_BY_DEVICE_TYPE, type LockAdvertisement, type LockFamily, lockStateFromStatus, LockStatusCode, parseLockAdvertisement } from './lock-advertisement.js'
 // Export advanced utilities
 export { type RetryConfig, RetryExecutor, type RetryResult } from './retry.js'
 export { isPassiveSensorModel, parseSensorAdvertisement, type SensorAdvertisement, switchBotManufacturerPayload } from './sensor-advertisement.js'

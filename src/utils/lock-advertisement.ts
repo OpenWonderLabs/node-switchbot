@@ -63,11 +63,20 @@ export interface LockAdvertisement {
   chargingFault?: boolean
 }
 
+/** Whether a status value is one pySwitchbot's LockStatus defines (0-7) */
+export function isKnownLockStatus(status: number): boolean {
+  return Number.isInteger(status) && status >= LockStatusCode.Locked && status <= LockStatusCode.HalfLocked
+}
+
 /**
  * The lock state reported to consumers. Moving states report where the lock is heading, and a
- * blocked motor reports `jammed`; latch locked and half locked are locked.
+ * blocked motor reports `jammed`; latch locked and half locked are locked. Unknown status values
+ * (a Lock Ultra reports 11, 13, 14 and 15) have no state: undefined.
  */
-export function lockStateFromStatus(status: number): 'locked' | 'unlocked' | 'jammed' {
+export function lockStateFromStatus(status: number): 'locked' | 'unlocked' | 'jammed' | undefined {
+  if (!isKnownLockStatus(status)) {
+    return undefined
+  }
   switch (status) {
     case LockStatusCode.Unlocked:
     case LockStatusCode.Unlocking:
@@ -80,8 +89,18 @@ export function lockStateFromStatus(status: number): 'locked' | 'unlocked' | 'ja
   }
 }
 
+/**
+ * Thrown inside the parsers for a status value pySwitchbot does not define, and turned into a
+ * `null` result by parseLockAdvertisement.
+ */
+class UnknownLockStatus extends Error {}
+
 function withState(status: number, fields: Omit<LockAdvertisement, 'status' | 'lockState'>): LockAdvertisement {
-  return { ...fields, status, lockState: lockStateFromStatus(status) }
+  const lockState = lockStateFromStatus(status)
+  if (!lockState) {
+    throw new UnknownLockStatus(String(status))
+  }
+  return { ...fields, status, lockState }
 }
 
 /** process_locklite */
@@ -158,13 +177,28 @@ function parseNano(mfr: Buffer): LockAdvertisement | undefined {
 }
 
 /**
- * Parse a lock's advertisement. Returns undefined when the manufacturer data is missing or too
- * short for the family's layout.
+ * Parse a lock's advertisement.
+ *
+ * Returns undefined when the manufacturer data is missing or too short for the family's layout,
+ * and **null when the lock reports a status value pySwitchbot does not define**. Ignore such an
+ * advertisement entirely rather than guessing a state (pySwitchbot PR #596; SwitchBotAPI-BLE
+ * issue #54): an unknown value must never be reported as locked.
  */
-export function parseLockAdvertisement(family: LockFamily, data: Buffer | undefined, mfr: Buffer | undefined): LockAdvertisement | undefined {
+export function parseLockAdvertisement(family: LockFamily, data: Buffer | undefined, mfr: Buffer | undefined): LockAdvertisement | null | undefined {
   if (!mfr) {
     return undefined
   }
+  try {
+    return parseFamily(family, data, mfr)
+  } catch (error) {
+    if (error instanceof UnknownLockStatus) {
+      return null
+    }
+    throw error
+  }
+}
+
+function parseFamily(family: LockFamily, data: Buffer | undefined, mfr: Buffer): LockAdvertisement | undefined {
   switch (family) {
     case 'lite':
       return parseLite(data, mfr)

@@ -333,6 +333,12 @@ export class BLEScanner extends EventEmitter {
       const lockFamily = LOCK_FAMILY_BY_DEVICE_TYPE[modelName]
       if (lockFamily) {
         const lock = parseLockAdvertisement(lockFamily, data, manufacturerPayload)
+        if (lock === null) {
+          // A status value pySwitchbot does not define: ignore the whole advertisement so the
+          // last known lock state stands (an unknown value must never read as locked)
+          this.logger.debug(`Ignoring ${modelName} advertisement with an unknown lock status`)
+          return null
+        }
         if (lock) {
           for (const [key, value] of Object.entries(lock)) {
             if (value !== undefined) {
