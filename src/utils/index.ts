@@ -383,6 +383,7 @@ export {
 } from './bot-ble.js'
 export { CircuitBreaker, type CircuitBreakerConfig, CircuitBreakerState, type CircuitBreakerStats } from './circuit-breaker.js'
 export { type ConnectionStats, ConnectionTracker } from './connection-tracker.js'
+export { type CurtainAdvertisement, parseCurtainAdvertisement } from './curtain-advertisement.js'
 export {
   createAlertHandler,
   createLoggingFallbackHandler,

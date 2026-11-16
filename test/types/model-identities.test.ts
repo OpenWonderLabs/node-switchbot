@@ -53,9 +53,11 @@ describe('bLE advertisement model identities', () => {
   })
 
   it('parses Curtain 3 status from the alternate "[" model byte', () => {
-    const data = parse('['.charCodeAt(0), [0x40, 0x5A, 0x32, 0x0A])
+    // Byte 3: bit 7 moving, bits 6-0 position; byte 1 bit 6: calibrated
+    const data = parse('['.charCodeAt(0), [0x40, 0x5A, 0xB2, 0x11, 0x04])
     expect(data?.inMotion).toBe(true)
     expect(data?.position).toBe(50)
+    expect(data?.calibration).toBe(true)
   })
 
   it('resolves every advertised display name to a device class', () => {
