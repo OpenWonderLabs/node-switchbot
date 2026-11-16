@@ -1,3 +1,12 @@
+## [6.1.2](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.1.1...v6.1.2) (2026-11-16)
+
+
+### Bug Fixes
+
+* **curtain:** parse curtain advertisements as pySwitchbot does ([8e2b5f9](https://github.com/OpenWonderLabs/node-switchbot/commit/8e2b5f970ba04c73a6f8d667aae577aa8387979a)), closes [#614](https://github.com/OpenWonderLabs/node-switchbot/issues/614)
+
+
+
 ## [6.1.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.1.0...v6.1.1) (2026-11-13)
 
 
