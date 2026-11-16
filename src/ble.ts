@@ -11,7 +11,7 @@ import { EventEmitter } from 'node:events'
 
 import { BLENotAvailableError, CommandFailedError, DeviceNotFoundError } from './errors.js'
 import { BLE_COMMAND_TIMEOUT, BLE_CONNECT_TIMEOUT, BLE_NOTIFY_CHARACTERISTIC_UUID, BLE_SCAN_TIMEOUT, BLE_SERVICE_UUID, BLE_WRITE_CHARACTERISTIC_UUID, DEVICE_MODEL_MAP, findProductId, PRODUCT_ID_MODEL_MAP } from './settings.js'
-import { extractMacFromManufacturerData, isPassiveSensorModel, isValidMAC, LOCK_FAMILY_BY_DEVICE_TYPE, Logger, macToDeviceId, mergeAdvertisement, normalizeMAC, parseLockAdvertisement, parseSensorAdvertisement, switchBotManufacturerPayload, withTimeout } from './utils/index.js'
+import { extractMacFromManufacturerData, isPassiveSensorModel, isValidMAC, LOCK_FAMILY_BY_DEVICE_TYPE, Logger, macToDeviceId, mergeAdvertisement, normalizeMAC, parseCurtainAdvertisement, parseLockAdvertisement, parseSensorAdvertisement, switchBotManufacturerPayload, withTimeout } from './utils/index.js'
 // Move RegExp to module scope to avoid re-compilation
 const CHARACTERISTIC_REGEX = /characteristic/i
 const UUID_DASH_REGEX = /-/g
@@ -197,10 +197,13 @@ export class BLEScanner extends EventEmitter {
           continue
         }
 
-        // SwitchBot service UUID (current: fd3d, legacy: 000d)
+        // SwitchBot service UUID: fd3d, or 0x0D00 on older firmware (pySwitchbot accepts both;
+        // the docs write the legacy one byte-wise as 0x000d, so that spelling is kept too)
         const uuid = typeof serviceDataItem.uuid === 'string' ? serviceDataItem.uuid.toLowerCase() : ''
         const isSwitchBotUUID = uuid === 'fd3d'
           || uuid === '0000fd3d-0000-1000-8000-00805f9b34fb'
+          || uuid === '0d00'
+          || uuid === '00000d00-0000-1000-8000-00805f9b34fb'
           || uuid === '000d'
           || uuid === '0000000d-0000-1000-8000-00805f9b34fb'
 
@@ -318,14 +321,15 @@ export class BLEScanner extends EventEmitter {
         serviceData.state = (data[1] & 0x40) !== 0
       }
 
-      if ((model === 'c' || model === 'C' || model === '{' || model === '[') && data.length > 4) {
-        // Curtain/Curtain3
-        serviceData.inMotion = (data[1] & 0x40) !== 0
-        serviceData.position = Math.min(100, Math.max(0, data[3] & 0x7F))
-        serviceData.lightLevel = data[4] & 0x7F
-        serviceData.calibration = (data[1] & 0x20) !== 0
-        if (data.length > 5) {
-          serviceData.deviceChain = data[5] & 0x03
+      if (model === 'c' || model === 'C' || model === '{' || model === '[') {
+        // Curtain/Curtain3: state from the manufacturer data when present (pySwitchbot)
+        const curtain = parseCurtainAdvertisement(data, manufacturerPayload)
+        if (curtain) {
+          for (const [key, value] of Object.entries(curtain)) {
+            if (value !== undefined) {
+              serviceData[key] = value
+            }
+          }
         }
       }
 
