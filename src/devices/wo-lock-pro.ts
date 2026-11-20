@@ -11,6 +11,24 @@ import type { LockCommands, LockStatus } from '../types/device.js'
 import { lockCommandsFor, resolveLockModel } from './lock-model.js'
 import { SequenceDevice } from './sequence-device.js'
 
+/** Charge of the Lock Pro's two battery bays; undefined for an empty bay */
+export interface LockBatteryBays {
+  leftBattery?: number
+  rightBattery?: number
+}
+
+/** Command status bytes that mean success: 0x01, or 0x06 for success with a low battery */
+const LOCK_COMMAND_OK = new Set([0x01, 0x06])
+
+/**
+ * Decode the Lock Pro battery bays reply (pySwitchbot `_parse_battery_bays`): bytes 1 and 2 are
+ * the left and right bay, bit 7 set when a battery is present and bits 0-6 its level.
+ */
+export function parseLockBatteryBays(reply: Buffer): LockBatteryBays {
+  const bay = (value: number) => (value & 0x80) !== 0 ? value & 0x7F : undefined
+  return { leftBattery: bay(reply[1]), rightBattery: bay(reply[2]) }
+}
+
 /**
  * Smart Lock Pro Device (with unlatch support)
  */
@@ -96,6 +114,31 @@ export class WoSmartLockPro extends SequenceDevice implements LockCommands {
       'unlock',
     )
     return result.success
+  }
+
+  /**
+   * Read the level of each battery bay (Lock Pro only, BLE only; pySwitchbot 3.11.0). Returns
+   * undefined when the lock refuses the request or the reply is too short.
+   */
+  async getBatteryBays(): Promise<LockBatteryBays | undefined> {
+    const command = this.lockCommands.batteryBays
+    if (!command) {
+      throw new Error(`Battery bays are not supported on the ${this.lockModel}`)
+    }
+    const result = await this.sendBLECommand(command, false, { validateResponse: false })
+    if (!result.success) {
+      throw new Error(`Failed to read battery bays: ${result.error}`)
+    }
+    const reply: Buffer | undefined = result.data
+    if (!reply || !LOCK_COMMAND_OK.has(reply[0])) {
+      this.logger.warn('Unable to read battery bays', reply?.toString('hex'))
+      return undefined
+    }
+    if (reply.length < 3) {
+      this.logger.warn('Invalid battery bays data received', reply.toString('hex'))
+      return undefined
+    }
+    return parseLockBatteryBays(reply)
   }
 
   async getLockInfo(): Promise<Record<string, unknown>> {

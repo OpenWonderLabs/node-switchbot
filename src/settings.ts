@@ -204,6 +204,8 @@ export interface LockCommandSet {
   enableNotifications: readonly number[]
   /** Lock Ultra only */
   halfLock?: readonly number[]
+  /** Read the level of each battery bay; Lock Pro only */
+  batteryBays?: readonly number[]
 }
 
 function hex(value: string): readonly number[] {
@@ -239,7 +241,7 @@ function lock2Commands(modelByte: string): LockCommandSet {
 export const LOCK_COMMANDS: Record<LockModel, LockCommandSet> = {
   'Lock': lock1Commands('01'),
   'Lock Lite': lock1Commands('01'),
-  'Lock Pro': lock2Commands('04'),
+  'Lock Pro': { ...lock2Commands('04'), batteryBays: hex('570f4f0409') },
   'Lock Ultra': { ...lock2Commands('07'), halfLock: hex('570f4e0101000008') },
   'Lock Ultra Max': lock2Commands('07'),
   'UWB Lock': lock2Commands('07'),
@@ -302,6 +304,10 @@ export const PRODUCT_ID_MODEL_MAP: Record<string, string> = {
   '01116909': 'Lock Vision Pro',
   '0010ff90': 'Lock Pro WiFi',
   '0110ff90': 'Lock Pro WiFi',
+  '0011f1c0': 'Art Frame 2',
+  '0111f1c0': 'Art Frame 2',
+  '001295d0': 'E Ink Photo Magnet',
+  '011295d0': 'E Ink Photo Magnet',
 }
 
 /**
@@ -498,6 +504,10 @@ export const DEVICE_CLASS_MAP: Record<string, string> = {
   'Art Frame': 'WoArtFrame',
   'AI Art Frame': 'WoArtFrame',
   'SwitchBot Art Frame': 'WoArtFrame',
+  'Art Frame 2': 'WoArtFrame2',
+  'W1176000': 'WoArtFrame2', // pySwitchbot API_MODEL_TO_ENUM cloud model code
+  'E Ink Photo Magnet': 'WoEInkPhotoMagnet',
+  'W1218000': 'WoEInkPhotoMagnet', // pySwitchbot API_MODEL_TO_ENUM cloud model code
   // S1 and S1 Plus use the original start/stop/dock OpenAPI commands, unlike the S10/S20
   'Robot Vacuum Cleaner S1': 'WoVacuum',
   'Robot Vacuum Cleaner S1 Plus': 'WoVacuum',

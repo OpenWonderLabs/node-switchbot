@@ -85,11 +85,13 @@ describe('parseLockAdvertisement (pySwitchbot fixtures)', () => {
   })
 
   it('lock Pro WiFi (Lock Pro layout)', () => {
-    expect(parseLockAdvertisement('pro', hex('00803d0010ff90'), hex('b0e9feb05efe0e02003d0008'))).toMatchObject({
+    expect(parseLockAdvertisement('proWifi', hex('00803d0010ff90'), hex('b0e9feb05efe0e02003d0008'))).toMatchObject({
       sequenceNumber: 14,
       battery: 61,
       status: LockStatusCode.Locked,
       lowTemperatureAlarm: false,
+      leftBatteryCompartmentAlarm: false,
+      rightBatteryCompartmentAlarm: false,
     })
   })
 

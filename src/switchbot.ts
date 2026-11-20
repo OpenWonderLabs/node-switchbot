@@ -17,6 +17,7 @@ import { WoAirPurifierPM25 } from './devices/wo-air-purifier-pm25.js'
 import { WoAirPurifierTable } from './devices/wo-air-purifier-table.js'
 import { WoAirPurifier } from './devices/wo-air-purifier.js'
 import { WoArtFrame } from './devices/wo-art-frame.js'
+import { WoArtFrame2 } from './devices/wo-art-frame2.js'
 import { WoBlindTilt } from './devices/wo-blind-tilt.js'
 import { WoBulb } from './devices/wo-bulb.js'
 import { WoCandleWarmerLamp } from './devices/wo-candle-warmer-lamp.js'
@@ -25,6 +26,7 @@ import { WoCirculatorFan } from './devices/wo-circulator-fan.js'
 import { WoClimatePanel } from './devices/wo-climate-panel.js'
 import { WoContact } from './devices/wo-contact.js'
 import { WoCurtain } from './devices/wo-curtain.js'
+import { WoEInkPhotoMagnet } from './devices/wo-e-ink-photo-magnet.js'
 import { WoFloorLamp } from './devices/wo-floor-lamp.js'
 import { WoGarageDoorOpener } from './devices/wo-garage-door-opener.js'
 import { WoHand } from './devices/wo-hand.js'
@@ -116,6 +118,8 @@ const DEVICE_CLASSES: Record<string, DeviceConstructor> = {
   WoStripLight3,
   WoRGBICWWStripLight,
   WoArtFrame,
+  WoArtFrame2,
+  WoEInkPhotoMagnet,
   WoCeilingLight,
   WoCirculatorFan,
   WoClimatePanel,
