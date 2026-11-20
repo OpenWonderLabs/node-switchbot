@@ -88,6 +88,13 @@ export const DEVICE_COMMANDS = {
     EXTENDED_INFO: [0x57, 0x0F, 0x46, 0x01] as const, // Get device chain and grouped status
   },
 
+  // Roller Shade (pySwitchbot ROLLERSHADE_COMMAND "4701", control source 00)
+  ROLLER_SHADE: {
+    PAUSE: [0x57, 0x0F, 0x47, 0x01, 0x00, 0x00, 0x01] as const,
+    POSITION: [0x57, 0x0F, 0x47, 0x01, 0x01, 0x00, 0x01] as const, // Append position byte
+    POSITION_WITH_MODE: [0x57, 0x0F, 0x47, 0x01, 0x05, 0x00] as const, // Append mode byte and position byte
+  },
+
   // Blind Tilt
   BLIND_TILT: {
     OPEN: [0x57, 0x0F, 0x45, 0x01, 0x05, 0xFF, 0x32] as const,
