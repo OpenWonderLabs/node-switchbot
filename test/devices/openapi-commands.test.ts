@@ -133,4 +133,49 @@ describe('openAPI commands', () => {
       ['previous', undefined],
     ])
   })
+
+  // AI Art Frame: next and previous (devices/others/ai-art-frame.md)
+  it('aI Art Frame uses next and previous', async () => {
+    const { device, calls } = await apiDevice('AI Art Frame')
+    await device.nextImage()
+    await device.prevImage()
+    expect(calls()).toEqual([
+      ['next', undefined],
+      ['previous', undefined],
+    ])
+  })
+
+  // Curtain 4 (deviceType "Curtain4") takes the Curtain setPosition "index,mode,position"
+  it.each(['Curtain4', 'Curtain 4'])('%s uses the Curtain commands', async (type) => {
+    expect(resolveDeviceClassName(type)).toBe('WoCurtain')
+    const { device, calls } = await apiDevice(type)
+    await device.setPosition(80)
+    await device.pause()
+    expect(calls()).toEqual([
+      ['setPosition', '0,ff,80'],
+      ['pause', undefined],
+    ])
+  })
+
+  // S30 startClean takes action, fanLevel, waterLevel and times, like the S20
+  it('robot Vacuum Cleaner S30 starts cleaning like the S20', async () => {
+    expect(resolveDeviceClassName('Robot Vacuum Cleaner S30')).toBe('WoVacuumS20')
+    const { device, calls } = await apiDevice('Robot Vacuum Cleaner S30')
+    await device.cleanUp(1)
+    await device.returnToDock(1)
+    expect(calls()).toEqual([
+      ['startClean', { action: 'sweep', param: { fanLevel: 1, waterLevel: 1, times: 1 } }],
+      ['dock', undefined],
+    ])
+  })
+
+  // K11+ Pro startClean takes action, fanLevel and times, like the K11+
+  it('robot Vacuum Cleaner K11 Plus Pro starts cleaning like the K11+', async () => {
+    expect(resolveDeviceClassName('Robot Vacuum Cleaner K11 Plus Pro')).toBe('WoVacuumK11Plus')
+    const { device, calls } = await apiDevice('Robot Vacuum Cleaner K11 Plus Pro')
+    await device.cleanUp(1)
+    expect(calls()).toEqual([
+      ['startClean', { action: 'sweep', param: { fanLevel: 1, times: 1 } }],
+    ])
+  })
 })
