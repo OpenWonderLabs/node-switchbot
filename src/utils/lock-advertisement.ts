@@ -31,11 +31,13 @@ export enum LockStatusCode {
  * Lock families with different advertisement layouts, named after pySwitchbot's parsers:
  * - `lock`: Lock (process_wolock)
  * - `lite`: Lock Lite, Lock Vision (process_locklite)
- * - `pro`: Lock Pro, Lock Pro WiFi (process_wolock_pro)
+ * - `pro`: Lock Pro (process_wolock_pro)
+ * - `proWifi`: Lock Pro WiFi (process_wolock_pro_wifi): the Lock Pro layout without the charging,
+ *   power and door magnet bits
  * - `lock2`: Lock Ultra, Lock Ultra Max, UWB Lock, Lock Vision Pro (process_lock2)
  * - `nano`: Lock Nano (process_lock_nano)
  */
-export type LockFamily = 'lock' | 'lite' | 'pro' | 'lock2' | 'nano'
+export type LockFamily = 'lock' | 'lite' | 'pro' | 'proWifi' | 'lock2' | 'nano'
 
 /** Lock state parsed from an advertisement */
 export interface LockAdvertisement {
@@ -56,9 +58,16 @@ export interface LockAdvertisement {
   manualUnlockLinkage?: boolean
   lowTemperatureAlarm?: boolean
   powerAlarm?: boolean
+  /** Lock Pro, Lock Pro WiFi */
+  leftBatteryCompartmentAlarm?: boolean
+  /** Lock Pro, Lock Pro WiFi */
+  rightBatteryCompartmentAlarm?: boolean
+  /** Lock Pro */
+  doorMagnetAlarm?: boolean
   batteryStatus?: number
   /** Lock Nano */
   chargingStatus?: number
+  /** Lock Pro, Lock Nano */
   batteryCharging?: boolean
   chargingFault?: boolean
 }
@@ -154,6 +163,17 @@ function parseCommon(mfr: Buffer): LockAdvertisement | undefined {
   })
 }
 
+/** _parse_lock_pro_common: Lock Pro and Lock Pro WiFi */
+function parseProCommon(mfr: Buffer): LockAdvertisement | undefined {
+  const common = parseCommon(mfr)
+  return common && {
+    ...common,
+    lowTemperatureAlarm: (mfr[11] & 0b00100000) !== 0,
+    leftBatteryCompartmentAlarm: (mfr[11] & 0b00000100) !== 0,
+    rightBatteryCompartmentAlarm: (mfr[11] & 0b00000010) !== 0,
+  }
+}
+
 /** process_lock_nano */
 function parseNano(mfr: Buffer): LockAdvertisement | undefined {
   if (mfr.length < 11) {
@@ -205,9 +225,16 @@ function parseFamily(family: LockFamily, data: Buffer | undefined, mfr: Buffer):
     case 'lock':
       return parseLock(data, mfr)
     case 'pro': {
-      const common = parseCommon(mfr)
-      return common && { ...common, lowTemperatureAlarm: (mfr[11] & 0b00100000) !== 0 }
+      const common = parseProCommon(mfr)
+      return common && {
+        ...common,
+        batteryCharging: (mfr[9] & 0b10000000) !== 0,
+        powerAlarm: (mfr[11] & 0b00010000) !== 0,
+        doorMagnetAlarm: (mfr[11] & 0b00001000) !== 0,
+      }
     }
+    case 'proWifi':
+      return parseProCommon(mfr)
     case 'lock2': {
       const common = parseCommon(mfr)
       return common && { ...common, powerAlarm: (mfr[11] & 0b00010000) !== 0, batteryStatus: mfr[11] & 0b00000111 }
@@ -223,7 +250,7 @@ export const LOCK_FAMILY_BY_DEVICE_TYPE: Record<string, LockFamily> = {
   'Lock Lite': 'lite',
   'Lock Vision': 'lite',
   'Lock Pro': 'pro',
-  'Lock Pro WiFi': 'pro',
+  'Lock Pro WiFi': 'proWifi',
   'Lock Ultra': 'lock2',
   'Lock Ultra Max': 'lock2',
   'UWB Lock': 'lock2',

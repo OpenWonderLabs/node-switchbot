@@ -45,13 +45,14 @@ describe('lock commands match pySwitchbot', () => {
       info: bytes(set.info),
       enableNotifications: bytes(set.enableNotifications),
       ...(set.halfLock ? { halfLock: bytes(set.halfLock) } : {}),
+      ...(set.batteryBays ? { batteryBays: bytes(set.batteryBays) } : {}),
     }]))
     const lock2 = (byte: string) => ({ lock: '570f4e0101000000', unlock: '570f4e0101000080', unlockWithoutUnlatch: '570f4e01010000a0', info: `570f4f81${byte}`, enableNotifications: `570e01001e000081${byte}` })
     const lock1 = { lock: '570f4e01011000', unlock: '570f4e01011080', unlockWithoutUnlatch: '570f4e010110a0', info: '570f4f8101', enableNotifications: '570e01001e00008101' }
     expect(table).toEqual({
       'Lock': lock1,
       'Lock Lite': lock1,
-      'Lock Pro': lock2('04'),
+      'Lock Pro': { ...lock2('04'), batteryBays: '570f4f0409' },
       'Lock Ultra': { ...lock2('07'), halfLock: '570f4e0101000008' },
       'Lock Ultra Max': lock2('07'),
       'UWB Lock': lock2('07'),

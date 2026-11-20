@@ -10,6 +10,22 @@ export { DeviceManager, SwitchBotDevice } from './devices/base.js'
 export { DeviceOverrideStateDuringConnection } from './devices/device-override-state-during-connection.js'
 export {
   buildQuickKeyCommand,
+  encodeMeterProTemperature,
+  imageIdsFromBitmap,
+  MeterProAlarmMode,
+  MeterProAlarmVolume,
+  MeterProCO2AlarmMode,
+  MeterProCO2AlarmStatus,
+  MeterProComfortStatus,
+  MeterProDateFormat,
+  MeterProDisplaySource,
+  MeterProDisplayZone,
+  MeterProTemperatureHumidityAlarmMode,
+  MeterProTemperatureHumidityAlarmStatus,
+  MeterProWeatherIcon,
+  MeterProZoneIcon,
+  parseImageFrameInfo,
+  parseLockBatteryBays,
   parseQuickKeyConfig,
   QuickKeyFunction,
   WoAIHub,
@@ -17,6 +33,7 @@ export {
   WoAirPurifierPM25,
   WoAirPurifierTable,
   WoArtFrame,
+  WoArtFrame2,
   WoBlindTilt,
   WoBulb,
   WoCandleWarmerLamp,
@@ -25,6 +42,7 @@ export {
   WoClimatePanel,
   WoContact,
   WoCurtain,
+  WoEInkPhotoMagnet,
   WoFloorLamp,
   WoGarageDoorOpener,
   WoHand,
@@ -88,13 +106,28 @@ export {
   DeviceNotFoundError,
   DiscoveryError,
   SwitchBotError,
+  SwitchbotOperationError,
   ValidationError,
 } from './errors.js'
 export { updateBaseURL, urls } from './settings.js'
 export { SwitchBot } from './switchbot.js'
 
 // Type exports (alphabetically by module path, then by export name)
+export type { ImageFrameInfo } from './devices/wo-art-frame2.js'
+export type { LockBatteryBays } from './devices/wo-lock-pro.js'
 export type { QuickKeySettings, QuickKeyUpdate } from './devices/wo-lock-ultra.js'
+export type { MeterProCO2Alarm, MeterProCO2LevelThresholds } from './devices/wo-sensor-th-pro-co2.js'
+export type {
+  MeterProAlarmSettings,
+  MeterProButtonFunctions,
+  MeterProCalibration,
+  MeterProComfortLevel,
+  MeterProDisplaySettings,
+  MeterProTemperatureHumidityAlarm,
+  MeterProWeather,
+  MeterProWeatherUpdate,
+  MeterProZoneSettings,
+} from './devices/wo-sensor-th-pro.js'
 export type {
   APICommandRequest,
   APICommandResponse,
@@ -153,10 +186,12 @@ export type {
   HubStatus,
   HumidifierCommands,
   HumidifierStatus,
+  ImageFrameStatus,
   KeypadStatus,
   LeakStatus,
   LockCommands,
   LockStatus,
+  MeterProCO2Status,
   MeterStatus,
   MotionStatus,
   PlugCommands,

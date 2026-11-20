@@ -1,3 +1,18 @@
+## [6.1.3](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.1.2...v6.1.3) (2026-11-20)
+
+
+### Bug Fixes
+
+* **roller-shade:** send Roller Shade commands instead of Curtain commands ([2232e62](https://github.com/OpenWonderLabs/node-switchbot/commit/2232e62096a2a37f6c4fa9656eae5589690a5a9f)), closes [#365](https://github.com/OpenWonderLabs/node-switchbot/issues/365)
+
+
+### Features
+
+* **art-frame-2:** resolve the AI Art Frame 2 OpenAPI type ([1eddfa6](https://github.com/OpenWonderLabs/node-switchbot/commit/1eddfa601564da9e298cb8dfc0b4838d4b8f5ae6))
+* port pySwitchbot 3.8.3-3.15.1 ([bcde5a9](https://github.com/OpenWonderLabs/node-switchbot/commit/bcde5a9b92c3e2cf63e826c177d0cbf5a6757fcb))
+
+
+
 ## [6.1.2](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.1.1...v6.1.2) (2026-11-16)
 
 
