@@ -131,14 +131,17 @@ test/                    # Vitest: apis/, devices/, types/, utils/
 - Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `chore:`). Use `feat!:` with a
   `BREAKING CHANGE:` footer when public identities, enums or behaviour change.
 - Default branch is `latest`. PRs are squash-merged, so the PR title becomes the commit message.
-- `.github/workflows/ci.yml` runs build, test and lint on Node 22, 24 and 26 for every PR to `latest`
-  or `beta-*`. Run the full check locally first anyway.
-- `.github/workflows/release.yml`:
-  - push to `beta-*`: build, test, lint, then publish a beta to npm;
-  - push to `latest`: bump version, update the changelog and publish a stable release.
+- `.github/workflows/ci.yml` runs build, test and lint on Node 22, 24 and 26 for every PR to `latest`.
+  Run the full check locally first anyway.
+- `.github/workflows/release.yml`: a push to `latest` bumps the version, updates the changelog and
+  publishes a stable release. (It still publishes a beta for pushes to `beta-*`, but those branches
+  are no longer used.)
+- The version bump comes from the merged PR's label: `patch`, `minor` (new features or devices) or
+  `major` (breaking changes). With no label it is a patch.
 - Changes with no effect on the published package (docs, CI, contributor tooling) should not cut a
   release: end the PR title with `[skip ci]` so the merge to `latest` skips `release.yml`. Do not
   put `[skip ci]` in branch commit messages; that also skips the PR's own CI.
-- If a `beta-*` branch newer than the current version exists, target it; otherwise target `latest`.
+- Branch from `latest` and target every PR at `latest`. Do not create, target or push to `beta-*`
+  branches; if something needs fixing after a release, release a patch from `latest`.
 - PR description: what changed, why (link the pySwitchbot release/PR being ported), and any breaking
   changes with migration notes for homebridge-switchbot.
