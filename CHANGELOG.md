@@ -1,3 +1,12 @@
+## [6.1.4](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.1.3...v6.1.4) (2026-11-20)
+
+
+### Features
+
+* support new OpenAPI device types from SwitchBotAPI (November 2026) ([#368](https://github.com/OpenWonderLabs/node-switchbot/issues/368)) ([97afccd](https://github.com/OpenWonderLabs/node-switchbot/commit/97afccd3a692a611a932a61fe5a91bf8ca2e5a47)), closes [OpenWonderLabs/SwitchBotAPI#520](https://github.com/OpenWonderLabs/SwitchBotAPI/issues/520) [#526](https://github.com/OpenWonderLabs/node-switchbot/issues/526) [#366](https://github.com/OpenWonderLabs/node-switchbot/issues/366)
+
+
+
 ## [6.1.3](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.1.2...v6.1.3) (2026-11-20)
 
 
