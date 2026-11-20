@@ -11,7 +11,7 @@ import { EventEmitter } from 'node:events'
 
 import { BLENotAvailableError, CommandFailedError, DeviceNotFoundError } from './errors.js'
 import { BLE_COMMAND_TIMEOUT, BLE_CONNECT_TIMEOUT, BLE_NOTIFY_CHARACTERISTIC_UUID, BLE_SCAN_TIMEOUT, BLE_SERVICE_UUID, BLE_WRITE_CHARACTERISTIC_UUID, DEVICE_MODEL_MAP, findProductId, PRODUCT_ID_MODEL_MAP } from './settings.js'
-import { extractMacFromManufacturerData, isPassiveSensorModel, isValidMAC, LOCK_FAMILY_BY_DEVICE_TYPE, Logger, macToDeviceId, mergeAdvertisement, normalizeMAC, parseCurtainAdvertisement, parseLockAdvertisement, parseSensorAdvertisement, switchBotManufacturerPayload, withTimeout } from './utils/index.js'
+import { extractMacFromManufacturerData, IMAGE_FRAME_DEVICE_TYPES, isPassiveSensorModel, isValidMAC, LOCK_FAMILY_BY_DEVICE_TYPE, Logger, macToDeviceId, mergeAdvertisement, normalizeMAC, parseCurtainAdvertisement, parseImageFrameAdvertisement, parseLockAdvertisement, parseSensorAdvertisement, switchBotManufacturerPayload, withTimeout } from './utils/index.js'
 // Move RegExp to module scope to avoid re-compilation
 const CHARACTERISTIC_REGEX = /characteristic/i
 const UUID_DASH_REGEX = /-/g
@@ -349,6 +349,14 @@ export class BLEScanner extends EventEmitter {
               serviceData[key] = value
             }
           }
+        }
+      }
+
+      // Art Frame 2 and E Ink Photo Magnet: state from the manufacturer data (pySwitchbot)
+      if (IMAGE_FRAME_DEVICE_TYPES.has(modelName)) {
+        const frame = parseImageFrameAdvertisement(manufacturerPayload)
+        if (frame) {
+          Object.assign(serviceData, frame)
         }
       }
 

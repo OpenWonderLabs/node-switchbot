@@ -113,7 +113,8 @@ test/                    # Vitest: apis/, devices/, types/, utils/
 1. Create `src/devices/wo-<model>.ts` extending `SwitchBotDevice` (or the closest existing class).
 2. Export it from `src/devices/index.ts` and `src/index.ts`, and register it in `DEVICE_CLASSES` in
    `src/switchbot.ts`.
-3. Map its BLE byte(s) in `DEVICE_MODEL_MAP` and its names/codes in `DEVICE_CLASS_MAP`.
+3. Map its BLE byte(s) in `DEVICE_MODEL_MAP` (or, for a product without a model byte, its product
+   IDs in `PRODUCT_ID_MODEL_MAP`) and its names/cloud model codes in `DEVICE_CLASS_MAP`.
 4. Add tests under `test/devices/`.
 
 ## Conventions

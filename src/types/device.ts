@@ -102,6 +102,20 @@ export interface MeterProCO2Status extends MeterStatus {
 }
 
 /**
+ * Art Frame 2 and E Ink Photo Magnet status. Over BLE it comes from the advertisement
+ * (pySwitchbot `process_image_frame`).
+ */
+export interface ImageFrameStatus extends DeviceStatus {
+  batteryCharging?: boolean
+  /** Id of the image on screen */
+  imageIndex?: number
+  displaySize?: number
+  displayMode?: number
+  lastNetworkStatus?: number
+  orientation?: number
+}
+
+/**
  * Contact Sensor specific types
  */
 export interface ContactStatus extends DeviceStatus {

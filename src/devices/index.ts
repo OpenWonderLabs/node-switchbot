@@ -10,6 +10,8 @@ export { WoAIHub } from './wo-ai-hub.js'
 export { WoAirPurifierPM25 } from './wo-air-purifier-pm25.js'
 export { WoAirPurifierTable } from './wo-air-purifier-table.js'
 export { WoAirPurifier } from './wo-air-purifier.js'
+export { imageIdsFromBitmap, parseImageFrameInfo, WoArtFrame2 } from './wo-art-frame2.js'
+export type { ImageFrameInfo } from './wo-art-frame2.js'
 export { WoArtFrame } from './wo-art-frame.js'
 export { WoBlindTilt } from './wo-blind-tilt.js'
 export { WoBulb } from './wo-bulb.js'
@@ -19,6 +21,7 @@ export { WoCirculatorFan } from './wo-circulator-fan.js'
 export { WoClimatePanel } from './wo-climate-panel.js'
 export { WoContact } from './wo-contact.js'
 export { WoCurtain } from './wo-curtain.js'
+export { WoEInkPhotoMagnet } from './wo-e-ink-photo-magnet.js'
 export { WoFloorLamp } from './wo-floor-lamp.js'
 export { WoGarageDoorOpener } from './wo-garage-door-opener.js'
 export { WoHand } from './wo-hand.js'
@@ -36,7 +39,8 @@ export { WoLeak } from './wo-leak.js'
 export { WoSmartLockLite } from './wo-lock-lite.js'
 export { WoSmartLockNano } from './wo-lock-nano.js'
 export { WoSmartLockProWiFi } from './wo-lock-pro-wifi.js'
-export { WoSmartLockPro } from './wo-lock-pro.js'
+export { parseLockBatteryBays, WoSmartLockPro } from './wo-lock-pro.js'
+export type { LockBatteryBays } from './wo-lock-pro.js'
 export { buildQuickKeyCommand, parseQuickKeyConfig, QuickKeyFunction, WoSmartLockUltra } from './wo-lock-ultra.js'
 export type { QuickKeySettings, QuickKeyUpdate } from './wo-lock-ultra.js'
 export { WoSmartLockVisionPro } from './wo-lock-vision-pro.js'
@@ -58,7 +62,34 @@ export { WoRGBICWWStripLight } from './wo-rgbicww-strip-light.js'
 export { WoRollerShade } from './wo-roller-shade.js'
 export { WoSensorTHPlus } from './wo-sensor-th-plus.js'
 export { WoSensorTHProCO2 } from './wo-sensor-th-pro-co2.js'
-export { WoSensorTHPro } from './wo-sensor-th-pro.js'
+export type { MeterProCO2Alarm, MeterProCO2LevelThresholds } from './wo-sensor-th-pro-co2.js'
+export {
+  encodeMeterProTemperature,
+  MeterProAlarmMode,
+  MeterProAlarmVolume,
+  MeterProCO2AlarmMode,
+  MeterProCO2AlarmStatus,
+  MeterProComfortStatus,
+  MeterProDateFormat,
+  MeterProDisplaySource,
+  MeterProDisplayZone,
+  MeterProTemperatureHumidityAlarmMode,
+  MeterProTemperatureHumidityAlarmStatus,
+  MeterProWeatherIcon,
+  MeterProZoneIcon,
+  WoSensorTHPro,
+} from './wo-sensor-th-pro.js'
+export type {
+  MeterProAlarmSettings,
+  MeterProButtonFunctions,
+  MeterProCalibration,
+  MeterProComfortLevel,
+  MeterProDisplaySettings,
+  MeterProTemperatureHumidityAlarm,
+  MeterProWeather,
+  MeterProWeatherUpdate,
+  MeterProZoneSettings,
+} from './wo-sensor-th-pro.js'
 export { WoSensorTH } from './wo-sensor-th.js'
 export { WoSmartThermostatRadiator } from './wo-smart-thermostat-radiator.js'
 export { WoStripLight3 } from './wo-strip-light-3.js'
