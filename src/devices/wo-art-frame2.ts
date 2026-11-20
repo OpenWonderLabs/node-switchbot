@@ -77,7 +77,8 @@ export function imageIdsFromBitmap(bitmap: Buffer): number[] {
  * Art Frame 2 (pySwitchbot `SwitchbotArtFrame2`, pySwitchbot 3.10.0): an encrypted image frame
  * with 16-bit image ids. Set the account's key with `device.setKey({ keyId, encryptionKey })`.
  *
- * Status comes from the advertisement. The commands are BLE only.
+ * Status comes from the advertisement. The commands are BLE only, except next/previous image,
+ * which fall back to the OpenAPI `next` and `previous` commands.
  */
 export class WoArtFrame2 extends SequenceDevice {
   /** Frame state comes from the manufacturer data in advertisements, as in pySwitchbot */
@@ -154,14 +155,30 @@ export class WoArtFrame2 extends SequenceDevice {
     return this.run(Buffer.from([...COMMAND_SET_IMAGE_PREFIX, ...id]), 'setImage')
   }
 
-  /** Show the next stored image */
+  /** Show the next stored image (OpenAPI `next` when BLE is unavailable or fails) */
   async nextImage(): Promise<boolean> {
-    return this.run(COMMAND_NEXT_IMAGE, 'nextImage')
+    return this.runWithAPIFallback(COMMAND_NEXT_IMAGE, 'nextImage', 'next')
   }
 
-  /** Show the previous stored image */
+  /** Show the previous stored image (OpenAPI `previous` when BLE is unavailable or fails) */
   async prevImage(): Promise<boolean> {
-    return this.run(COMMAND_PREV_IMAGE, 'prevImage')
+    return this.runWithAPIFallback(COMMAND_PREV_IMAGE, 'prevImage', 'previous')
+  }
+
+  /** Run a BLE command; fall back to an OpenAPI command when BLE is unavailable or fails */
+  private async runWithAPIFallback(command: readonly number[], operation: string, apiCommand: string): Promise<boolean> {
+    if (this.hasBLE() || !this.hasAPI()) {
+      try {
+        return await this.run(command, operation)
+      } catch (error) {
+        if (!this.enableFallback || !this.hasAPI()) {
+          throw error
+        }
+        this.logger.debug(`${operation} over BLE failed, falling back to API`, error)
+      }
+    }
+    const result = await this.sendAPICommand(apiCommand)
+    return result.success
   }
 
   /** Show a random stored user image other than the current one */

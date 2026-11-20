@@ -122,4 +122,15 @@ describe('openAPI commands', () => {
     expect(resolveDeviceClassName('Robot Vacuum Cleaner K20 Plus Pro')).toBe('WoVacuumK20')
     expect(resolveDeviceClassName('Robot Vacuum Cleaner S1')).toBe('WoVacuum')
   })
+  // AI Art Frame 2: next and previous (devices/others/ai-art-frame-2.md)
+  it('aI Art Frame 2 resolves to WoArtFrame2 and uses next and previous', async () => {
+    expect(resolveDeviceClassName('AI Art Frame 2')).toBe('WoArtFrame2')
+    const { device, calls } = await apiDevice('AI Art Frame 2')
+    await device.nextImage()
+    await device.prevImage()
+    expect(calls()).toEqual([
+      ['next', undefined],
+      ['previous', undefined],
+    ])
+  })
 })

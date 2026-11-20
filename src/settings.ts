@@ -505,6 +505,7 @@ export const DEVICE_CLASS_MAP: Record<string, string> = {
   'AI Art Frame': 'WoArtFrame',
   'SwitchBot Art Frame': 'WoArtFrame',
   'Art Frame 2': 'WoArtFrame2',
+  'AI Art Frame 2': 'WoArtFrame2',
   'W1176000': 'WoArtFrame2', // pySwitchbot API_MODEL_TO_ENUM cloud model code
   'E Ink Photo Magnet': 'WoEInkPhotoMagnet',
   'W1218000': 'WoEInkPhotoMagnet', // pySwitchbot API_MODEL_TO_ENUM cloud model code
