@@ -71,7 +71,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^8.1.1",
-    "@types/node": "^25.6.0",
+    "@types/node": "^26.6.7",
     "@vitest/coverage-v8": "^5.1.2",
     "eslint": "^10.2.0",
     "eslint-plugin-format": "^2.0.1",
