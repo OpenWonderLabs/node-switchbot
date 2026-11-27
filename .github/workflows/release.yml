@@ -8,6 +8,14 @@ on:
       - 'latest'
   workflow_dispatch:
 
+# Run one release at a time per branch. Without this, merging several PRs in
+# a row starts parallel runs that race to publish the same version. A run in
+# progress is never cancelled; of the runs waiting, only the newest is kept,
+# and it releases everything merged so far.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   # ─── BETA RELEASE (branches starting with "beta") ────────────────────────────
 

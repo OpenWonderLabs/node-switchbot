@@ -10,6 +10,14 @@ updates:
     target-branch: 'latest'
     schedule:
       interval: 'daily'
+    ignore:
+      # typedoc 0.28 accepts TypeScript up to 6.0.x; 7 breaks npm ci (#375, #382)
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
+    groups:
+      # vitest and its plugins must move together (peer ranges)
+      vitest:
+        patterns: ['vitest', '@vitest/*']
   - package-ecosystem: 'github-actions' # See documentation for possible values
     directory: '/' # Location of package manifests
     target-branch: 'latest'
