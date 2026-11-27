@@ -1,3 +1,12 @@
+## [6.2.1](https://github.com/OpenWonderLabs/node-switchbot/compare/v7.0.0...v6.2.1) (2026-11-27)
+
+
+### Reverts
+
+* typescript 7 ([#375](https://github.com/OpenWonderLabs/node-switchbot/issues/375)) [skip ci] ([#382](https://github.com/OpenWonderLabs/node-switchbot/issues/382)) ([ef343cd](https://github.com/OpenWonderLabs/node-switchbot/commit/ef343cd20623cdf8c29a941b2775a0b525e6ee05))
+
+
+
 ## [6.1.4](https://github.com/OpenWonderLabs/node-switchbot/compare/v6.1.3...v6.1.4) (2026-11-20)
 
 
