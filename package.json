@@ -78,7 +78,7 @@
     "eslint-plugin-perfectionist": "^5.8.0",
     "shx": "^0.4.0",
     "typedoc": "^0.28.18",
-    "typescript": "^6.0.2",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.4"
   },
   "overrides": {
